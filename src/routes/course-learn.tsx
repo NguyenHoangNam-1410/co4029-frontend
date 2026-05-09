@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { Link, useParams } from "@tanstack/react-router";
+import ReactMarkdown from "react-markdown";
 import {
   Play,
   Volume2,
@@ -8,14 +9,12 @@ import {
   Captions,
   CheckCircle2,
   PlayCircle,
+  BookOpen,
   Lock,
   ChevronLeft,
   ChevronRight,
   Clock,
-  Bot,
   Mic,
-  Mail,
-  Calendar,
   ArrowRight,
   FileText,
   Download,
@@ -23,8 +22,6 @@ import {
   HelpCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { AIInsightChip } from "@/components/ui/ai-insight-chip";
 import { GradientProgress } from "@/components/ui/gradient-progress";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -33,9 +30,9 @@ import {
   useCourseContent,
   useCourseStatus,
   useCourseLessonsProgress,
-  useCourseModulesStatus,
   useLessonResources,
   useMaterialStreamUrl,
+  fetchResourceDownloadUrl,
   formatMinutes,
   type CourseContentItem,
   type CourseContentModule,
@@ -82,7 +79,6 @@ export default function CourseLearnPage() {
   const { data: content, isLoading: contentLoading } = useCourseContent(courseId);
   const { data: courseStatus } = useCourseStatus(courseId);
   const { data: lessonsProgress } = useCourseLessonsProgress(courseId);
-  const { data: modulesStatus } = useCourseModulesStatus(courseId);
 
   /* ── Build flat item list from content ── */
   const flatItems = useMemo<FlatItem[]>(() => {
@@ -143,22 +139,6 @@ export default function CourseLearnPage() {
 
   /* ── Video stream URL ── */
   const { data: streamData } = useMaterialStreamUrl(activeLesson?.primary_material_id);
-
-  /* ── Module status for active module (interview unlock) ── */
-  const activeModuleStatus = useMemo(() => {
-    if (!activeEntry || !modulesStatus) return null;
-    return modulesStatus.modules.find((m) => m.module_id === activeEntry.moduleId) ?? null;
-  }, [activeEntry, modulesStatus]);
-
-  const activeModule = useMemo(
-    () => content?.modules.find((m) => m.id === activeEntry?.moduleId) ?? null,
-    [content, activeEntry]
-  );
-
-  const interviewUnlocked =
-    !!activeModuleStatus &&
-    activeModuleStatus.lesson_completion_ratio >= 1 &&
-    activeModuleStatus.quiz_passed;
 
   /* ── Lesson resources (loaded when Resources tab active) ── */
   const lessonIdForResources = activeTab === "Resources" ? (activeLesson?.id ?? undefined) : undefined;
@@ -224,44 +204,63 @@ export default function CourseLearnPage() {
               Main Content
           ════════════════════════════════════════ */}
           <div className="flex-1 min-w-0 flex flex-col gap-6">
-            {/* ── Video Player ── */}
-            <div className="relative group rounded-2xl overflow-hidden bg-slate-900 shadow-2xl aspect-video">
-              {streamData ? (
-                <video
-                  src={streamData.stream_url}
-                  className="absolute inset-0 w-full h-full object-contain"
-                  controls
-                />
-              ) : (
-                <>
-                  <div className="absolute inset-0 bg-gradient-to-br from-violet-900 via-indigo-800 to-slate-900 opacity-80" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <button className="w-20 h-20 bg-m3-primary/90 text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-transform active:scale-95 group-hover:bg-m3-secondary">
-                      <Play className="h-9 w-9 fill-white" />
-                    </button>
+            {/* ── Main content area: video or reading ── */}
+            {activeLesson?.lesson_type === "reading" ? (
+              <GlassCard className="p-6 sm:p-10 min-h-[260px]">
+                <div className="flex items-center gap-2 mb-5">
+                  <BookOpen className="h-5 w-5 text-m3-secondary" />
+                  <span className="text-xs font-bold uppercase tracking-widest text-m3-secondary font-label">
+                    Reading
+                  </span>
+                </div>
+                {activeLesson.notes_markdown ? (
+                  <div className="prose prose-sm max-w-none text-m3-on-surface">
+                    <ReactMarkdown>{activeLesson.notes_markdown}</ReactMarkdown>
                   </div>
-                  {/* Placeholder controls */}
-                  <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-slate-900/90 to-transparent">
-                    <div className="w-full h-1 bg-white/20 rounded-full mb-3">
-                      <div className="h-full w-0 bg-white/80 rounded-full" />
+                ) : activeLesson.summary ? (
+                  <p className="text-m3-on-surface-variant text-base leading-relaxed">{activeLesson.summary}</p>
+                ) : (
+                  <p className="text-m3-on-surface-variant text-sm">Reading content is not available yet.</p>
+                )}
+              </GlassCard>
+            ) : (
+              <div className="relative group rounded-2xl overflow-hidden bg-slate-900 shadow-2xl aspect-video">
+                {streamData ? (
+                  <video
+                    src={streamData.stream_url}
+                    className="absolute inset-0 w-full h-full object-contain"
+                    controls
+                  />
+                ) : (
+                  <>
+                    <div className="absolute inset-0 bg-gradient-to-br from-violet-900 via-indigo-800 to-slate-900 opacity-80" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <button className="w-20 h-20 bg-m3-primary/90 text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-transform active:scale-95 group-hover:bg-m3-secondary">
+                        <Play className="h-9 w-9 fill-white" />
+                      </button>
                     </div>
-                    <div className="flex items-center justify-between text-white">
-                      <div className="flex items-center gap-3">
-                        <Volume2 className="h-5 w-5" />
-                        <span className="text-xs font-mono">
-                          {activeLesson?.estimated_minutes ? `0:00 / ${formatMinutes(activeLesson.estimated_minutes)}` : "0:00"}
-                        </span>
+                    <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-slate-900/90 to-transparent">
+                      <div className="w-full h-1 bg-white/20 rounded-full mb-3">
+                        <div className="h-full w-0 bg-white/80 rounded-full" />
                       </div>
-                      <div className="flex items-center gap-3">
-                        <Captions className="h-5 w-5 opacity-70 hover:opacity-100 cursor-pointer" />
-                        <Settings className="h-5 w-5 opacity-70 hover:opacity-100 cursor-pointer" />
-                        <Maximize className="h-5 w-5 opacity-70 hover:opacity-100 cursor-pointer" />
+                      <div className="flex items-center justify-between text-white">
+                        <div className="flex items-center gap-3">
+                          <Volume2 className="h-5 w-5" />
+                          <span className="text-xs font-mono">
+                            {activeLesson?.estimated_minutes ? `0:00 / ${formatMinutes(activeLesson.estimated_minutes)}` : "0:00"}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Captions className="h-5 w-5 opacity-70 hover:opacity-100 cursor-pointer" />
+                          <Settings className="h-5 w-5 opacity-70 hover:opacity-100 cursor-pointer" />
+                          <Maximize className="h-5 w-5 opacity-70 hover:opacity-100 cursor-pointer" />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </>
-              )}
-            </div>
+                  </>
+                )}
+              </div>
+            )}
 
             {/* ── Lesson Title & Meta ── */}
             {activeItem && (
@@ -270,7 +269,6 @@ export default function CourseLearnPage() {
                   {activeEntry?.label}
                 </h1>
                 <div className="flex flex-wrap items-center gap-3">
-                  <AIInsightChip pulse>AI INSIGHT AVAILABLE</AIInsightChip>
                   {activeLesson?.estimated_minutes && (
                     <>
                       <span className="text-m3-outline text-xs">•</span>
@@ -280,10 +278,6 @@ export default function CourseLearnPage() {
                       </span>
                     </>
                   )}
-                  <span className="text-m3-outline text-xs">•</span>
-                  <span className="text-m3-on-surface-variant text-sm capitalize">
-                    {activeItem.item_type}
-                  </span>
                   {activeItem.item_type === "quiz" && activeItem.quiz_id && (
                     <Link
                       to="/courses/$slug/quiz/$quizId"
@@ -303,126 +297,25 @@ export default function CourseLearnPage() {
               </div>
             )}
 
-            {/* ── AI Interview + Instructor bento ── */}
-            {activeModule && (
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-                {/* AI Interview card — 7 cols */}
-                <div className="lg:col-span-7 relative group">
-                  <div className={cn(
-                    "h-full rounded-2xl p-6 sm:p-8 overflow-hidden flex flex-col justify-between border shadow-lg transition-all duration-500",
-                    interviewUnlocked
-                      ? "bg-gradient-to-br from-m3-primary/95 to-m3-secondary border-m3-secondary/40 shadow-ai-glow"
-                      : "glass ghost-border border-m3-secondary/20"
-                  )}>
-                    <div className="absolute top-0 right-0 p-10 opacity-[0.07] pointer-events-none group-hover:scale-110 transition-transform duration-700">
-                      <Bot className={cn("h-40 w-40", interviewUnlocked && "text-white")} />
-                    </div>
-
-                    <div className="relative z-10">
-                      <div className="flex items-center gap-3 mb-5">
-                        <div className={cn(
-                          "w-11 h-11 rounded-xl flex items-center justify-center shadow-md",
-                          interviewUnlocked ? "bg-white/20 text-white" : "bg-m3-secondary text-white shadow-ai-glow"
-                        )}>
-                          {interviewUnlocked ? <Mic className="h-5 w-5" /> : <Lock className="h-5 w-5" />}
-                        </div>
-                        <div>
-                          <h2 className={cn(
-                            "text-xl font-headline font-bold",
-                            interviewUnlocked ? "text-white" : "text-m3-primary"
-                          )}>
-                            {interviewUnlocked ? "AI Interview Ready" : "Unlock AI Interview"}
-                          </h2>
-                          <p className={cn(
-                            "text-xs font-semibold tracking-wide",
-                            interviewUnlocked ? "text-white/70" : "text-m3-on-surface-variant"
-                          )}>
-                            {activeModule.title}
-                          </p>
-                        </div>
-                      </div>
-
-                      <p className={cn(
-                        "text-sm leading-relaxed mb-6 max-w-sm",
-                        interviewUnlocked ? "text-white/80" : "text-m3-on-surface-variant"
-                      )}>
-                        {interviewUnlocked
-                          ? "You've passed all requirements. Step into your AI-powered interview and prove your mastery."
-                          : "Put your knowledge to the test with our adaptive AI simulator. Get real-time feedback on your technical explanations."}
-                      </p>
-
-                      <UnlockRequirements
-                        moduleTitle={activeModule.title}
-                        moduleStatus={activeModuleStatus}
-                        activeModule={activeModule}
-                        interviewUnlocked={interviewUnlocked}
-                      />
-                    </div>
-
-                    {interviewUnlocked ? (
-                      <Link
-                        to="/courses/$slug/interview/$moduleId"
-                        params={{ slug, moduleId: activeModule.id }}
-                        className="mt-8 block"
-                      >
-                        <Button className="w-full bg-white text-m3-primary font-bold rounded-xl py-5 h-auto hover:bg-white/90 active:scale-[0.98] transition-all shadow-lg gap-2 text-base">
-                          <Mic className="h-5 w-5" />
-                          Enter Interview
-                        </Button>
-                      </Link>
-                    ) : (
-                      <Button
-                        className="mt-8 w-full gradient-primary text-white font-bold rounded-xl py-5 h-auto opacity-40 cursor-not-allowed"
-                        disabled
-                      >
-                        <Lock className="h-4 w-4 mr-2" />
-                        Complete Requirements First
-                      </Button>
-                    )}
-                  </div>
+            {/* ── Instructor card ── */}
+            {course.instructor && (
+              <div className="glass ghost-border rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-center gap-6 shadow-sm">
+                <Avatar className="h-20 w-20 shrink-0 ring-4 ring-white shadow-xl">
+                  <AvatarFallback className="gradient-primary text-white text-xl font-bold font-headline">
+                    {initials(course.instructor.display_name)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="text-center sm:text-left">
+                  <h3 className="text-lg font-headline font-bold text-m3-primary">
+                    {course.instructor.display_name}
+                  </h3>
+                  <p className="text-m3-secondary font-semibold text-xs mt-0.5 mb-2">Instructor</p>
+                  {course.instructor.bio && (
+                    <p className="text-m3-on-surface-variant text-sm leading-relaxed">
+                      {course.instructor.bio}
+                    </p>
+                  )}
                 </div>
-
-                {/* Instructor card — 5 cols */}
-                {course.instructor && (
-                  <div className="lg:col-span-5">
-                    <div className="h-full glass ghost-border rounded-2xl p-6 sm:p-8 flex flex-col items-center text-center shadow-sm">
-                      <Avatar className="h-20 w-20 mb-4 ring-4 ring-white shadow-xl">
-                        <AvatarFallback className="gradient-primary text-white text-xl font-bold font-headline">
-                          {initials(course.instructor.display_name)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <h3 className="text-lg font-headline font-bold text-m3-primary">
-                        {course.instructor.display_name}
-                      </h3>
-                      <p className="text-m3-secondary font-semibold text-xs mt-0.5 mb-3">Instructor</p>
-
-                      {course.instructor.bio && (
-                        <p className="text-m3-on-surface-variant text-xs leading-relaxed mb-5 line-clamp-4">
-                          {course.instructor.bio}
-                        </p>
-                      )}
-
-                      <div className="flex gap-3 w-full mt-auto">
-                        <Button
-                          variant="outline"
-                          className="flex-1 ghost-border rounded-xl text-xs font-bold text-m3-primary hover:bg-m3-surface-container"
-                          size="sm"
-                        >
-                          <Mail className="h-3.5 w-3.5 mr-1.5" />
-                          Message
-                        </Button>
-                        <Button
-                          variant="outline"
-                          className="flex-1 ghost-border rounded-xl text-xs font-bold text-m3-primary hover:bg-m3-surface-container"
-                          size="sm"
-                        >
-                          <Calendar className="h-3.5 w-3.5 mr-1.5" />
-                          Office Hours
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             )}
 
@@ -483,16 +376,10 @@ export default function CourseLearnPage() {
                   <div className="flex items-center gap-2 mb-4">
                     <FileText className="h-4 w-4 text-m3-secondary" />
                     <h4 className="font-headline font-bold text-m3-on-surface text-sm">Lesson Notes</h4>
-                    <Badge className="ml-auto bg-m3-secondary/10 text-m3-secondary border-0 text-[10px] flex items-center gap-1">
-                      <Sparkles className="h-2.5 w-2.5" />
-                      AI Generated
-                    </Badge>
                   </div>
                   {activeLesson.notes_markdown ? (
                     <div className="prose prose-sm max-w-none text-m3-on-surface-variant">
-                      <pre className="whitespace-pre-wrap text-sm leading-relaxed font-sans">
-                        {activeLesson.notes_markdown}
-                      </pre>
+                      <ReactMarkdown>{activeLesson.notes_markdown}</ReactMarkdown>
                     </div>
                   ) : (
                     <p className="text-m3-on-surface-variant text-sm leading-relaxed">
@@ -558,16 +445,30 @@ export default function CourseLearnPage() {
                           <p className="text-sm font-semibold text-m3-on-surface truncate">{file.title}</p>
                           <p className="text-[10px] text-m3-outline uppercase">{file.resource_type}</p>
                         </div>
-                        {/* Download URL not yet available — storage_object_id needs a separate URL endpoint */}
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-8 w-8 rounded-xl text-m3-secondary hover:bg-m3-secondary/10"
-                          disabled
-                          title="Download links coming soon"
-                        >
-                          <Download className="h-4 w-4" />
-                        </Button>
+                        {file.storage_object_id ? (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8 rounded-xl text-m3-secondary hover:bg-m3-secondary/10"
+                            title="Download"
+                            onClick={async () => {
+                              const url = await fetchResourceDownloadUrl(file.id);
+                              window.open(url, "_blank", "noopener,noreferrer");
+                            }}
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        ) : (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8 rounded-xl text-m3-secondary hover:bg-m3-secondary/10"
+                            disabled
+                            title="No file attached"
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        )}
                       </div>
                     ))
                   )}
@@ -621,13 +522,6 @@ export default function CourseLearnPage() {
         </div>
       </div>
 
-      {/* ── Floating Ask AI button ── */}
-      <div className="fixed bottom-8 right-8 z-50">
-        <Button className="flex items-center gap-2.5 px-5 py-3 gradient-primary text-white rounded-full shadow-ai-glow hover:opacity-90 active:scale-95 transition-all font-headline font-bold text-sm h-auto">
-          <Bot className="h-5 w-5" />
-          Ask aBridge AI
-        </Button>
-      </div>
     </div>
   );
 }
@@ -662,6 +556,9 @@ function ModuleSection({
         const state = itemState(idx);
         const isQuiz = fi.item.item_type === "quiz";
         const isInterview = fi.item.item_type === "interview";
+        const isReading = fi.item.lesson?.lesson_type === "reading";
+
+        const LessonIcon = isReading ? BookOpen : PlayCircle;
 
         return (
           <button
@@ -678,8 +575,8 @@ function ModuleSection({
             )}
           >
             {state === "completed" && <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-emerald-500 fill-emerald-100" />}
-            {state === "active" && <PlayCircle className="h-4 w-4 flex-shrink-0" />}
-            {state === "pending" && !isQuiz && !isInterview && <PlayCircle className="h-4 w-4 flex-shrink-0 opacity-40" />}
+            {state === "active" && <LessonIcon className="h-4 w-4 flex-shrink-0" />}
+            {state === "pending" && !isQuiz && !isInterview && <LessonIcon className="h-4 w-4 flex-shrink-0 opacity-40" />}
             {state === "pending" && isQuiz && <HelpCircle className="h-4 w-4 flex-shrink-0 opacity-60" />}
             {isInterview && <Mic className="h-4 w-4 flex-shrink-0" />}
             {state === "locked" && <Lock className="h-4 w-4 flex-shrink-0" />}
@@ -697,51 +594,3 @@ function ModuleSection({
   );
 }
 
-function UnlockRequirements({
-  moduleTitle,
-  moduleStatus,
-  activeModule,
-  interviewUnlocked,
-}: {
-  moduleTitle: string;
-  moduleStatus: { lesson_completion_ratio: number; quiz_passed: boolean } | null;
-  activeModule: CourseContentModule;
-  interviewUnlocked: boolean;
-}) {
-  const lessonsComplete = (moduleStatus?.lesson_completion_ratio ?? 0) >= 1;
-  const quizPassed = moduleStatus?.quiz_passed ?? false;
-  const hasQuizzes = activeModule.items.some((i) => i.item_type === "quiz");
-
-  return (
-    <div className="space-y-3">
-      <p className={cn(
-        "text-[10px] font-bold uppercase tracking-widest font-label",
-        interviewUnlocked ? "text-white/60" : "text-m3-secondary"
-      )}>
-        Requirements to Unlock
-      </p>
-      <ul className="space-y-2.5">
-        <li className="flex items-center gap-2.5 text-sm">
-          {lessonsComplete
-            ? <CheckCircle2 className="h-4 w-4 text-emerald-400 flex-shrink-0 fill-emerald-400/20" />
-            : <div className="h-4 w-4 rounded-full border-2 border-m3-outline-variant flex-shrink-0" />
-          }
-          <span className={interviewUnlocked ? "text-white/90" : lessonsComplete ? "text-m3-on-surface" : "text-m3-outline"}>
-            Complete all {moduleTitle} lessons
-          </span>
-        </li>
-        {hasQuizzes && (
-          <li className="flex items-center gap-2.5 text-sm">
-            {quizPassed
-              ? <CheckCircle2 className="h-4 w-4 text-emerald-400 flex-shrink-0 fill-emerald-400/20" />
-              : <div className="h-4 w-4 rounded-full border-2 border-m3-outline-variant flex-shrink-0" />
-            }
-            <span className={interviewUnlocked ? "text-white/90" : quizPassed ? "text-m3-on-surface" : "text-m3-outline"}>
-              Pass {moduleTitle} Quiz (80%+)
-            </span>
-          </li>
-        )}
-      </ul>
-    </div>
-  );
-}

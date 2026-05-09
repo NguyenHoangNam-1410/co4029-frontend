@@ -53,8 +53,9 @@ export default function SideNavBar({ navItems, className, collapsed = false, onT
       {/* Nav Items */}
       <nav className="flex-1 flex flex-col gap-1 px-2 overflow-y-auto">
         {navItems.map((item) => {
-          const isActive =
-            location.pathname === item.href || location.pathname.startsWith(item.href + "/");
+          const isActive = item.exact
+            ? location.pathname === item.href
+            : location.pathname === item.href || location.pathname.startsWith(item.href + "/");
           return (
             <Link
               key={item.href}

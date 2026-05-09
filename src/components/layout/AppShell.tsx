@@ -50,7 +50,9 @@ export default function AppShell({ children, navItems }: AppShellProps) {
         )}
       >
         <ContentTopBar />
-        {children}
+        <div className="px-4 sm:px-6 lg:px-10">
+          {children}
+        </div>
       </main>
     </div>
   );

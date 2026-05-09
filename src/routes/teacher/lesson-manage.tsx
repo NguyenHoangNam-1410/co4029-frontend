@@ -1,338 +1,920 @@
-import { useState, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useParams } from "@tanstack/react-router";
 import {
-  ArrowLeft, Upload, FileText, Video, RefreshCw, CheckCircle, AlertCircle,
-  Clock, Sparkles, Loader2, Eye, EyeOff,
+  ArrowLeft, ArrowRight, Play, FileText, Download, Trash2, Plus,
+  Paperclip, Bold, Italic, List, Link as LinkIcon, Code, Image,
+  Upload, Sparkles, BookOpen, Video, BookMarked, Dumbbell,
+  CheckSquare, X, Archive, Loader2, Save, Brain, Pencil, Check,
+  Hash, AlignLeft, Search,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
-  useLessonMaterials,
-  useProcessingSummary,
-  useMaterialStatus,
+  useTeacherLesson,
+  useUpdateLesson,
+  useTeacherCourseById,
+  useTeacherCourseContent,
+  useTeacherLessonResources,
   useRequestUploadUrl,
+  useCreateLessonResource,
+  useDeleteLessonResource,
   useCreateMaterial,
-  useReprocessMaterial,
-  LESSON_TYPES,
-  type LearningMaterial,
+  useMaterialStreamUrl,
+  fetchTeacherResourceDownloadUrl,
+  type LessonResource,
+  type CourseContentLesson,
 } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
-const PROCESSING_STATUS_CONFIG: Record<string, { label: string; color: string; spin?: boolean }> = {
-  pending:    { label: "Pending",    color: "bg-slate-100 text-slate-500" },
-  extracting: { label: "Extracting", color: "bg-blue-100 text-blue-700", spin: true },
-  chunking:   { label: "Chunking",   color: "bg-violet-100 text-violet-700", spin: true },
-  embedding:  { label: "Embedding",  color: "bg-indigo-100 text-indigo-700", spin: true },
-  ready:      { label: "Ready",      color: "bg-emerald-100 text-emerald-700" },
-  failed:     { label: "Failed",     color: "bg-red-100 text-red-700" },
+/* ── Lesson type options ── */
+const LESSON_TYPE_OPTIONS = [
+  { value: "video",    label: "Video",    icon: Video },
+  { value: "reading",  label: "Reading",  icon: BookMarked },
+  { value: "quiz",     label: "Quiz",     icon: CheckSquare },
+  { value: "exercise", label: "Exercise", icon: Dumbbell },
+] as const;
+
+/* ── Resource file-type style map ── */
+const RESOURCE_STYLES: Record<string, { bg: string; text: string }> = {
+  pdf:  { bg: "bg-red-50",    text: "text-red-600" },
+  zip:  { bg: "bg-blue-50",   text: "text-blue-600" },
+  mp4:  { bg: "bg-purple-50", text: "text-purple-600" },
+  xlsx: { bg: "bg-green-50",  text: "text-green-600" },
+  pptx: { bg: "bg-orange-50", text: "text-orange-600" },
 };
 
-function MaterialCard({ material, lessonId }: { material: LearningMaterial; lessonId: string }) {
-  const { data: status } = useMaterialStatus(material.id);
-  const reprocess = useReprocessMaterial(lessonId);
+function resourceStyle(filename: string) {
+  const ext = filename.split(".").pop()?.toLowerCase() ?? "pdf";
+  return RESOURCE_STYLES[ext] ?? RESOURCE_STYLES.pdf;
+}
 
-  const proc = PROCESSING_STATUS_CONFIG[status?.processing_status ?? "pending"] ?? PROCESSING_STATUS_CONFIG.pending;
+function ToolbarBtn({ icon: Icon, label, onClick }: {
+  icon: React.ElementType; label: string; onClick?: () => void;
+}) {
+  return (
+    <button
+      type="button" aria-label={label} title={label} onClick={onClick}
+      className="p-2 rounded-lg transition-colors text-m3-on-surface-variant cursor-pointer hover:bg-m3-surface-container-high"
+    >
+      <Icon className="h-4 w-4" />
+    </button>
+  );
+}
+
+function makeMarkdownApplier(
+  getRef: () => HTMLTextAreaElement | null,
+  getNotes: () => string,
+  setNotes: (v: string) => void,
+) {
+  function applyMarkdown(before: string, after = before) {
+    const el = getRef();
+    if (!el) return;
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
+    const selected = getNotes().slice(start, end);
+    const inserted = before + selected + after;
+    setNotes(getNotes().slice(0, start) + inserted + getNotes().slice(end));
+    setTimeout(() => {
+      el.focus();
+      el.setSelectionRange(start + before.length, start + before.length + selected.length);
+    }, 0);
+  }
+
+  function applyBlock(prefix: string) {
+    const el = getRef();
+    if (!el) return;
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
+    const selected = getNotes().slice(start, end);
+    const lines = selected ? selected.split("\n").map((l) => prefix + l).join("\n") : prefix;
+    setNotes(getNotes().slice(0, start) + lines + getNotes().slice(end));
+    setTimeout(() => {
+      el.focus();
+      el.setSelectionRange(start, start + lines.length);
+    }, 0);
+  }
+
+  return { applyMarkdown, applyBlock };
+}
+
+function ResourceCard({ resource, onDelete }: { resource: LessonResource; onDelete: (id: string) => void }) {
+  const style = resourceStyle(resource.title);
+  const [downloading, setDownloading] = useState(false);
+
+  async function handleDownload() {
+    if (!resource.storage_object_id || downloading) return;
+    setDownloading(true);
+    try {
+      const url = await fetchTeacherResourceDownloadUrl(resource.id);
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch {
+      toast.error("Download failed");
+    } finally {
+      setDownloading(false);
+    }
+  }
 
   return (
-    <div className="flex items-center gap-4 p-4 bg-card rounded-2xl border border-m3-outline-variant">
-      <div className="h-10 w-10 rounded-xl bg-m3-surface-container flex items-center justify-center shrink-0">
-        {material.material_type === "video" ? (
-          <Video className="h-5 w-5 text-m3-on-surface-variant" />
-        ) : (
-          <FileText className="h-5 w-5 text-m3-on-surface-variant" />
-        )}
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-m3-on-surface truncate">{material.title}</p>
-        <div className="flex items-center gap-2 mt-1">
-          <Badge className={cn("text-[10px] border-0", proc.color)}>
-            {proc.spin && <Loader2 className="h-2.5 w-2.5 mr-1 animate-spin inline-block" />}
-            {proc.label}
-          </Badge>
-          <span className="text-[11px] text-m3-on-surface-variant capitalize">{material.material_type}</span>
-          {material.ai_processing_enabled && (
-            <Badge className="text-[10px] border-0 bg-m3-secondary-fixed text-m3-on-secondary-fixed gap-1">
-              <Sparkles className="h-2.5 w-2.5" /> AI
-            </Badge>
-          )}
-          {material.visible_to_students ? (
-            <Badge className="text-[10px] border-0 bg-emerald-50 text-emerald-700 gap-1">
-              <Eye className="h-2.5 w-2.5" /> Visible
-            </Badge>
-          ) : (
-            <Badge className="text-[10px] border-0 bg-slate-100 text-slate-500 gap-1">
-              <EyeOff className="h-2.5 w-2.5" /> Hidden
-            </Badge>
-          )}
+    <div className="flex items-center justify-between p-4 bg-m3-surface-container-low rounded-xl group hover:bg-m3-surface-container-high transition-colors">
+      <div className="flex items-center gap-3 min-w-0">
+        <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center shrink-0", style.bg, style.text)}>
+          <FileText className="h-5 w-5" />
         </div>
-        {status?.processing_error && (
-          <p className="text-[11px] text-red-600 mt-1 truncate">{status.processing_error}</p>
-        )}
+        <div className="min-w-0">
+          <p className="font-bold text-m3-on-surface text-sm truncate">{resource.title}</p>
+          <p className="text-xs text-m3-on-surface-variant mt-0.5 capitalize">{resource.resource_type}</p>
+        </div>
       </div>
-      {(status?.processing_status === "failed" || status?.processing_status === "ready") && (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 shrink-0"
-          title="Reprocess"
-          onClick={() => {
-            reprocess.mutate(material.id, {
-              onSuccess: () => toast.success("Reprocessing started"),
-              onError: (err) => toast.error((err as Error).message),
-            });
-          }}
+      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-2">
+        <button
+          type="button"
+          onClick={handleDownload}
+          disabled={downloading || !resource.storage_object_id}
+          title={resource.storage_object_id ? "Download" : "No file attached"}
+          className="p-2 rounded-lg text-m3-on-surface-variant hover:bg-m3-surface-container-highest transition-colors cursor-pointer disabled:opacity-40"
         >
-          <RefreshCw className={cn("h-3.5 w-3.5", reprocess.isPending && "animate-spin")} />
-        </Button>
-      )}
+          {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+        </button>
+        <button type="button" onClick={() => onDelete(resource.id)} className="p-2 rounded-lg text-m3-error hover:bg-m3-error-container/30 transition-colors cursor-pointer">
+          <Trash2 className="h-4 w-4" />
+        </button>
+      </div>
     </div>
   );
 }
 
-function UploadForm({
-  courseId,
-  moduleId,
-  lessonId,
-  onDone,
+/* ── Video type content ── */
+function VideoContent({
+  notes, setNotes, notesRef, estimatedMinutes, streamUrl, onVideoUpload, uploading,
 }: {
-  courseId: string;
-  moduleId: string;
-  lessonId: string;
-  onDone: () => void;
+  notes: string;
+  setNotes: (v: string) => void;
+  notesRef: React.RefObject<HTMLTextAreaElement>;
+  estimatedMinutes: string;
+  streamUrl?: string;
+  onVideoUpload: (file: File) => Promise<void>;
+  uploading?: boolean;
 }) {
-  const fileRef = useRef<HTMLInputElement>(null);
+  const { applyMarkdown, applyBlock } = makeMarkdownApplier(() => notesRef.current, () => notes, setNotes);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+
+  return (
+    <>
+      <div className="relative group aspect-video rounded-2xl overflow-hidden bg-m3-surface-container-highest shadow-xl shadow-m3-primary/5">
+        {streamUrl ? (
+          <video
+            src={streamUrl}
+            controls
+            className="w-full h-full object-contain bg-black"
+          />
+        ) : (
+          <>
+            <div className="absolute inset-0 bg-gradient-to-br from-m3-primary/20 via-m3-secondary/10 to-transparent" />
+            <div
+              className="absolute inset-0 opacity-10"
+              style={{ backgroundImage: "radial-gradient(circle, #5654a8 1px, transparent 1px)", backgroundSize: "28px 28px" }}
+            />
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
+              <div className="w-20 h-20 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center shadow-2xl">
+                <Play className="h-8 w-8 text-m3-primary ml-1" fill="currentColor" />
+              </div>
+              <p className="text-sm text-m3-on-surface-variant font-medium">No video uploaded yet</p>
+            </div>
+          </>
+        )}
+
+        {estimatedMinutes && (
+          <div className="absolute top-4 left-4">
+            <span className="bg-black/50 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full">{estimatedMinutes}m</span>
+          </div>
+        )}
+
+        <div className="absolute bottom-4 right-4">
+          <button
+            type="button"
+            disabled={uploading}
+            onClick={() => videoInputRef.current?.click()}
+            className="glass ghost-border backdrop-blur-md px-4 py-2 rounded-xl text-sm font-bold text-m3-on-surface flex items-center gap-2 hover:bg-white/90 transition-all cursor-pointer disabled:opacity-50"
+          >
+            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+            {uploading ? "Uploading…" : streamUrl ? "Replace Video" : "Upload Video"}
+          </button>
+        </div>
+      </div>
+
+      <input
+        ref={videoInputRef}
+        type="file"
+        accept="video/*"
+        className="sr-only"
+        disabled={uploading}
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) { onVideoUpload(file); e.target.value = ""; }
+        }}
+      />
+
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="font-headline font-bold text-2xl text-m3-primary">Lesson Notes</h2>
+          <div className="flex items-center gap-1 p-1.5 bg-m3-surface-container-low rounded-xl">
+            <ToolbarBtn icon={Bold}     label="Bold"         onClick={() => applyMarkdown("**")} />
+            <ToolbarBtn icon={Italic}   label="Italic"       onClick={() => applyMarkdown("*")} />
+            <span className="w-px h-4 bg-m3-outline-variant/30 mx-0.5" />
+            <ToolbarBtn icon={List}     label="Bullet List"  onClick={() => applyBlock("- ")} />
+            <ToolbarBtn icon={LinkIcon} label="Insert Link"  onClick={() => applyMarkdown("[", "](url)")} />
+            <ToolbarBtn icon={Code}     label="Inline Code"  onClick={() => applyMarkdown("`")} />
+            <ToolbarBtn icon={Image}    label="Insert Image" onClick={() => applyMarkdown("![alt](", ")")} />
+          </div>
+        </div>
+        <textarea
+          ref={notesRef}
+          className="min-h-[400px] w-full p-8 rounded-xl bg-m3-surface-container-lowest text-m3-on-surface leading-relaxed text-base outline-none shadow-sm focus:ring-2 focus:ring-m3-secondary/20 transition-all resize-none font-body border border-m3-outline-variant/10 placeholder:text-m3-on-surface-variant/40"
+          placeholder={"Write lesson notes in Markdown…\n\nYou can use **bold**, *italic*, lists, code blocks, and more."}
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+        />
+      </section>
+    </>
+  );
+}
+
+/* ── Reading type content ── */
+function ReadingContent({ notes, setNotes, notesRef }: {
+  notes: string;
+  setNotes: (v: string) => void;
+  notesRef: React.RefObject<HTMLTextAreaElement>;
+}) {
+  const { applyMarkdown, applyBlock } = makeMarkdownApplier(() => notesRef.current, () => notes, setNotes);
+  const wordCount = notes.trim() ? notes.trim().split(/\s+/).length : 0;
+  const readTime = Math.max(1, Math.ceil(wordCount / 200));
+  return (
+    <section className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="font-headline font-bold text-2xl text-m3-primary">Reading Content</h2>
+          <p className="text-sm text-m3-on-surface-variant mt-0.5">
+            {wordCount > 0 ? `~${wordCount} words · ${readTime} min read` : "Write in Markdown or plain text"}
+          </p>
+        </div>
+        <div className="flex items-center gap-1 p-1.5 bg-m3-surface-container-low rounded-xl">
+          <ToolbarBtn icon={Bold}     label="Bold"         onClick={() => applyMarkdown("**")} />
+          <ToolbarBtn icon={Italic}   label="Italic"       onClick={() => applyMarkdown("*")} />
+          <ToolbarBtn icon={List}     label="Bullet List"  onClick={() => applyBlock("- ")} />
+          <ToolbarBtn icon={Hash}     label="Heading"      onClick={() => applyBlock("# ")} />
+          <span className="w-px h-4 bg-m3-outline-variant/30 mx-0.5" />
+          <ToolbarBtn icon={LinkIcon} label="Insert Link"  onClick={() => applyMarkdown("[", "](url)")} />
+          <ToolbarBtn icon={Image}    label="Insert Image" onClick={() => applyMarkdown("![alt](", ")")} />
+          <ToolbarBtn icon={Code}     label="Code Block"   onClick={() => applyMarkdown("```\n", "\n```")} />
+        </div>
+      </div>
+      <div className="rounded-2xl border border-m3-outline-variant/20 overflow-hidden shadow-sm">
+        <div className="bg-m3-primary/5 border-b border-m3-outline-variant/10 px-4 py-2 flex items-center gap-2">
+          <AlignLeft className="h-3.5 w-3.5 text-m3-secondary" />
+          <span className="text-xs font-bold text-m3-on-surface-variant uppercase tracking-widest">Markdown Editor</span>
+          <span className="ml-auto text-xs text-m3-on-surface-variant/50">Plain text or Markdown</span>
+        </div>
+        <textarea
+          ref={notesRef}
+          className="min-h-[600px] w-full p-8 bg-m3-surface-container-lowest text-m3-on-surface leading-relaxed text-base outline-none resize-none font-body placeholder:text-m3-on-surface-variant/40"
+          placeholder={"# Introduction\n\nWrite your reading material here.\n\n## Key Concepts\n\n- Concept 1\n- Concept 2\n\n**Bold text**, *italic text*, `inline code`"}
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+        />
+      </div>
+    </section>
+  );
+}
+
+/* ── Quiz type placeholder ── */
+function QuizPlaceholder({ lessonId, courseId }: { lessonId: string; courseId: string }) {
+  return (
+    <section className="space-y-4">
+      <div className="flex items-center gap-2">
+        <h2 className="font-headline font-bold text-2xl text-m3-primary">Quiz</h2>
+        <span className="text-xs bg-violet-50 text-violet-600 font-bold px-2.5 py-1 rounded-full">Coming soon</span>
+      </div>
+      <div className="flex flex-col items-center justify-center py-20 rounded-2xl bg-m3-surface-container-lowest ghost-border space-y-4">
+        <div className="w-16 h-16 rounded-2xl bg-violet-50 flex items-center justify-center">
+          <CheckSquare className="h-8 w-8 text-violet-400" />
+        </div>
+        <div className="text-center space-y-1">
+          <p className="font-bold text-m3-on-surface">Quiz Builder</p>
+          <p className="text-sm text-m3-on-surface-variant max-w-xs">
+            Quiz authoring is being built. In the meantime, you can use the AI Material Hub to auto-generate quizzes from uploaded materials.
+          </p>
+        </div>
+        <Link to="/teacher/courses/$courseId/lessons/$lessonId/materials" params={{ courseId, lessonId }}>
+          <Button variant="outline" size="sm" className="gap-2 border-violet-200 text-violet-600 hover:bg-violet-50">
+            <Brain className="h-4 w-4" />
+            Open AI Material Hub
+          </Button>
+        </Link>
+      </div>
+    </section>
+  );
+}
+
+/* ── Exercise type placeholder ── */
+function ExercisePlaceholder() {
+  return (
+    <section className="space-y-4">
+      <div className="flex items-center gap-2">
+        <h2 className="font-headline font-bold text-2xl text-m3-primary">Exercise</h2>
+        <span className="text-xs bg-amber-50 text-amber-600 font-bold px-2.5 py-1 rounded-full">Coming soon</span>
+      </div>
+      <div className="flex flex-col items-center justify-center py-20 rounded-2xl bg-m3-surface-container-lowest ghost-border space-y-4">
+        <div className="w-16 h-16 rounded-2xl bg-amber-50 flex items-center justify-center">
+          <Dumbbell className="h-8 w-8 text-amber-400" />
+        </div>
+        <div className="text-center space-y-1">
+          <p className="font-bold text-m3-on-surface">Exercise Builder</p>
+          <p className="text-sm text-m3-on-surface-variant max-w-xs">
+            Coding exercise authoring with starter code, test cases, and auto-grading is under development.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ════════════════════════════════════════
+   Main page
+   ════════════════════════════════════════ */
+export default function LessonManagePage() {
+  const params = useParams({ strict: false }) as { courseId: string; lessonId: string };
+  const { courseId, lessonId } = params;
+
+  const { data: course } = useTeacherCourseById(courseId);
+  const { data: lesson, isLoading: lessonLoading } = useTeacherLesson(lessonId);
+  const { data: content } = useTeacherCourseContent(courseId);
+  const { data: resources = [] } = useTeacherLessonResources(lessonId);
+  const updateLesson = useUpdateLesson(lessonId, courseId);
   const requestUpload = useRequestUploadUrl();
+  const createResource = useCreateLessonResource(lessonId);
+  const deleteResource = useDeleteLessonResource(lessonId);
+
+  const moduleId = lesson?.module_id ?? "";
   const createMaterial = useCreateMaterial(courseId, moduleId, lessonId);
-  const [uploading, setUploading] = useState(false);
-  const [form, setForm] = useState({
-    title: "",
-    material_type: "pdf",
-    ai_processing_enabled: true,
-    visible_to_students: true,
-  });
+  const { data: videoStreamData } = useMaterialStreamUrl(lesson?.primary_material_id);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const file = fileRef.current?.files?.[0];
-    if (!file || !form.title.trim()) return;
+  /* ── Editable fields ── */
+  const initialized = useRef(false);
+  const [title, setTitle] = useState("");
+  const [titleEditing, setTitleEditing] = useState(false);
+  const [summary, setSummary] = useState("");
+  const [lessonType, setLessonType] = useState("video");
+  const [status, setStatus] = useState<"draft" | "published">("draft");
+  const [difficulty, setDifficulty] = useState("intermediate");
+  const [estimatedMinutes, setEstimatedMinutes] = useState("");
+  const [notes, setNotes] = useState("");
 
-    setUploading(true);
+  const notesRef = useRef<HTMLTextAreaElement>(null);
+
+  /* ── Local-only state ── */
+  const [prerequisites, setPrerequisites] = useState<string[]>([]);
+  const [prereqOpen, setPrereqOpen] = useState(false);
+  const [prereqSearch, setPrereqSearch] = useState("");
+  const [archiveConfirm, setArchiveConfirm] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [attachingResource, setAttachingResource] = useState(false);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+  const resourceInputRef = useRef<HTMLInputElement>(null);
+
+  /* ── All lessons in the course (for prerequisite picker) ── */
+  const allLessons: CourseContentLesson[] = (content?.modules ?? []).flatMap((m) =>
+    m.items
+      .filter((i) => i.item_type === "lesson" && i.lesson && i.lesson.id !== lessonId)
+      .map((i) => i.lesson!)
+  );
+
+  const filteredLessons = allLessons.filter((l) =>
+    l.title.toLowerCase().includes(prereqSearch.toLowerCase())
+  );
+
+  /* ── Sync server data once ── */
+  useEffect(() => {
+    if (lesson && !initialized.current) {
+      initialized.current = true;
+      setTitle(lesson.title ?? "");
+      setSummary(lesson.summary ?? "");
+      setLessonType(lesson.lesson_type ?? "video");
+      setStatus(lesson.status === "published" ? "published" : "draft");
+      setDifficulty(lesson.difficulty ?? "intermediate");
+      setEstimatedMinutes(lesson.estimated_minutes?.toString() ?? "");
+      setNotes(lesson.notes_markdown ?? "");
+    }
+  }, [lesson]);
+
+  function showFeedback(msg: string) {
+    setFeedback(msg);
+    setTimeout(() => setFeedback(null), 2000);
+  }
+
+  async function handleSave() {
+    setSaving(true);
+    try {
+      await updateLesson.mutateAsync({
+        title: title.trim() || undefined,
+        summary: summary.trim() || undefined,
+        lesson_type: lessonType,
+        status,
+        difficulty: difficulty || undefined,
+        estimated_minutes: estimatedMinutes ? Number(estimatedMinutes) : undefined,
+        notes_markdown: notes || undefined,
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+      toast.success("Lesson saved");
+    } catch (err: unknown) {
+      toast.error((err as Error).message || "Save failed");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleArchive() {
+    if (!archiveConfirm) { setArchiveConfirm(true); return; }
+    try {
+      await updateLesson.mutateAsync({ status: "archived" });
+      toast.success("Lesson archived");
+    } catch (err: unknown) {
+      toast.error((err as Error).message || "Archive failed");
+    }
+  }
+
+  async function handleVideoUpload(file: File) {
+    if (uploadingVideo) return;
+    setUploadingVideo(true);
+    try {
+      const { storage_object, upload_url } = await requestUpload.mutateAsync({
+        original_filename: file.name,
+        mime_type: file.type || "video/mp4",
+        size_bytes: file.size,
+      });
+      if (upload_url && !upload_url.startsWith("s3://")) {
+        await fetch(upload_url, { method: "PUT", body: file });
+      }
+      const material = await createMaterial.mutateAsync({
+        title: file.name.replace(/\.[^.]+$/, ""),
+        material_type: "video",
+        storage_object_id: storage_object.id,
+        ai_processing_enabled: false,
+        visible_to_students: true,
+      });
+      await updateLesson.mutateAsync({ primary_material_id: material.id });
+      toast.success("Video uploaded");
+    } catch (err: unknown) {
+      toast.error((err as Error).message || "Upload failed");
+    } finally {
+      setUploadingVideo(false);
+    }
+  }
+
+  async function handleResourceFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = "";
+    setAttachingResource(true);
     try {
       const { storage_object, upload_url } = await requestUpload.mutateAsync({
         original_filename: file.name,
         mime_type: file.type || "application/octet-stream",
         size_bytes: file.size,
       });
-
       if (upload_url && !upload_url.startsWith("s3://")) {
         await fetch(upload_url, { method: "PUT", body: file });
       }
-
-      await createMaterial.mutateAsync({
-        title: form.title,
-        material_type: form.material_type,
+      await createResource.mutateAsync({
+        title: file.name,
+        resource_type: file.name.split(".").pop()?.toLowerCase() ?? "file",
         storage_object_id: storage_object.id,
-        ai_processing_enabled: form.ai_processing_enabled,
-        visible_to_students: form.visible_to_students,
+        position: resources.length + 1,
       });
-      toast.success("Material uploaded — AI processing queued");
-      onDone();
+      // Also save to materials hub for reuse (no AI processing)
+      if (moduleId) {
+        const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
+        const materialType = file.type.startsWith("video/") ? "video"
+          : ext === "pdf" ? "pdf"
+          : ["pptx", "ppt"].includes(ext) ? "slides"
+          : ["py", "js", "ts", "jsx", "tsx", "java", "c", "cpp"].includes(ext) ? "code"
+          : "other";
+        await createMaterial.mutateAsync({
+          title: file.name.replace(/\.[^.]+$/, ""),
+          material_type: materialType,
+          storage_object_id: storage_object.id,
+          ai_processing_enabled: false,
+          visible_to_students: false,
+        });
+      }
+      showFeedback(`"${file.name}" attached successfully.`);
     } catch (err: unknown) {
-      toast.error((err as Error).message || "Upload failed");
+      toast.error((err as Error).message || "Attach failed");
     } finally {
-      setUploading(false);
+      setAttachingResource(false);
     }
   }
 
-  return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-4 p-5 bg-m3-surface-container rounded-2xl border border-m3-outline-variant"
-    >
-      <h3 className="text-sm font-semibold text-m3-on-surface">Upload Material</h3>
+  function handleDeleteResource(resourceId: string) {
+    deleteResource.mutate(resourceId, {
+      onSuccess: () => showFeedback("Resource removed."),
+      onError: (err) => toast.error((err as Error).message),
+    });
+  }
 
-      <div className="space-y-1.5">
-        <label className="text-xs font-medium text-m3-on-surface">Title *</label>
-        <input
-          required
-          className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-          placeholder="e.g. Week 1 Lecture Slides"
-          value={form.title}
-          onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-        />
+  function togglePrerequisite(id: string) {
+    setPrerequisites((prev) =>
+      prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]
+    );
+  }
+
+  if (lessonLoading) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <Loader2 className="h-8 w-8 animate-spin text-m3-secondary" />
       </div>
+    );
+  }
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-m3-on-surface">Type</label>
-          <select
-            className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            value={form.material_type}
-            onChange={(e) => setForm((f) => ({ ...f, material_type: e.target.value }))}
-          >
-            <option value="pdf">PDF</option>
-            <option value="video">Video</option>
-            <option value="text">Text / Markdown</option>
-            <option value="slides">Slides</option>
-            <option value="code">Code</option>
-            <option value="other">Other</option>
-          </select>
-        </div>
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-m3-on-surface">File *</label>
-          <input
-            ref={fileRef}
-            required
-            type="file"
-            accept=".pdf,.mp4,.mov,.txt,.md,.pptx,.docx"
-            className="w-full text-xs rounded-xl border border-input bg-background px-3 py-2 focus:outline-none cursor-pointer file:mr-2 file:text-xs file:border-0 file:bg-m3-primary file:text-white file:rounded-lg file:px-2 file:py-1"
-          />
-        </div>
-      </div>
-
-      <div className="flex items-center gap-6">
-        <label className="flex items-center gap-2 text-xs text-m3-on-surface cursor-pointer">
-          <input
-            type="checkbox"
-            checked={form.ai_processing_enabled}
-            onChange={(e) => setForm((f) => ({ ...f, ai_processing_enabled: e.target.checked }))}
-            className="rounded"
-          />
-          <Sparkles className="h-3.5 w-3.5 text-m3-primary" />
-          AI Processing
-        </label>
-        <label className="flex items-center gap-2 text-xs text-m3-on-surface cursor-pointer">
-          <input
-            type="checkbox"
-            checked={form.visible_to_students}
-            onChange={(e) => setForm((f) => ({ ...f, visible_to_students: e.target.checked }))}
-            className="rounded"
-          />
-          <Eye className="h-3.5 w-3.5" />
-          Visible to students
-        </label>
-      </div>
-
-      <div className="flex gap-2">
-        <Button type="submit" disabled={uploading} className="gap-2">
-          {uploading ? (
-            <><Loader2 className="h-4 w-4 animate-spin" /> Uploading…</>
-          ) : (
-            <><Upload className="h-4 w-4" /> Upload</>
-          )}
-        </Button>
-        <Button type="button" variant="ghost" onClick={onDone}>
-          Cancel
-        </Button>
-      </div>
-    </form>
-  );
-}
-
-export default function LessonManagePage() {
-  const params = useParams({ from: "/teacher/courses/$courseId/lessons/$lessonId" as never }) as {
-    courseId: string;
-    lessonId: string;
-  };
-  const { courseId, lessonId } = params;
-
-  const { data: materials = [], isLoading } = useLessonMaterials(lessonId);
-  const { data: summary } = useProcessingSummary(lessonId);
-  const [showUpload, setShowUpload] = useState(false);
-
-  // We need moduleId for the material creation — derive from course content or pass as search param
-  // For now, we'll need the moduleId. This page should receive it via the parent route.
-  // Hardcode to empty string until we fetch it from the lesson.
-  const moduleId = ""; // TODO: fetch from lesson query
-
-  const readyCount = summary?.completed_versions ?? 0;
-  const processingCount = summary?.processing_versions ?? 0;
-  const failedCount = summary?.failed_versions ?? 0;
+  const typeLabel = LESSON_TYPE_OPTIONS.find((t) => t.value === lessonType)?.label ?? "Lesson";
 
   return (
-    <div className="space-y-6 pb-12 max-w-2xl">
-      <div className="flex items-center gap-3">
+    <div className="max-w-[1440px] mx-auto pb-20">
+
+      {/* ── Breadcrumb ── */}
+      <div className="flex items-center gap-1.5 text-xs text-m3-on-surface-variant pt-4 pb-6">
+        <Link to="/teacher/courses" className="hover:text-m3-primary transition-colors">My Courses</Link>
+        <ArrowRight className="h-3 w-3" />
+        <Link to="/teacher/courses/$courseId" params={{ courseId }} className="hover:text-m3-primary transition-colors truncate max-w-[140px]">
+          {course?.title ?? "…"}
+        </Link>
+        <ArrowRight className="h-3 w-3" />
+        <span className="text-m3-on-surface font-medium truncate max-w-[180px]">
+          {title || lesson?.title || "Lesson"}
+        </span>
+      </div>
+
+      {/* ── Sticky action bar ── */}
+      <div className="sticky top-16 z-10 -mx-4 sm:-mx-6 lg:-mx-10 px-4 sm:px-6 lg:px-10 py-3 mb-8 bg-m3-surface/80 backdrop-blur-md border-b border-m3-outline-variant/20 flex items-center justify-between gap-3">
         <Link to="/teacher/courses/$courseId" params={{ courseId }}>
-          <Button variant="ghost" size="icon" className="h-8 w-8">
+          <Button variant="ghost" size="sm" className="gap-2 text-m3-on-surface-variant">
             <ArrowLeft className="h-4 w-4" />
+            <span className="hidden sm:inline">Back to Course</span>
           </Button>
         </Link>
-        <div className="flex-1">
-          <h1 className="text-xl font-headline font-bold text-m3-on-surface">Lesson Materials</h1>
-          {summary && (
-            <p className="text-xs text-m3-on-surface-variant mt-0.5">
-              {summary.materials_total} material{summary.materials_total !== 1 ? "s" : ""} ·{" "}
-              {readyCount} ready
-              {processingCount > 0 && ` · ${processingCount} processing`}
-              {failedCount > 0 && ` · ${failedCount} failed`}
-            </p>
-          )}
-        </div>
-        {!showUpload && (
-          <Button size="sm" className="gap-2" onClick={() => setShowUpload(true)}>
-            <Upload className="h-4 w-4" />
-            Upload
+        <div className="flex items-center gap-2">
+          <Link to="/teacher/courses/$courseId/lessons/$lessonId/materials" params={{ courseId, lessonId }}>
+            <Button variant="outline" size="sm" className="gap-2 hidden sm:flex border-m3-outline-variant/30">
+              <Brain className="h-4 w-4 text-m3-secondary" />
+              AI Material Hub
+            </Button>
+          </Link>
+          <Button
+            size="sm"
+            onClick={handleSave}
+            disabled={saving}
+            className={cn(
+              "gap-2 transition-all cursor-pointer",
+              saved
+                ? "bg-green-500 hover:bg-green-600 text-white border-0"
+                : "gradient-primary text-white border-0 shadow-ai-glow hover:opacity-90 active:scale-95"
+            )}
+          >
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            <span className="hidden sm:inline">{saved ? "Saved ✓" : "Save Changes"}</span>
           </Button>
-        )}
+        </div>
       </div>
 
-      {/* Processing summary badges */}
-      {summary && (processingCount > 0 || failedCount > 0) && (
-        <div className="flex gap-2 flex-wrap">
-          {processingCount > 0 && (
-            <Badge className="bg-blue-100 text-blue-700 border-0 gap-1.5 text-xs">
-              <Loader2 className="h-3 w-3 animate-spin" />
-              {processingCount} processing
-            </Badge>
-          )}
-          {failedCount > 0 && (
-            <Badge className="bg-red-100 text-red-700 border-0 gap-1.5 text-xs">
-              <AlertCircle className="h-3 w-3" />
-              {failedCount} failed
-            </Badge>
-          )}
-          {readyCount > 0 && (
-            <Badge className="bg-emerald-100 text-emerald-700 border-0 gap-1.5 text-xs">
-              <CheckCircle className="h-3 w-3" />
-              {readyCount} ready
-            </Badge>
-          )}
-        </div>
-      )}
+      {/* ── 12-col grid ── */}
+      <div className="grid grid-cols-12 gap-8 items-start">
 
-      {showUpload && (
-        <UploadForm
-          courseId={courseId}
-          moduleId={moduleId}
-          lessonId={lessonId}
-          onDone={() => setShowUpload(false)}
-        />
-      )}
+        {/* ═══════════════════════════════════
+            Main editor — 8 cols
+        ═══════════════════════════════════ */}
+        <div className="col-span-12 lg:col-span-8 space-y-10">
 
-      {isLoading ? (
-        <div className="space-y-3">
-          {[1, 2].map((i) => (
-            <div key={i} className="h-16 bg-m3-surface-container animate-pulse rounded-2xl" />
-          ))}
+          {/* ── Editable lesson header ── */}
+          <section className="space-y-3">
+            <span className="block text-m3-secondary font-headline font-bold text-sm tracking-widest uppercase">
+              {typeLabel} Lesson
+            </span>
+
+            {/* Inline editable title */}
+            {titleEditing ? (
+              <input
+                autoFocus
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                onBlur={() => setTitleEditing(false)}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === "Escape") setTitleEditing(false); }}
+                className="w-full font-headline font-extrabold text-4xl lg:text-5xl text-m3-primary tracking-tight leading-tight bg-transparent border-b-2 border-m3-primary outline-none py-1"
+                placeholder="Lesson title…"
+              />
+            ) : (
+              <div className="group flex items-start gap-3 cursor-text" onClick={() => setTitleEditing(true)}>
+                <h1 className="font-headline font-extrabold text-4xl lg:text-5xl text-m3-primary tracking-tight leading-tight flex-1">
+                  {title || <span className="text-m3-on-surface-variant/40">Untitled Lesson</span>}
+                </h1>
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); setTitleEditing(true); }}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity mt-2 p-2 rounded-xl hover:bg-m3-surface-container-high text-m3-on-surface-variant shrink-0 cursor-pointer"
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+
+            {/* Editable summary */}
+            <textarea
+              value={summary}
+              onChange={(e) => setSummary(e.target.value)}
+              rows={2}
+              className="w-full text-m3-on-surface-variant text-lg max-w-2xl leading-relaxed bg-transparent outline-none resize-none placeholder:text-m3-on-surface-variant/30 border-b border-transparent focus:border-m3-outline-variant/40 transition-colors py-1"
+              placeholder="Add a brief summary of this lesson…"
+            />
+          </section>
+
+          {/* ── Per-type content area ── */}
+          {lessonType === "video" && (
+            <VideoContent
+              notes={notes} setNotes={setNotes}
+              notesRef={notesRef}
+              estimatedMinutes={estimatedMinutes}
+              streamUrl={videoStreamData?.stream_url}
+              onVideoUpload={handleVideoUpload}
+              uploading={uploadingVideo}
+            />
+          )}
+          {lessonType === "reading" && (
+            <ReadingContent notes={notes} setNotes={setNotes} notesRef={notesRef} />
+          )}
+          {lessonType === "quiz" && (
+            <QuizPlaceholder lessonId={lessonId} courseId={courseId} />
+          )}
+          {lessonType === "exercise" && (
+            <ExercisePlaceholder />
+          )}
+
+          {/* ── Downloadable Resources (all types) ── */}
+          <section className="space-y-5">
+            <h2 className="font-headline font-bold text-2xl text-m3-primary">Downloadable Resources</h2>
+
+            {resources.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {resources.map((resource) => (
+                  <ResourceCard key={resource.id} resource={resource} onDelete={handleDeleteResource} />
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-10 rounded-xl bg-m3-surface-container-lowest ghost-border">
+                <Paperclip className="h-8 w-8 text-m3-on-surface-variant/40 mb-2" />
+                <p className="text-sm text-m3-on-surface-variant">No resources attached yet.</p>
+              </div>
+            )}
+
+            <input ref={resourceInputRef} type="file" className="sr-only" onChange={handleResourceFile} />
+            <button
+              type="button"
+              onClick={() => resourceInputRef.current?.click()}
+              disabled={attachingResource}
+              className="w-full py-4 border-2 border-dashed border-m3-outline-variant/40 rounded-xl text-m3-on-surface-variant font-bold hover:bg-m3-surface-container-lowest hover:border-m3-secondary/40 transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50 cursor-pointer"
+            >
+              {attachingResource ? (
+                <><Loader2 className="h-4 w-4 animate-spin" /> Uploading…</>
+              ) : (
+                <><Plus className="h-4 w-4" /> Attach New Resource</>
+              )}
+            </button>
+          </section>
         </div>
-      ) : materials.length === 0 ? (
-        <div className="text-center py-12 text-m3-on-surface-variant">
-          <FileText className="h-10 w-10 mx-auto mb-3 opacity-20" />
-          <p className="text-sm font-medium">No materials yet</p>
-          <p className="text-xs mt-1">Upload PDFs, videos, or other files for AI processing.</p>
-          <Button size="sm" className="mt-4 gap-2" onClick={() => setShowUpload(true)}>
-            <Upload className="h-4 w-4" />
-            Upload first material
-          </Button>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {materials.map((material) => (
-            <MaterialCard key={material.id} material={material} lessonId={lessonId} />
-          ))}
-        </div>
-      )}
+
+        {/* ═══════════════════════════════════
+            Sidebar — 4 cols, sticky
+        ═══════════════════════════════════ */}
+        <aside className="col-span-12 lg:col-span-4 space-y-6 lg:sticky lg:top-32 self-start">
+
+          {/* ── Lesson Settings ── */}
+          <div className="bg-m3-surface-container-low rounded-2xl p-6 space-y-6 shadow-sm">
+            <h3 className="font-headline font-bold text-xl text-m3-primary">Lesson Settings</h3>
+
+            {/* Visibility */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">Visibility</label>
+              <div className="flex gap-2 p-1 bg-m3-surface-container rounded-xl">
+                {(["published", "draft"] as const).map((s) => (
+                  <button
+                    key={s} type="button" onClick={() => setStatus(s)}
+                    className={cn(
+                      "flex-1 py-2 rounded-lg text-sm font-bold capitalize transition-all cursor-pointer",
+                      status === s ? "bg-white text-m3-primary shadow-sm" : "text-m3-on-surface-variant hover:text-m3-on-surface"
+                    )}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Lesson type */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">Lesson Type</label>
+              <div className="grid grid-cols-2 gap-2">
+                {LESSON_TYPE_OPTIONS.map(({ value, label, icon: Icon }) => (
+                  <button
+                    key={value} type="button" onClick={() => setLessonType(value)}
+                    className={cn(
+                      "flex items-center gap-2 p-3 rounded-xl border text-sm font-bold transition-all cursor-pointer",
+                      lessonType === value
+                        ? "border-m3-primary/30 bg-m3-primary-fixed text-m3-primary"
+                        : "border-m3-outline-variant/20 bg-white text-m3-on-surface-variant hover:bg-m3-surface-container-high"
+                    )}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Estimated duration */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">
+                Estimated Duration (minutes)
+              </label>
+              <input
+                type="number" min={0}
+                value={estimatedMinutes}
+                onChange={(e) => setEstimatedMinutes(e.target.value)}
+                className="w-full bg-white border border-m3-outline-variant/20 rounded-xl px-4 py-3 text-sm font-medium text-m3-on-surface focus:outline-none focus:ring-2 focus:ring-m3-secondary/20 transition-all"
+                placeholder="e.g. 24"
+              />
+            </div>
+
+            {/* Difficulty */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">
+                Difficulty Level
+              </label>
+              <select
+                value={difficulty}
+                onChange={(e) => setDifficulty(e.target.value)}
+                className="w-full bg-white border border-m3-outline-variant/20 rounded-xl px-4 py-3 text-sm font-medium text-m3-on-surface focus:outline-none focus:ring-2 focus:ring-m3-secondary/20 transition-all appearance-none cursor-pointer"
+              >
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+              </select>
+            </div>
+          </div>
+
+          {/* ── Prerequisites ── */}
+          <div className="bg-m3-surface-container-low rounded-2xl p-6 space-y-4 shadow-sm">
+            <div>
+              <h3 className="font-headline font-bold text-base text-m3-primary">Prerequisites</h3>
+              <p className="text-xs text-m3-on-surface-variant mt-0.5">Lessons students should complete first.</p>
+            </div>
+
+            {/* Selected */}
+            {prerequisites.length === 0 && !prereqOpen && (
+              <p className="text-sm text-m3-on-surface-variant/60 text-center py-2">No prerequisites added.</p>
+            )}
+            {prerequisites.map((id) => {
+              const l = allLessons.find((x) => x.id === id);
+              if (!l) return null;
+              const TypeIcon = LESSON_TYPE_OPTIONS.find((t) => t.value === l.lesson_type)?.icon ?? BookOpen;
+              return (
+                <div key={id} className="flex items-center justify-between gap-2 bg-m3-primary-fixed text-m3-primary px-3 py-2.5 rounded-xl text-sm font-medium">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <TypeIcon className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">{l.title}</span>
+                  </div>
+                  <button type="button" onClick={() => togglePrerequisite(id)} className="shrink-0 p-0.5 rounded-md hover:bg-m3-primary/10 transition-colors cursor-pointer">
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              );
+            })}
+
+            {/* Lesson picker */}
+            {prereqOpen ? (
+              <div className="space-y-2">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-m3-on-surface-variant/60" />
+                  <input
+                    autoFocus
+                    value={prereqSearch}
+                    onChange={(e) => setPrereqSearch(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Escape") { setPrereqOpen(false); setPrereqSearch(""); } }}
+                    placeholder="Search lessons…"
+                    className="w-full pl-9 pr-3 py-2.5 text-sm rounded-xl border border-m3-outline-variant/20 bg-white focus:outline-none focus:ring-2 focus:ring-m3-secondary/20"
+                  />
+                </div>
+                <div className="max-h-48 overflow-y-auto space-y-0.5 rounded-xl border border-m3-outline-variant/10 bg-white p-1">
+                  {filteredLessons.length === 0 && (
+                    <p className="text-xs text-m3-on-surface-variant/60 text-center py-3">
+                      {allLessons.length === 0 ? "No other lessons in this course." : "No lessons match."}
+                    </p>
+                  )}
+                  {filteredLessons.map((l) => {
+                    const selected = prerequisites.includes(l.id);
+                    const TypeIcon = LESSON_TYPE_OPTIONS.find((t) => t.value === l.lesson_type)?.icon ?? BookOpen;
+                    return (
+                      <button
+                        key={l.id} type="button"
+                        onClick={() => togglePrerequisite(l.id)}
+                        className={cn(
+                          "w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer text-left",
+                          selected ? "bg-m3-primary-fixed text-m3-primary" : "hover:bg-m3-surface-container-low text-m3-on-surface"
+                        )}
+                      >
+                        <TypeIcon className="h-3.5 w-3.5 shrink-0 text-m3-on-surface-variant" />
+                        <span className="flex-1 truncate">{l.title}</span>
+                        {selected && <Check className="h-3.5 w-3.5 shrink-0" />}
+                      </button>
+                    );
+                  })}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setPrereqOpen(false); setPrereqSearch(""); }}
+                  className="w-full text-xs text-m3-on-surface-variant py-1.5 hover:text-m3-on-surface transition-colors cursor-pointer font-bold"
+                >
+                  Done
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setPrereqOpen(true)}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white border border-m3-outline-variant/20 text-sm font-bold text-m3-primary hover:bg-m3-primary-fixed transition-colors cursor-pointer"
+              >
+                <Plus className="h-4 w-4" />
+                Add Prerequisite
+              </button>
+            )}
+          </div>
+
+          {/* ── AI Material Hub teaser ── */}
+          <div className="ghost-border rounded-2xl p-5 flex items-start gap-3">
+            <div className="w-9 h-9 rounded-xl bg-m3-secondary-fixed flex items-center justify-center shrink-0">
+              <Sparkles className="h-4 w-4 text-m3-secondary" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-m3-on-surface">AI Material Hub</p>
+              <p className="text-xs text-m3-on-surface-variant mt-0.5 leading-relaxed">
+                Upload videos or PDFs to generate quizzes, extract knowledge graphs, and track student readiness.
+              </p>
+              <Link to="/teacher/courses/$courseId/lessons/$lessonId/materials" params={{ courseId, lessonId }}>
+                <button type="button" className="mt-2.5 text-xs font-bold text-m3-secondary hover:text-m3-primary transition-colors cursor-pointer">
+                  Go to AI Hub →
+                </button>
+              </Link>
+            </div>
+          </div>
+
+          {/* ── Danger zone ── */}
+          {archiveConfirm ? (
+            <div className="w-full rounded-xl border border-m3-error/30 bg-m3-error/5 p-4 space-y-3">
+              <p className="text-sm font-bold text-m3-error text-center">Archive this lesson?</p>
+              <p className="text-xs text-m3-on-surface-variant text-center">
+                Students will no longer see it. You can restore it later.
+              </p>
+              <div className="flex gap-2">
+                <button type="button" onClick={() => setArchiveConfirm(false)} className="flex-1 py-2.5 rounded-xl border border-m3-outline-variant/30 text-sm font-bold text-m3-on-surface-variant hover:bg-m3-surface-container transition-colors cursor-pointer">
+                  Cancel
+                </button>
+                <button type="button" onClick={handleArchive} className="flex-1 py-2.5 rounded-xl bg-m3-error text-white text-sm font-bold hover:opacity-90 cursor-pointer">
+                  Yes, Archive
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={handleArchive}
+              className="w-full py-3 flex items-center justify-center gap-2 rounded-xl text-m3-error font-bold text-sm hover:bg-m3-error/5 transition-colors cursor-pointer"
+            >
+              <Archive className="h-4 w-4" />
+              Archive Lesson
+            </button>
+          )}
+        </aside>
+      </div>
+
+      {/* ── Feedback toast bar ── */}
+      <div
+        aria-live="polite"
+        className={cn(
+          "fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-2xl shadow-xl bg-m3-on-surface text-m3-surface text-sm font-bold transition-all duration-300",
+          feedback ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 translate-y-4 pointer-events-none"
+        )}
+      >
+        {feedback}
+      </div>
     </div>
   );
 }

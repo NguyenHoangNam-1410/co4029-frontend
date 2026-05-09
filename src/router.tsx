@@ -24,6 +24,10 @@ import TeacherCoursesPage from "@/routes/teacher/courses";
 import CourseNewPage from "@/routes/teacher/course-new";
 import CourseManagePage from "@/routes/teacher/course-manage";
 import LessonManagePage from "@/routes/teacher/lesson-manage";
+import LessonMaterialsPage from "@/routes/teacher/lesson-materials";
+import CourseStudentsPage from "@/routes/teacher/course-students";
+import CourseStudentDetailPage from "@/routes/teacher/course-student-detail";
+import ModuleManagePage from "@/routes/teacher/module-manage";
 
 /* ── Root layout ── */
 function Root() {
@@ -148,6 +152,30 @@ const teacherLessonManageRoute = createRoute({
   component: LessonManagePage,
 });
 
+const teacherLessonMaterialsRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/teacher/courses/$courseId/lessons/$lessonId/materials",
+  component: LessonMaterialsPage,
+});
+
+const teacherModuleManageRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/teacher/courses/$courseId/modules/$moduleId",
+  component: ModuleManagePage,
+});
+
+const teacherCourseStudentsRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/teacher/courses/$courseId/students",
+  component: CourseStudentsPage,
+});
+
+const teacherCourseStudentDetailRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/teacher/courses/$courseId/students/$studentId",
+  component: CourseStudentDetailPage,
+});
+
 const callbackRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/auth/google/callback",
@@ -177,6 +205,10 @@ const routeTree = rootRoute.addChildren([
     teacherCourseNewRoute,
     teacherCourseManageRoute,
     teacherLessonManageRoute,
+    teacherLessonMaterialsRoute,
+    teacherModuleManageRoute,
+    teacherCourseStudentsRoute,
+    teacherCourseStudentDetailRoute,
   ]),
   callbackRoute,
 ]);

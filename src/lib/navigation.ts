@@ -18,6 +18,7 @@ export interface NavItem {
   label: string;
   href: string;
   icon: LucideIcon;
+  exact?: boolean;
 }
 
 export const studentNavItems: NavItem[] = [
@@ -27,7 +28,7 @@ export const studentNavItems: NavItem[] = [
 ];
 
 export const teacherNavItems: NavItem[] = [
-  { label: "Overview", href: "/teacher", icon: LayoutDashboard },
+  { label: "Overview", href: "/teacher", icon: LayoutDashboard, exact: true },
   { label: "My Courses", href: "/teacher/courses", icon: BookOpen },
 ];
 
