@@ -3,7 +3,7 @@ import { Link, useParams } from "@tanstack/react-router";
 import {
   ArrowLeft, ArrowRight, Play, FileText, Download, Trash2, Plus,
   Paperclip, Bold, Italic, List, Link as LinkIcon, Code, Image,
-  Upload, Sparkles, BookOpen, Video, BookMarked, Dumbbell,
+  Upload, Sparkles, BookOpen, Video, Dumbbell,
   CheckSquare, X, Archive, Loader2, Save, Brain, Pencil, Check,
   Hash, AlignLeft, Search,
 } from "lucide-react";
@@ -26,6 +26,8 @@ import {
   useCreateMaterial,
   useMaterialStreamUrl,
   fetchTeacherResourceDownloadUrl,
+  useDeleteLesson,
+  useUpdateModuleItem,
   type LessonResource,
   type CourseContentLesson,
 } from "@/lib/api";
@@ -34,9 +36,9 @@ import { cn } from "@/lib/utils";
 /* ── Lesson type options ── */
 const LESSON_TYPE_OPTIONS = [
   { value: "video",    label: "Video",    icon: Video },
-  { value: "reading",  label: "Reading",  icon: BookMarked },
+  { value: "reading",  label: "Reading",  icon: BookOpen },
   { value: "quiz",     label: "Quiz",     icon: CheckSquare },
-  { value: "exercise", label: "Exercise", icon: Dumbbell },
+  { value: "exercise", label: "Exercise", icon: Code },
 ] as const;
 
 /* ── Resource file-type style map ── */
@@ -364,6 +366,13 @@ export default function LessonManagePage() {
   const moduleId = lesson?.module_id ?? "";
   const createMaterial = useCreateMaterial(courseId, moduleId, lessonId);
   const { data: videoStreamData } = useMaterialStreamUrl(lesson?.primary_material_id);
+  const deleteLesson = useDeleteLesson(courseId);
+  const updateModuleItem = useUpdateModuleItem(courseId);
+
+  /* ── Find this lesson's module item (for unlock_rule_json / prerequisites) ── */
+  const moduleItem = (content?.modules ?? [])
+    .flatMap((m) => m.items)
+    .find((i) => i.lesson_id === lessonId);
 
   /* ── Editable fields ── */
   const initialized = useRef(false);
@@ -383,6 +392,7 @@ export default function LessonManagePage() {
   const [prereqOpen, setPrereqOpen] = useState(false);
   const [prereqSearch, setPrereqSearch] = useState("");
   const [archiveConfirm, setArchiveConfirm] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -415,6 +425,16 @@ export default function LessonManagePage() {
     }
   }, [lesson]);
 
+  /* ── Load prerequisites from module item once content is available ── */
+  const prereqInitialized = useRef(false);
+  useEffect(() => {
+    if (moduleItem && !prereqInitialized.current) {
+      prereqInitialized.current = true;
+      const stored = moduleItem.unlock_rule_json as { prerequisites?: string[] } | undefined;
+      setPrerequisites(stored?.prerequisites ?? []);
+    }
+  }, [moduleItem]);
+
   function showFeedback(msg: string) {
     setFeedback(msg);
     setTimeout(() => setFeedback(null), 2000);
@@ -423,15 +443,26 @@ export default function LessonManagePage() {
   async function handleSave() {
     setSaving(true);
     try {
-      await updateLesson.mutateAsync({
-        title: title.trim() || undefined,
-        summary: summary.trim() || undefined,
-        lesson_type: lessonType,
-        status,
-        difficulty: difficulty || undefined,
-        estimated_minutes: estimatedMinutes ? Number(estimatedMinutes) : undefined,
-        notes_markdown: notes || undefined,
-      });
+      const saves: Promise<unknown>[] = [
+        updateLesson.mutateAsync({
+          title: title.trim() || undefined,
+          summary: summary.trim() || undefined,
+          lesson_type: lessonType,
+          status,
+          difficulty: difficulty || undefined,
+          estimated_minutes: estimatedMinutes ? Number(estimatedMinutes) : undefined,
+          notes_markdown: notes || undefined,
+        }),
+      ];
+      if (moduleItem) {
+        saves.push(
+          updateModuleItem.mutateAsync({
+            itemId: moduleItem.id,
+            payload: { unlock_rule_json: { prerequisites } },
+          })
+        );
+      }
+      await Promise.all(saves);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
       toast.success("Lesson saved");
@@ -449,6 +480,16 @@ export default function LessonManagePage() {
       toast.success("Lesson archived");
     } catch (err: unknown) {
       toast.error((err as Error).message || "Archive failed");
+    }
+  }
+
+  async function handleDelete() {
+    if (!deleteConfirm) { setDeleteConfirm(true); return; }
+    try {
+      await deleteLesson.mutateAsync(lessonId);
+      toast.success("Lesson deleted");
+    } catch (err: unknown) {
+      toast.error((err as Error).message || "Delete failed");
     }
   }
 
@@ -907,6 +948,32 @@ export default function LessonManagePage() {
             >
               <Archive className="h-4 w-4" />
               Archive Lesson
+            </button>
+          )}
+
+          {deleteConfirm ? (
+            <div className="w-full rounded-xl border border-m3-error/50 bg-m3-error/5 p-4 space-y-3">
+              <p className="text-sm font-bold text-m3-error text-center">Permanently delete this lesson?</p>
+              <p className="text-xs text-m3-on-surface-variant text-center">
+                This cannot be undone. All resources and materials will be removed.
+              </p>
+              <div className="flex gap-2">
+                <button type="button" onClick={() => setDeleteConfirm(false)} className="flex-1 py-2.5 rounded-xl border border-m3-outline-variant/30 text-sm font-bold text-m3-on-surface-variant hover:bg-m3-surface-container transition-colors cursor-pointer">
+                  Cancel
+                </button>
+                <button type="button" onClick={handleDelete} className="flex-1 py-2.5 rounded-xl bg-m3-error text-white text-sm font-bold hover:opacity-90 cursor-pointer">
+                  Yes, Delete
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={handleDelete}
+              className="w-full py-3 flex items-center justify-center gap-2 rounded-xl text-m3-error font-bold text-sm hover:bg-m3-error/5 transition-colors cursor-pointer"
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete Lesson
             </button>
           )}
         </aside>

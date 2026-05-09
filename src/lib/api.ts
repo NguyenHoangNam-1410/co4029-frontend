@@ -803,3 +803,20 @@ export function useDeleteModuleItem(courseId: string) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["teacher", "courses", courseId, "content"] }),
   });
 }
+
+export function useUpdateModuleItem(courseId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ itemId, payload }: { itemId: string; payload: { unlock_rule_json?: Record<string, unknown> } }) =>
+      apiPatch(`/teacher/module-items/${itemId}`, payload),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["teacher", "courses", courseId, "content"] }),
+  });
+}
+
+export function useDeleteLesson(courseId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (lessonId: string) => apiDelete(`/teacher/lessons/${lessonId}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["teacher", "courses", courseId, "content"] }),
+  });
+}
