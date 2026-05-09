@@ -21,6 +21,11 @@ import {
   Sparkles,
   HelpCircle,
 } from "lucide-react";
+import { MediaPlayer, MediaProvider } from "@vidstack/react";
+import { DefaultVideoLayout, defaultLayoutIcons } from "@vidstack/react/player/layouts/default";
+import "@vidstack/react/player/styles/base.css";
+import "@vidstack/react/player/styles/default/theme.css";
+import "@vidstack/react/player/styles/default/layouts/video.css";
 import { Button } from "@/components/ui/button";
 import { GradientProgress } from "@/components/ui/gradient-progress";
 import { GlassCard } from "@/components/ui/glass-card";
@@ -224,40 +229,25 @@ export default function CourseLearnPage() {
                 )}
               </GlassCard>
             ) : (
-              <div className="relative group rounded-2xl overflow-hidden bg-slate-900 shadow-2xl aspect-video">
+              <div className="rounded-2xl overflow-hidden bg-black shadow-2xl">
                 {streamData ? (
-                  <video
-                    src={streamData.stream_url}
-                    className="absolute inset-0 w-full h-full object-contain"
-                    controls
-                  />
+                  <MediaPlayer
+                    src={{ src: streamData.stream_url, type: "video/mp4" }}
+                    className="w-full aspect-video"
+                    load="play"
+                  >
+                    <MediaProvider />
+                    <DefaultVideoLayout icons={defaultLayoutIcons} download={false} />
+                  </MediaPlayer>
                 ) : (
-                  <>
+                  <div className="relative aspect-video">
                     <div className="absolute inset-0 bg-gradient-to-br from-violet-900 via-indigo-800 to-slate-900 opacity-80" />
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <button className="w-20 h-20 bg-m3-primary/90 text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-transform active:scale-95 group-hover:bg-m3-secondary">
+                      <div className="w-20 h-20 bg-m3-primary/90 text-white rounded-full flex items-center justify-center shadow-2xl">
                         <Play className="h-9 w-9 fill-white" />
-                      </button>
-                    </div>
-                    <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-slate-900/90 to-transparent">
-                      <div className="w-full h-1 bg-white/20 rounded-full mb-3">
-                        <div className="h-full w-0 bg-white/80 rounded-full" />
-                      </div>
-                      <div className="flex items-center justify-between text-white">
-                        <div className="flex items-center gap-3">
-                          <Volume2 className="h-5 w-5" />
-                          <span className="text-xs font-mono">
-                            {activeLesson?.estimated_minutes ? `0:00 / ${formatMinutes(activeLesson.estimated_minutes)}` : "0:00"}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <Captions className="h-5 w-5 opacity-70 hover:opacity-100 cursor-pointer" />
-                          <Settings className="h-5 w-5 opacity-70 hover:opacity-100 cursor-pointer" />
-                          <Maximize className="h-5 w-5 opacity-70 hover:opacity-100 cursor-pointer" />
-                        </div>
                       </div>
                     </div>
-                  </>
+                  </div>
                 )}
               </div>
             )}

@@ -7,6 +7,11 @@ import {
   CheckSquare, X, Archive, Loader2, Save, Brain, Pencil, Check,
   Hash, AlignLeft, Search,
 } from "lucide-react";
+import { MediaPlayer, MediaProvider } from "@vidstack/react";
+import { DefaultVideoLayout, defaultLayoutIcons } from "@vidstack/react/player/layouts/default";
+import "@vidstack/react/player/styles/base.css";
+import "@vidstack/react/player/styles/default/theme.css";
+import "@vidstack/react/player/styles/default/layouts/video.css";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -160,46 +165,48 @@ function VideoContent({
 
   return (
     <>
-      <div className="relative group aspect-video rounded-2xl overflow-hidden bg-m3-surface-container-highest shadow-xl shadow-m3-primary/5">
-        {streamUrl ? (
-          <video
-            src={streamUrl}
-            controls
-            className="w-full h-full object-contain bg-black"
-          />
-        ) : (
-          <>
-            <div className="absolute inset-0 bg-gradient-to-br from-m3-primary/20 via-m3-secondary/10 to-transparent" />
-            <div
-              className="absolute inset-0 opacity-10"
-              style={{ backgroundImage: "radial-gradient(circle, #5654a8 1px, transparent 1px)", backgroundSize: "28px 28px" }}
-            />
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
-              <div className="w-20 h-20 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center shadow-2xl">
-                <Play className="h-8 w-8 text-m3-primary ml-1" fill="currentColor" />
-              </div>
-              <p className="text-sm text-m3-on-surface-variant font-medium">No video uploaded yet</p>
-            </div>
-          </>
-        )}
-
-        {estimatedMinutes && (
-          <div className="absolute top-4 left-4">
-            <span className="bg-black/50 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full">{estimatedMinutes}m</span>
-          </div>
-        )}
-
-        <div className="absolute bottom-4 right-4">
-          <button
-            type="button"
-            disabled={uploading}
-            onClick={() => videoInputRef.current?.click()}
-            className="glass ghost-border backdrop-blur-md px-4 py-2 rounded-xl text-sm font-bold text-m3-on-surface flex items-center gap-2 hover:bg-white/90 transition-all cursor-pointer disabled:opacity-50"
+      {streamUrl ? (
+        <div className="rounded-2xl overflow-hidden shadow-xl shadow-m3-primary/5 bg-black">
+          <MediaPlayer
+            src={{ src: streamUrl, type: "video/mp4" }}
+            className="w-full aspect-video"
+            load="play"
           >
-            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-            {uploading ? "Uploading…" : streamUrl ? "Replace Video" : "Upload Video"}
-          </button>
+            <MediaProvider />
+            <DefaultVideoLayout icons={defaultLayoutIcons} download={false} />
+          </MediaPlayer>
         </div>
+      ) : (
+        <div className="relative aspect-video rounded-2xl overflow-hidden bg-m3-surface-container-highest shadow-xl shadow-m3-primary/5">
+          <div className="absolute inset-0 bg-gradient-to-br from-m3-primary/20 via-m3-secondary/10 to-transparent" />
+          <div
+            className="absolute inset-0 opacity-10"
+            style={{ backgroundImage: "radial-gradient(circle, #5654a8 1px, transparent 1px)", backgroundSize: "28px 28px" }}
+          />
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
+            <div className="w-20 h-20 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center shadow-2xl">
+              <Play className="h-8 w-8 text-m3-primary ml-1" fill="currentColor" />
+            </div>
+            <p className="text-sm text-m3-on-surface-variant font-medium">No video uploaded yet</p>
+          </div>
+        </div>
+      )}
+
+      <div className="flex justify-between items-center">
+        {estimatedMinutes && (
+          <span className="text-xs text-m3-on-surface-variant font-medium">
+            <span className="font-bold text-m3-on-surface">{estimatedMinutes}</span> min estimated
+          </span>
+        )}
+        <button
+          type="button"
+          disabled={uploading}
+          onClick={() => videoInputRef.current?.click()}
+          className="ml-auto flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold border border-m3-outline-variant/30 bg-m3-surface hover:bg-m3-surface-container transition-colors cursor-pointer disabled:opacity-50"
+        >
+          {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+          {uploading ? "Uploading…" : streamUrl ? "Replace Video" : "Upload Video"}
+        </button>
       </div>
 
       <input
