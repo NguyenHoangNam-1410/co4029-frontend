@@ -28,7 +28,7 @@ export default function ContentTopBar() {
   }
 
   return (
-    <header className="w-full sticky top-0 z-40 bg-m3-surface/80 backdrop-blur-md flex items-center justify-end px-8 h-16">
+    <header className="w-full sticky top-0 z-20 bg-m3-surface/80 backdrop-blur-md flex items-center justify-end px-8 h-16">
       <div className="flex items-center gap-4">
         <button
           className="relative text-m3-on-surface-variant cursor-pointer hover:bg-m3-primary-fixed p-2.5 rounded-full transition-colors"

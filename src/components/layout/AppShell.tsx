@@ -1,19 +1,10 @@
 import { useState } from "react";
-import { Loader2, Menu } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import SideNavBar from "./SideNavBar";
-import BottomNavBar from "./BottomNavBar";
 import ContentTopBar from "./ContentTopBar";
-import {
-  adminBottomNavItems,
-  adminNavItems,
-  bottomNavItems,
-  instructorBottomNavItems,
-  instructorNavItems,
-  type NavItem,
-} from "@/lib/navigation";
+import { type NavItem } from "@/lib/navigation";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -22,14 +13,7 @@ interface AppShellProps {
 
 export default function AppShell({ children, navItems }: AppShellProps) {
   const { status } = useAuth();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  const mobileNavItems =
-    navItems === adminNavItems
-      ? adminBottomNavItems
-      : navItems === instructorNavItems
-        ? instructorBottomNavItems
-        : bottomNavItems;
+  const [collapsed, setCollapsed] = useState(() => window.innerWidth < 768);
 
   if (status !== "authenticated") {
     return (
@@ -44,37 +28,30 @@ export default function AppShell({ children, navItems }: AppShellProps) {
 
   return (
     <div className="min-h-screen bg-m3-surface">
-      {/* Desktop Sidebar */}
-      <SideNavBar navItems={navItems} />
+      <SideNavBar
+        navItems={navItems}
+        collapsed={collapsed}
+        onToggle={() => setCollapsed((c) => !c)}
+      />
 
-      {/* Mobile Sidebar (Sheet) */}
-      <div className="md:hidden">
-        <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-          <SheetTrigger
-            render={
-              <Button
-                variant="ghost"
-                size="icon"
-                className="fixed top-3 left-3 z-50"
-              />
-            }
-          >
-            <Menu className="h-5 w-5" />
-          </SheetTrigger>
-          <SheetContent side="left" className="p-0 w-64" showCloseButton={false}>
-            <SideNavBar navItems={navItems} className="relative w-full h-full" />
-          </SheetContent>
-        </Sheet>
-      </div>
+      {/* Backdrop — mobile only, when sidebar expanded */}
+      {!collapsed && (
+        <div
+          className="fixed inset-0 z-30 bg-black/20 md:hidden"
+          onClick={() => setCollapsed(true)}
+        />
+      )}
 
-      {/* Main Content */}
-      <main className="lg:ml-64 min-h-screen">
+      <main
+        className={cn(
+          "min-h-screen transition-all duration-300",
+          "ml-16",
+          !collapsed && "md:ml-64"
+        )}
+      >
         <ContentTopBar />
         {children}
       </main>
-
-      {/* Mobile Bottom Nav */}
-      <BottomNavBar navItems={mobileNavItems} />
     </div>
   );
 }
