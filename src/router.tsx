@@ -17,7 +17,13 @@ import DashboardPage from "@/routes/dashboard";
 import GoogleCallbackPage from "@/routes/google-callback";
 import CoursesListPage from "@/routes/courses-list";
 import CourseDetailPage from "@/routes/course-detail";
-import { ProgressPage, SettingsPage } from "@/routes/placeholder";
+import CourseLearnPage from "@/routes/course-learn";
+import { ProgressPage, SettingsPage, QuizPage, InterviewPage } from "@/routes/placeholder";
+import TeacherDashboard from "@/routes/teacher/index";
+import TeacherCoursesPage from "@/routes/teacher/courses";
+import CourseNewPage from "@/routes/teacher/course-new";
+import CourseManagePage from "@/routes/teacher/course-manage";
+import LessonManagePage from "@/routes/teacher/lesson-manage";
 
 /* ── Root layout ── */
 function Root() {
@@ -82,6 +88,24 @@ const courseDetailRoute = createRoute({
   component: CourseDetailPage,
 });
 
+const courseLearnRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/courses/$slug/learn",
+  component: CourseLearnPage,
+});
+
+const courseQuizRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/courses/$slug/quiz/$quizId",
+  component: QuizPage,
+});
+
+const courseInterviewRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/courses/$slug/interview/$moduleId",
+  component: InterviewPage,
+});
+
 const progressRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/progress",
@@ -92,6 +116,36 @@ const settingsRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/settings",
   component: SettingsPage,
+});
+
+const teacherRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/teacher",
+  component: TeacherDashboard,
+});
+
+const teacherCoursesRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/teacher/courses",
+  component: TeacherCoursesPage,
+});
+
+const teacherCourseNewRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/teacher/courses/new",
+  component: CourseNewPage,
+});
+
+const teacherCourseManageRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/teacher/courses/$courseId",
+  component: CourseManagePage,
+});
+
+const teacherLessonManageRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/teacher/courses/$courseId/lessons/$lessonId",
+  component: LessonManagePage,
 });
 
 const callbackRoute = createRoute({
@@ -113,8 +167,16 @@ const routeTree = rootRoute.addChildren([
     dashboardRoute,
     coursesRoute,
     courseDetailRoute,
+    courseLearnRoute,
+    courseQuizRoute,
+    courseInterviewRoute,
     progressRoute,
     settingsRoute,
+    teacherRoute,
+    teacherCoursesRoute,
+    teacherCourseNewRoute,
+    teacherCourseManageRoute,
+    teacherLessonManageRoute,
   ]),
   callbackRoute,
 ]);

@@ -26,6 +26,11 @@ export const studentNavItems: NavItem[] = [
   { label: "Progress", href: "/progress", icon: BarChart3 },
 ];
 
+export const teacherNavItems: NavItem[] = [
+  { label: "Overview", href: "/teacher", icon: LayoutDashboard },
+  { label: "My Courses", href: "/teacher/courses", icon: BookOpen },
+];
+
 export const instructorNavItems: NavItem[] = [
   { label: "Dashboard", href: "/instructor-dashboard", icon: LayoutDashboard },
   { label: "My Courses", href: "/my-courses", icon: BookOpen },

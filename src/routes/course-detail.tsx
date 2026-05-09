@@ -527,7 +527,7 @@ function CtaCard({
         )}
 
         {/* CTA */}
-        <Link to="/courses/$slug" params={{ slug: course.slug }} className="block">
+        <Link to="/courses/$slug/learn" params={{ slug: course.slug }} className="block">
           <Button className="w-full gradient-primary text-white font-bold rounded-xl py-5 h-auto text-base gap-2 shadow-ai-glow hover:opacity-90 transition-opacity">
             {ctaLabel}
             <ArrowRight className="h-5 w-5" />

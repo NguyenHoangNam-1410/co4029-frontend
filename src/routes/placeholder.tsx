@@ -30,3 +30,11 @@ export function ProgressPage() {
 export function SettingsPage() {
   return <ComingSoonPage title="Settings" />;
 }
+
+export function QuizPage() {
+  return <ComingSoonPage title="Quiz" />;
+}
+
+export function InterviewPage() {
+  return <ComingSoonPage title="AI Mock Interview" />;
+}
