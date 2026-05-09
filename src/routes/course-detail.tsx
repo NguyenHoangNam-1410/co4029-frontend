@@ -8,6 +8,7 @@ import {
   BookOpen,
   PlayCircle,
   HelpCircle,
+  Code,
   ArrowRight,
   Calendar,
   Mail,
@@ -55,9 +56,11 @@ function slugGradient(slug: string) {
   return CARD_GRADIENTS[Math.abs(hash) % CARD_GRADIENTS.length];
 }
 
-function ItemTypeIcon({ type }: { type: "lesson" | "quiz" | "interview" }) {
+function ItemTypeIcon({ type, lessonType }: { type: "lesson" | "quiz" | "interview"; lessonType?: string | null }) {
   if (type === "quiz")      return <HelpCircle className="h-3.5 w-3.5 text-m3-primary shrink-0" />;
   if (type === "interview") return <Mic className="h-3.5 w-3.5 text-m3-secondary shrink-0" />;
+  if (lessonType === "reading")  return <BookOpen   className="h-3.5 w-3.5 text-m3-secondary shrink-0" />;
+  if (lessonType === "exercise") return <Code        className="h-3.5 w-3.5 text-m3-secondary shrink-0" />;
   return <PlayCircle className="h-3.5 w-3.5 text-m3-secondary shrink-0" />;
 }
 
@@ -405,7 +408,7 @@ function ModuleAccordion({ modules }: { modules: CourseContentModule[] }) {
                         key={item.id}
                         className="flex items-center gap-3 px-5 py-3 hover:bg-m3-surface-container-low transition-colors"
                       >
-                        <ItemTypeIcon type={item.item_type} />
+                        <ItemTypeIcon type={item.item_type} lessonType={item.lesson?.lesson_type} />
                         <span className="text-sm text-m3-on-surface-variant flex-1 leading-snug">
                           {label}
                         </span>

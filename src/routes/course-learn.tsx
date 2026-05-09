@@ -20,6 +20,7 @@ import {
   Download,
   Sparkles,
   HelpCircle,
+  Code,
 } from "lucide-react";
 import { MediaPlayer, MediaProvider } from "@vidstack/react";
 import { DefaultVideoLayout, defaultLayoutIcons } from "@vidstack/react/player/layouts/default";
@@ -546,9 +547,8 @@ function ModuleSection({
         const state = itemState(idx);
         const isQuiz = fi.item.item_type === "quiz";
         const isInterview = fi.item.item_type === "interview";
-        const isReading = fi.item.lesson?.lesson_type === "reading";
-
-        const LessonIcon = isReading ? BookOpen : PlayCircle;
+        const lessonType = fi.item.lesson?.lesson_type;
+        const LessonIcon = lessonType === "reading" ? BookOpen : lessonType === "exercise" ? Code : PlayCircle;
 
         return (
           <button
