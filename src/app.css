@@ -1,0 +1,214 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ── Tailwind v4 Theme ── */
+@theme inline {
+  /* Fonts */
+  --font-headline: "Epilogue", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-body);
+  --font-heading: var(--font-headline);
+
+  /* shadcn mapped colors */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Chart colors */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* ── M3 Custom Colors ── */
+  --color-m3-primary: #3a388b;
+  --color-m3-primary-container: #5250a4;
+  --color-m3-secondary: #6b38d4;
+  --color-m3-secondary-container: #8455ef;
+  --color-m3-tertiary: #004a57;
+  --color-m3-tertiary-container: #006374;
+  --color-m3-surface: #f7f9fb;
+  --color-m3-surface-dim: #d8dadc;
+  --color-m3-surface-bright: #f7f9fb;
+  --color-m3-surface-tint: #5654a8;
+  --color-m3-surface-container-lowest: #ffffff;
+  --color-m3-surface-container-low: #f2f4f6;
+  --color-m3-surface-container: #eceef0;
+  --color-m3-surface-container-high: #e6e8ea;
+  --color-m3-surface-container-highest: #e0e3e5;
+  --color-m3-surface-variant: #e0e3e5;
+  --color-m3-on-surface: #191c1e;
+  --color-m3-on-surface-variant: #454652;
+  --color-m3-on-background: #191c1e;
+  --color-m3-outline: #757684;
+  --color-m3-outline-variant: #c5c5d4;
+  --color-m3-error: #ba1a1a;
+  --color-m3-error-container: #ffdad6;
+  --color-m3-on-error: #ffffff;
+  --color-m3-on-error-container: #93000a;
+  --color-m3-on-primary: #ffffff;
+  --color-m3-on-primary-container: #d0cdff;
+  --color-m3-on-secondary: #ffffff;
+  --color-m3-on-secondary-container: #fffbff;
+  --color-m3-on-tertiary: #ffffff;
+  --color-m3-on-tertiary-container: #66e2ff;
+  --color-m3-primary-fixed: #e2dfff;
+  --color-m3-primary-fixed-dim: #c3c0ff;
+  --color-m3-on-primary-fixed: #100563;
+  --color-m3-on-primary-fixed-variant: #3e3c8f;
+  --color-m3-secondary-fixed: #e9ddff;
+  --color-m3-secondary-fixed-dim: #d0bcff;
+  --color-m3-on-secondary-fixed: #23005c;
+  --color-m3-on-secondary-fixed-variant: #5516be;
+  --color-m3-tertiary-fixed: #acedff;
+  --color-m3-tertiary-fixed-dim: #4cd7f6;
+  --color-m3-on-tertiary-fixed: #001f26;
+  --color-m3-on-tertiary-fixed-variant: #004e5c;
+  --color-m3-inverse-surface: #2d3133;
+  --color-m3-inverse-on-surface: #eff1f3;
+  --color-m3-inverse-primary: #c3c0ff;
+
+  /* Radii */
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Custom shadows */
+  --shadow-editorial: 0px 20px 40px rgba(25, 28, 30, 0.06);
+  --shadow-glass: 0px 8px 32px rgba(58, 56, 139, 0.08);
+  --shadow-ai-glow: 0px 0px 24px rgba(107, 56, 212, 0.15);
+
+  /* Custom animations */
+  --animate-pulse-slow: pulse-slow 3s ease-in-out infinite;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-ai-pulse: ai-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* ── M3 Color Tokens on :root ── */
+:root {
+  --background: #f7f9fb;
+  --foreground: #191c1e;
+  --card: #ffffff;
+  --card-foreground: #191c1e;
+  --popover: #ffffff;
+  --popover-foreground: #191c1e;
+  --primary: #3a388b;
+  --primary-foreground: #ffffff;
+  --secondary: #6b38d4;
+  --secondary-foreground: #ffffff;
+  --muted: #f2f4f6;
+  --muted-foreground: #454652;
+  --accent: #e9ddff;
+  --accent-foreground: #3a388b;
+  --destructive: #ba1a1a;
+  --border: #c5c5d4;
+  --input: #eceef0;
+  --ring: #6b38d4;
+  --chart-1: #3a388b;
+  --chart-2: #6b38d4;
+  --chart-3: #8455ef;
+  --chart-4: #004a57;
+  --chart-5: #5250a4;
+  --radius: 0.75rem;
+}
+
+/* ── Keyframes ── */
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes ai-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ── Base Styles ── */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-body;
+  }
+  html {
+    @apply font-body;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-headline tracking-tight;
+  }
+}
+
+/* ── Custom Utility Classes ── */
+@layer utilities {
+  .glass {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .glass-dark {
+    background: rgba(28, 29, 34, 0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .gradient-primary {
+    background: linear-gradient(135deg, #3a388b, #5250a4);
+  }
+  .gradient-secondary {
+    background: linear-gradient(135deg, #6b38d4, #8455ef);
+  }
+  .gradient-hero {
+    background: linear-gradient(135deg, #3a388b 0%, #5250a4 40%, #6b38d4 100%);
+  }
+  .text-gradient-primary {
+    background: linear-gradient(135deg, #3a388b, #6b38d4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .ghost-border {
+    border: 1px solid rgba(197, 197, 212, 0.15);
+  }
+  .ai-pulse {
+    animation: ai-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  .bridge-line {
+    background: linear-gradient(90deg, transparent, rgba(107, 56, 212, 0.2), transparent);
+    height: 1px;
+    width: 100%;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
