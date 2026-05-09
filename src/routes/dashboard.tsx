@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { useMyCourses, useNotifications, useCourseStatus } from "@/lib/api";
+import { useMyCourses, useNotifications, useCourseStatus, deriveCourseStatus } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -31,10 +31,8 @@ import {
 function CourseProgressCard({ course }: { course: Course }) {
   const { data: status } = useCourseStatus(course.id);
 
-  const progress = status?.progress_pct ?? 0;
-  const completedLessons = status?.completed_lessons ?? 0;
-  const totalLessons = status?.total_lessons ?? 0;
-  const courseStatus = status?.status ?? "not_started";
+  const progress = status ? Number(status.progress_percent) : 0;
+  const courseStatus = status ? deriveCourseStatus(progress) : "not_started";
 
   const statusLabel = {
     not_started: "Not started",
@@ -66,9 +64,9 @@ function CourseProgressCard({ course }: { course: Course }) {
           {course.title}
         </h3>
 
-        {totalLessons > 0 && (
+        {progress > 0 && (
           <p className="text-xs text-m3-on-surface-variant">
-            {completedLessons} / {totalLessons} lessons
+            {Math.round(progress)}% complete
           </p>
         )}
       </div>

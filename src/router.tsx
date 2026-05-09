@@ -15,12 +15,9 @@ import LoginPage from "@/routes/login";
 import AuthenticatedLayout from "@/routes/authenticated-layout";
 import DashboardPage from "@/routes/dashboard";
 import GoogleCallbackPage from "@/routes/google-callback";
-import {
-  CoursesPage,
-  CourseDetailPage,
-  ProgressPage,
-  SettingsPage,
-} from "@/routes/placeholder";
+import CoursesListPage from "@/routes/courses-list";
+import CourseDetailPage from "@/routes/course-detail";
+import { ProgressPage, SettingsPage } from "@/routes/placeholder";
 
 /* ── Root layout ── */
 function Root() {
@@ -76,7 +73,7 @@ const dashboardRoute = createRoute({
 const coursesRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/courses",
-  component: CoursesPage,
+  component: CoursesListPage,
 });
 
 const courseDetailRoute = createRoute({

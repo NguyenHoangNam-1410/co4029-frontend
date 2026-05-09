@@ -23,14 +23,6 @@ export function ComingSoonPage({ title }: { title: string }) {
   );
 }
 
-export function CoursesPage() {
-  return <ComingSoonPage title="Course Library" />;
-}
-
-export function CourseDetailPage() {
-  return <ComingSoonPage title="Course Detail" />;
-}
-
 export function ProgressPage() {
   return <ComingSoonPage title="Progress" />;
 }
