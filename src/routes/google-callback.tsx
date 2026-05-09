@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate, useSearch } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
+import { Link, useSearch } from "@tanstack/react-router";
 import { AlertCircle, Loader2, ShieldCheck } from "lucide-react";
 import {
   consumePostLoginRedirect,
@@ -9,7 +9,6 @@ import {
 } from "@/lib/auth";
 
 export default function GoogleCallbackPage() {
-  const navigate = useNavigate();
   const search = useSearch({ strict: false }) as {
     code?: string | null;
     state?: string | null;
@@ -19,13 +18,15 @@ export default function GoogleCallbackPage() {
   const [status, setStatus] = useState("Finishing Google sign-in...");
   const [details, setDetails] = useState<string | null>(null);
   const [hasFailed, setHasFailed] = useState(false);
+  const hasProcessed = useRef(false);
 
   useEffect(() => {
-    let isCurrent = true;
+    if (hasProcessed.current) return;
+    hasProcessed.current = true;
+
+    const { code, state, error } = search;
 
     async function finishLogin() {
-      const { code, state, error } = search;
-
       if (error) {
         setHasFailed(true);
         setStatus("Google sign-in was cancelled.");
@@ -53,26 +54,17 @@ export default function GoogleCallbackPage() {
       try {
         const tokenResponse = await exchangeGoogleCode(code);
         storeAuthSession(tokenResponse);
-
-        if (isCurrent) {
-          setStatus("Signed in successfully. Redirecting...");
-          void navigate({ to: consumePostLoginRedirect(), replace: true });
-        }
+        setStatus("Signed in successfully. Redirecting...");
+        window.location.replace(consumePostLoginRedirect());
       } catch (err) {
-        if (isCurrent) {
-          setHasFailed(true);
-          setStatus("Unable to finish Google sign-in.");
-          setDetails(err instanceof Error ? err.message : "Please try again.");
-        }
+        setHasFailed(true);
+        setStatus("Unable to finish Google sign-in.");
+        setDetails(err instanceof Error ? err.message : "Please try again.");
       }
     }
 
     void finishLogin();
-
-    return () => {
-      isCurrent = false;
-    };
-  }, [navigate, search]);
+  }, [search]);
 
   return (
     <main className="min-h-screen bg-m3-surface-bright px-6 py-10 flex items-center justify-center">

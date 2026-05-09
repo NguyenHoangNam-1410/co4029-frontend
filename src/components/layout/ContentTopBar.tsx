@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Bell, Loader2, Settings, LogOut, User } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -16,17 +16,14 @@ import { getAuthDisplayName, getAuthUserInitials } from "@/lib/auth";
 export default function ContentTopBar() {
   const { logout, user } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const navigate = useNavigate();
   const displayName = getAuthDisplayName(user);
 
   async function handleLogout() {
     setIsLoggingOut(true);
-
     try {
       await logout();
-      void navigate({ to: "/login", search: { next: undefined }, replace: true });
     } finally {
-      setIsLoggingOut(false);
+      window.location.replace("/login");
     }
   }
 
@@ -89,10 +86,7 @@ export default function ContentTopBar() {
               variant="destructive"
               className="rounded-lg px-3 py-2 gap-3 cursor-pointer"
               disabled={isLoggingOut}
-              onSelect={(event) => {
-                event.preventDefault();
-                void handleLogout();
-              }}
+              onClick={() => void handleLogout()}
             >
               {isLoggingOut ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
