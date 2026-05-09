@@ -15,6 +15,7 @@ import {
   useRequestUploadUrl,
   useCreateMaterial,
   useReprocessMaterial,
+  useUpdateMaterial,
   useDeleteMaterial,
   useTeacherCourseById,
   useTeacherLesson,
@@ -24,6 +25,7 @@ import { cn } from "@/lib/utils";
 
 /* ── Processing status display config ── */
 const PROC_STATUS: Record<string, { label: string; color: string; spin?: boolean }> = {
+  not_queued:  { label: "Not Queued",    color: "bg-amber-50 text-amber-600" },
   pending:     { label: "Pending",       color: "bg-slate-100 text-slate-500" },
   extracting:  { label: "Extracting",    color: "bg-blue-100 text-blue-700",      spin: true },
   chunking:    { label: "Chunking",      color: "bg-violet-100 text-violet-700",  spin: true },
@@ -341,8 +343,29 @@ function MaterialCard({
 }) {
   const { data: status } = useMaterialStatus(material.id);
   const reprocess = useReprocessMaterial(lessonId);
-  const proc = PROC_STATUS[status?.processing_status ?? "pending"] ?? PROC_STATUS.pending;
+  const updateMaterial = useUpdateMaterial(lessonId);
+
+  /* A material is "not queued" when ai_processing_enabled is off and no job is running */
+  const notQueued = !material.ai_processing_enabled && !status?.active_job_id;
+  const procKey = notQueued ? "not_queued" : (status?.processing_status ?? "pending");
+  const proc = PROC_STATUS[procKey] ?? PROC_STATUS.pending;
   const Icon = materialIcon(material.material_type);
+
+  function handleEnableAI() {
+    updateMaterial.mutate(
+      { materialId: material.id, payload: { ai_processing_enabled: true } },
+      {
+        onSuccess: () =>
+          reprocess.mutate(material.id, {
+            onSuccess: () => toast.success("AI processing enabled and started"),
+            onError: (err) => toast.error((err as Error).message),
+          }),
+        onError: (err) => toast.error((err as Error).message),
+      }
+    );
+  }
+
+  const enablingAI = updateMaterial.isPending || reprocess.isPending;
 
   return (
     <div className="flex items-center gap-4 p-4 bg-card rounded-2xl border border-m3-outline-variant/20 group hover:border-m3-outline-variant/40 transition-colors">
@@ -379,7 +402,22 @@ function MaterialCard({
       </div>
 
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-        {(status?.processing_status === "failed" || status?.processing_status === "ready") && (
+        {notQueued && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-m3-secondary hover:text-m3-secondary hover:bg-m3-secondary-fixed/30"
+            title="Enable AI Processing"
+            disabled={enablingAI}
+            onClick={handleEnableAI}
+          >
+            {enablingAI
+              ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              : <Sparkles className="h-3.5 w-3.5" />
+            }
+          </Button>
+        )}
+        {!notQueued && (status?.processing_status === "failed" || status?.processing_status === "ready") && (
           <Button
             variant="ghost"
             size="icon"

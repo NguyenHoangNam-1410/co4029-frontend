@@ -541,23 +541,29 @@ export default function LessonManagePage() {
         storage_object_id: storage_object.id,
         position: resources.length + 1,
       });
-      // Also save to materials hub for reuse (no AI processing)
-      if (moduleId) {
+      showFeedback(`"${file.name}" attached successfully.`);
+
+      // Best-effort: also add to AI Material Hub (no processing until teacher enables it)
+      const currentModuleId = lesson?.module_id;
+      if (currentModuleId) {
         const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
         const materialType = file.type.startsWith("video/") ? "video"
           : ext === "pdf" ? "pdf"
           : ["pptx", "ppt"].includes(ext) ? "slides"
           : ["py", "js", "ts", "jsx", "tsx", "java", "c", "cpp"].includes(ext) ? "code"
           : "other";
-        await createMaterial.mutateAsync({
-          title: file.name.replace(/\.[^.]+$/, ""),
-          material_type: materialType,
-          storage_object_id: storage_object.id,
-          ai_processing_enabled: false,
-          visible_to_students: false,
-        });
+        try {
+          await createMaterial.mutateAsync({
+            title: file.name.replace(/\.[^.]+$/, ""),
+            material_type: materialType,
+            storage_object_id: storage_object.id,
+            ai_processing_enabled: false,
+            visible_to_students: false,
+          });
+        } catch {
+          toast.error("Resource attached, but couldn't sync to AI Material Hub");
+        }
       }
-      showFeedback(`"${file.name}" attached successfully.`);
     } catch (err: unknown) {
       toast.error((err as Error).message || "Attach failed");
     } finally {

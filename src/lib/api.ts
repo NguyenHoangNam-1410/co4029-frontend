@@ -516,6 +516,20 @@ export function useDeleteMaterial(lessonId: string) {
   });
 }
 
+export function useUpdateMaterial(lessonId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ materialId, payload }: {
+      materialId: string;
+      payload: { ai_processing_enabled?: boolean; visible_to_students?: boolean; title?: string };
+    }) => apiPatch<LearningMaterial>(`/materials/${materialId}`, payload),
+    onSuccess: (_, { materialId }) => {
+      qc.invalidateQueries({ queryKey: ["lessons", lessonId, "materials"] });
+      qc.invalidateQueries({ queryKey: ["materials", materialId, "status"] });
+    },
+  });
+}
+
 export function useMyRoles() {
   return useQuery({
     queryKey: ["me", "roles"],
