@@ -5,7 +5,8 @@ import {
   AlertTriangle, ChevronRight, Clock, UserCheck, UserX,
   UserMinus, ArrowUpRight, Award,
 } from "lucide-react";
-import { useTeacherCourseById, useTeacherCourseRoster, type RosterStudent } from "@/lib/api";
+import { useTeacherCourseById, useTeacherCourseRoster } from "@/lib/api/hooks/use-teacher-api";
+import type { RosterStudent } from "@/lib/api/types/teacher";
 import { GradientProgress } from "@/components/ui/gradient-progress";
 import { cn } from "@/lib/utils";
 

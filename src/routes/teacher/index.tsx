@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SectionHeader } from "@/components/ui/section-header";
 import { StatCard } from "@/components/ui/stat-card";
-import { useTeacherCourses } from "@/lib/api";
+import { useTeacherCourses } from "@/lib/api/hooks/use-teacher-api";
 import { cn } from "@/lib/utils";
 
 const STATUS_COLORS: Record<string, string> = {

@@ -16,10 +16,12 @@ import {
   useCreateLesson,
   useReorderModuleItems,
   useDeleteModuleItem,
-  type CourseContentModule,
-  type CourseContentItem,
-  type CourseContentLesson,
-} from "@/lib/api";
+} from "@/lib/api/hooks/use-teacher-api";
+import type {
+  CourseContentItem,
+  CourseContentLesson,
+  CourseContentModule,
+} from "@/lib/api/types/common";
 import { cn } from "@/lib/utils";
 
 const LESSON_TYPE_CONFIG: Record<string, {

@@ -8,7 +8,7 @@ import {
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { GradientProgress } from "@/components/ui/gradient-progress";
-import { useTeacherCourseById, useTeacherCourseRoster, useUpdateEnrollment } from "@/lib/api";
+import { useTeacherCourseById, useTeacherCourseRoster, useUpdateEnrollment } from "@/lib/api/hooks/use-teacher-api";
 import { cn } from "@/lib/utils";
 
 /* ── Helpers ── */

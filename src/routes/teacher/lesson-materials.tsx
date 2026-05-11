@@ -9,18 +9,18 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  useLessonMaterials,
-  useProcessingSummary,
-  useMaterialStatus,
-  useRequestUploadUrl,
+  useTeacherLessonMaterials,
+  useTeacherProcessingSummary,
+  useTeacherMaterialStatus,
+  useTeacherRequestUploadUrl,
   useCreateMaterial,
   useReprocessMaterial,
   useUpdateMaterial,
   useDeleteMaterial,
   useTeacherCourseById,
   useTeacherLesson,
-  type LearningMaterial,
-} from "@/lib/api";
+} from "@/lib/api/hooks/use-teacher-api";
+import type { LearningMaterial } from "@/lib/api/types/teacher";
 import { cn } from "@/lib/utils";
 
 /* ── Processing status display config ── */
@@ -135,7 +135,7 @@ function SelectedFileForm({
   onDone: () => void;
   onCancel: () => void;
 }) {
-  const requestUpload = useRequestUploadUrl();
+  const requestUpload = useTeacherRequestUploadUrl();
   const createMaterial = useCreateMaterial(courseId, moduleId, lessonId);
   const [uploading, setUploading] = useState(false);
   const [form, setForm] = useState({
@@ -274,7 +274,7 @@ function SelectedFileForm({
    ProcessingStatusCard
    ════════════════════════════════════════ */
 function ProcessingStatusCard({ material }: { material: LearningMaterial }) {
-  const { data: status } = useMaterialStatus(material.id);
+  const { data: status } = useTeacherMaterialStatus(material.id);
   const proc = PROC_STATUS[status?.processing_status ?? "pending"] ?? PROC_STATUS.pending;
   const Icon = materialIcon(material.material_type);
 
@@ -341,7 +341,7 @@ function MaterialCard({
   lessonId: string;
   onDelete: (id: string) => void;
 }) {
-  const { data: status } = useMaterialStatus(material.id);
+  const { data: status } = useTeacherMaterialStatus(material.id);
   const reprocess = useReprocessMaterial(lessonId);
   const updateMaterial = useUpdateMaterial(lessonId);
 
@@ -530,8 +530,8 @@ export default function LessonMaterialsPage() {
 
   const { data: course } = useTeacherCourseById(courseId);
   const { data: lesson, isLoading: lessonLoading } = useTeacherLesson(lessonId);
-  const { data: materials = [], isLoading: materialsLoading } = useLessonMaterials(lessonId);
-  const { data: summary } = useProcessingSummary(lessonId);
+  const { data: materials = [], isLoading: materialsLoading } = useTeacherLessonMaterials(lessonId);
+  const { data: summary } = useTeacherProcessingSummary(lessonId);
   const deleteMaterial = useDeleteMaterial(lessonId);
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);

@@ -1,7 +1,8 @@
 import { useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { useMyCourses, useNotifications, useCourseStatus, deriveCourseStatus } from "@/lib/api";
+import { useCourseStatus, useMyCourses, useNotifications } from "@/lib/api/hooks/use-student-api";
+import { deriveCourseStatus } from "@/lib/api/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -10,7 +11,7 @@ import { SectionHeader } from "@/components/ui/section-header";
 import { GradientProgress } from "@/components/ui/gradient-progress";
 import { StatCard } from "@/components/ui/stat-card";
 import { getAuthDisplayName, getAuthUserInitials } from "@/lib/auth";
-import type { Course } from "@/lib/api";
+import type { Course } from "@/lib/api/types/common";
 import {
   ArrowRight,
   ChevronLeft,

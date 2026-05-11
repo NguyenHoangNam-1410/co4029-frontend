@@ -4,7 +4,8 @@ import { Plus, BookOpen, Clock, Search, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { useTeacherCourses, useTeacherCourseContent, type Course } from "@/lib/api";
+import { useTeacherCourseContent, useTeacherCourses } from "@/lib/api/hooks/use-teacher-api";
+import type { Course } from "@/lib/api/types/common";
 import { cn } from "@/lib/utils";
 
 const STATUS_COLORS: Record<string, string> = {

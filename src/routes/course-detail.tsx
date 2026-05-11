@@ -30,12 +30,9 @@ import {
   useCourseOutcomes,
   useCourseTags,
   useCourseStatus,
-  formatMinutes,
-  deriveCourseStatus,
-  type CourseDetail,
-  type CourseContentModule,
-  type CourseTag,
-} from "@/lib/api";
+} from "@/lib/api/hooks/use-student-api";
+import { deriveCourseStatus, formatMinutes } from "@/lib/api/utils";
+import type { CourseContentModule, CourseDetail, CourseTag } from "@/lib/api/types/common";
 import { cn } from "@/lib/utils";
 
 /* ── Constants ── */

@@ -6,7 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { SectionHeader } from "@/components/ui/section-header";
 import { AIInsightChip } from "@/components/ui/ai-insight-chip";
-import { useCourseList, formatMinutes, type Course } from "@/lib/api";
+import { useCourseList } from "@/lib/api/hooks/use-student-api";
+import { formatMinutes } from "@/lib/api/utils";
+import type { Course } from "@/lib/api/types/common";
 import { cn } from "@/lib/utils";
 
 const CARD_GRADIENTS = [

@@ -20,17 +20,16 @@ import {
   useTeacherCourseById,
   useTeacherCourseContent,
   useTeacherLessonResources,
-  useRequestUploadUrl,
+  useTeacherRequestUploadUrl,
   useCreateLessonResource,
   useDeleteLessonResource,
   useCreateMaterial,
-  useMaterialStreamUrl,
+  useTeacherMaterialStreamUrl,
   fetchTeacherResourceDownloadUrl,
   useDeleteLesson,
   useUpdateModuleItem,
-  type LessonResource,
-  type CourseContentLesson,
-} from "@/lib/api";
+} from "@/lib/api/hooks/use-teacher-api";
+import type { CourseContentLesson, LessonResource } from "@/lib/api/types/common";
 import { cn } from "@/lib/utils";
 
 /* ── Lesson type options ── */
@@ -156,7 +155,7 @@ function VideoContent({
 }: {
   notes: string;
   setNotes: (v: string) => void;
-  notesRef: React.RefObject<HTMLTextAreaElement>;
+  notesRef: React.RefObject<HTMLTextAreaElement | null>;
   estimatedMinutes: string;
   streamUrl?: string;
   onVideoUpload: (file: File) => Promise<void>;
@@ -252,7 +251,7 @@ function VideoContent({
 function ReadingContent({ notes, setNotes, notesRef }: {
   notes: string;
   setNotes: (v: string) => void;
-  notesRef: React.RefObject<HTMLTextAreaElement>;
+  notesRef: React.RefObject<HTMLTextAreaElement | null>;
 }) {
   const { applyMarkdown, applyBlock } = makeMarkdownApplier(() => notesRef.current, () => notes, setNotes);
   const wordCount = notes.trim() ? notes.trim().split(/\s+/).length : 0;
@@ -359,13 +358,13 @@ export default function LessonManagePage() {
   const { data: content } = useTeacherCourseContent(courseId);
   const { data: resources = [] } = useTeacherLessonResources(lessonId);
   const updateLesson = useUpdateLesson(lessonId, courseId);
-  const requestUpload = useRequestUploadUrl();
+  const requestUpload = useTeacherRequestUploadUrl();
   const createResource = useCreateLessonResource(lessonId);
   const deleteResource = useDeleteLessonResource(lessonId);
 
   const moduleId = lesson?.module_id ?? "";
   const createMaterial = useCreateMaterial(courseId, moduleId, lessonId);
-  const { data: videoStreamData } = useMaterialStreamUrl(lesson?.primary_material_id);
+  const { data: videoStreamData } = useTeacherMaterialStreamUrl(lesson?.primary_material_id);
   const deleteLesson = useDeleteLesson(courseId);
   const updateModuleItem = useUpdateModuleItem(courseId);
 

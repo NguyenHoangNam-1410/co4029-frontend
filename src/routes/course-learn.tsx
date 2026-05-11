@@ -39,10 +39,9 @@ import {
   useLessonResources,
   useMaterialStreamUrl,
   fetchResourceDownloadUrl,
-  formatMinutes,
-  type CourseContentItem,
-  type CourseContentModule,
-} from "@/lib/api";
+} from "@/lib/api/hooks/use-student-api";
+import { formatMinutes } from "@/lib/api/utils";
+import type { CourseContentItem, CourseContentModule } from "@/lib/api/types/common";
 import { cn } from "@/lib/utils";
 
 /* ── Types ── */
@@ -583,4 +582,3 @@ function ModuleSection({
     </div>
   );
 }
-

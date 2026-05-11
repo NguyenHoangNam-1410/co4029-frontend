@@ -5,7 +5,7 @@ import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useCreateCourse, useMe } from "@/lib/api";
+import { useCreateCourse, useMe } from "@/lib/api/hooks/use-teacher-api";
 
 export default function CourseNewPage() {
   const navigate = useNavigate();
