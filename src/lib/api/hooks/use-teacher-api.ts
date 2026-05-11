@@ -12,11 +12,16 @@ import type {
 } from "../types/common";
 import type {
   CourseEnrollmentRead,
+  GenerationRun,
   CourseRoster,
   LearningMaterial,
   LessonRead,
   MaterialStatus,
   ProcessingSummary,
+  QuizGeneratePayload,
+  QuizQuestionPatch,
+  QuizQuestionRead,
+  QuizRead,
   UploadUrlResponse,
 } from "../types/teacher";
 
@@ -115,7 +120,7 @@ export function useTeacherMaterialStatus(materialId: string | undefined) {
     enabled: !!materialId,
     refetchInterval: (query) => {
       const status = query.state.data?.processing_status;
-      if (status && ["extracting", "chunking", "embedding"].includes(status)) return 3000;
+      if (status && ["pending", "extracting", "chunking", "embedding", "building_kg"].includes(status)) return 3000;
       return false;
     },
   });
@@ -286,6 +291,69 @@ export function useReprocessMaterial(lessonId: string) {
     onSuccess: (_, materialId) => {
       qc.invalidateQueries({ queryKey: ["teacher", "materials", materialId, "status"] });
       qc.invalidateQueries({ queryKey: ["teacher", "lessons", lessonId, "processing-summary"] });
+    },
+  });
+}
+
+export function useGenerateQuiz(moduleId: string | undefined) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: QuizGeneratePayload) =>
+      apiPost<GenerationRun>(`/modules/${moduleId}/quizzes/generate`, payload),
+    onSuccess: (run) => {
+      qc.invalidateQueries({ queryKey: ["teacher", "generation-runs", run.id] });
+      if (moduleId) qc.invalidateQueries({ queryKey: ["teacher", "modules", moduleId, "quizzes"] });
+    },
+  });
+}
+
+export function useGenerationRun(generationRunId: string | null | undefined) {
+  return useQuery({
+    queryKey: ["teacher", "generation-runs", generationRunId],
+    queryFn: () => apiFetch<GenerationRun>(`/generation-runs/${generationRunId}`),
+    enabled: !!generationRunId,
+    refetchInterval: (query) => {
+      const status = query.state.data?.status;
+      if (status && ["pending", "running"].includes(status)) return 2500;
+      return false;
+    },
+  });
+}
+
+export function useQuiz(quizId: string | null | undefined) {
+  return useQuery({
+    queryKey: ["teacher", "quizzes", quizId],
+    queryFn: () => apiFetch<QuizRead>(`/quizzes/${quizId}`),
+    enabled: !!quizId,
+  });
+}
+
+export function useQuizQuestions(quizId: string | null | undefined) {
+  return useQuery({
+    queryKey: ["teacher", "quizzes", quizId, "questions"],
+    queryFn: () => apiFetch<QuizQuestionRead[]>(`/quizzes/${quizId}/questions`),
+    enabled: !!quizId,
+  });
+}
+
+export function usePatchQuizQuestion() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ questionId, payload }: { questionId: string; payload: QuizQuestionPatch }) =>
+      apiPatch<QuizQuestionRead>(`/questions/${questionId}`, payload),
+    onSuccess: (question) => {
+      qc.invalidateQueries({ queryKey: ["teacher", "quizzes", question.quiz_id, "questions"] });
+    },
+  });
+}
+
+export function usePublishQuiz() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (quizId: string) => apiPost<QuizRead>(`/quizzes/${quizId}/publish`),
+    onSuccess: (quiz) => {
+      qc.invalidateQueries({ queryKey: ["teacher", "quizzes", quiz.id] });
+      qc.invalidateQueries({ queryKey: ["teacher", "courses", quiz.course_id, "content"] });
     },
   });
 }

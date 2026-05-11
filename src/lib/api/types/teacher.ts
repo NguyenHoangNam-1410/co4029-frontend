@@ -29,6 +29,95 @@ export interface ProcessingSummary {
   failed_versions: number;
 }
 
+export interface GenerationRun {
+  id: string;
+  generation_type: string;
+  source_scope_kind: string;
+  course_id: string | null;
+  module_id: string | null;
+  lesson_id: string | null;
+  requested_by: string | null;
+  status: string;
+  config_json: Record<string, unknown>;
+  dedup_key: string | null;
+  started_at: string | null;
+  finished_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface QuizGeneratePayload {
+  title: string;
+  description?: string | null;
+  question_count?: number;
+  question_types?: string[];
+  difficulty?: string;
+  bloom_distribution?: Record<string, number>;
+  include_prerequisites?: boolean;
+  model_preference?: string | null;
+  source_lesson_ids?: string[];
+  config_json?: Record<string, unknown>;
+}
+
+export interface QuizRead {
+  id: string;
+  course_id: string;
+  module_id: string;
+  title: string;
+  description: string | null;
+  status: string;
+  time_limit_seconds: number | null;
+  passing_score_percent: string;
+  allow_retakes: boolean;
+  max_attempts: number | null;
+  cooldown_hours: number | null;
+  shuffle_questions: boolean;
+  shuffle_options: boolean;
+  show_hints: boolean;
+  generation_instructions: string | null;
+  generation_run_id: string | null;
+  published_at: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface QuizQuestionRead {
+  id: string;
+  quiz_id: string;
+  position: number;
+  question_type: string;
+  prompt_text: string;
+  hint_text: string | null;
+  explanation: string | null;
+  difficulty: string | null;
+  bloom_level: string | null;
+  review_status: string;
+  expected_response_ms: number;
+  source_refs_json: unknown;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  published_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type QuizQuestionPatch = Partial<
+  Pick<
+    QuizQuestionRead,
+    | "position"
+    | "question_type"
+    | "prompt_text"
+    | "hint_text"
+    | "explanation"
+    | "difficulty"
+    | "bloom_level"
+    | "review_status"
+    | "expected_response_ms"
+    | "source_refs_json"
+  >
+>;
+
 export interface UploadUrlResponse {
   storage_object: { id: string; object_key: string; bucket: string };
   upload_url: string;

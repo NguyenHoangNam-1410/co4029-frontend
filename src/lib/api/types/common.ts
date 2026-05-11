@@ -48,6 +48,20 @@ export interface CourseContentLesson {
   status: string;
 }
 
+export interface CourseContentQuiz {
+  id: string;
+  title: string;
+  status: string;
+  question_count: number;
+}
+
+export interface CourseContentInterview {
+  id: string;
+  title: string;
+  status: string;
+  question_count: number;
+}
+
 export interface CourseContentItem {
   id: string;
   item_type: "lesson" | "quiz" | "interview";
@@ -57,6 +71,8 @@ export interface CourseContentItem {
   position: number;
   unlock_rule_json: Record<string, unknown>;
   lesson: CourseContentLesson | null;
+  quiz: CourseContentQuiz | null;
+  interview: CourseContentInterview | null;
 }
 
 export interface CourseContentModule {

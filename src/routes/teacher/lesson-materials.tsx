@@ -40,6 +40,17 @@ const MATERIAL_TYPE_ICON: Record<string, React.ComponentType<{ className?: strin
   code:  FileCode,
 };
 
+const materialTypeFromFile = (file: File) => {
+  const name = file.name.toLowerCase();
+  if (file.type.startsWith("video/")) return "video";
+  if (file.type === "application/pdf" || name.endsWith(".pdf")) return "pdf";
+  if (name.endsWith(".pptx")) return "pptx";
+  if (name.endsWith(".docx")) return "docx";
+  if (/\.(py|js|ts|tsx|jsx|java|c|cpp|go|rs)$/.test(name)) return "code";
+  if (/\.(txt|md|markdown)$/.test(name) || file.type.startsWith("text/")) return "text";
+  return "pdf";
+};
+
 function materialIcon(type: string) {
   const Icon = MATERIAL_TYPE_ICON[type] ?? FileText;
   return Icon;
@@ -140,7 +151,7 @@ function SelectedFileForm({
   const [uploading, setUploading] = useState(false);
   const [form, setForm] = useState({
     title: file.name.replace(/\.[^.]+$/, ""),
-    material_type: file.type.startsWith("video/") ? "video" : "pdf",
+    material_type: materialTypeFromFile(file),
     ai_processing_enabled: true,
     visible_to_students: true,
   });
@@ -186,8 +197,10 @@ function SelectedFileForm({
       {/* File info pill */}
       <div className="flex items-center gap-3 p-3 bg-m3-surface-container rounded-2xl">
         <div className="w-9 h-9 rounded-xl bg-m3-primary-fixed flex items-center justify-center shrink-0">
-          {file.type.startsWith("video/") ? (
+          {form.material_type === "video" ? (
             <Video className="h-4 w-4 text-m3-primary" />
+          ) : form.material_type === "code" ? (
+            <FileCode className="h-4 w-4 text-m3-primary" />
           ) : (
             <FileText className="h-4 w-4 text-m3-primary" />
           )}
@@ -224,9 +237,9 @@ function SelectedFileForm({
           <option value="pdf">PDF / Document</option>
           <option value="video">Video</option>
           <option value="text">Text / Markdown</option>
-          <option value="slides">Slides (PPTX)</option>
+          <option value="pptx">Slides (PPTX)</option>
+          <option value="docx">Word Document</option>
           <option value="code">Code</option>
-          <option value="other">Other</option>
         </select>
       </div>
 
