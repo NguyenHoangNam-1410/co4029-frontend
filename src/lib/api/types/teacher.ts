@@ -100,6 +100,25 @@ export interface QuizQuestionRead {
   published_at: string | null;
   created_at: string;
   updated_at: string;
+  options: QuizQuestionOptionRead[];
+}
+
+export interface QuizQuestionOptionRead {
+  id: string;
+  question_id: string;
+  option_key: string;
+  option_text: string;
+  is_correct: boolean;
+  position: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface QuizQuestionOptionPatch {
+  id?: string | null;
+  option_key?: string | null;
+  option_text?: string | null;
+  is_correct?: boolean | null;
 }
 
 export type QuizQuestionPatch = Partial<
@@ -116,7 +135,7 @@ export type QuizQuestionPatch = Partial<
     | "expected_response_ms"
     | "source_refs_json"
   >
->;
+> & { options?: QuizQuestionOptionPatch[] | null };
 
 export interface UploadUrlResponse {
   storage_object: { id: string; object_key: string; bucket: string };

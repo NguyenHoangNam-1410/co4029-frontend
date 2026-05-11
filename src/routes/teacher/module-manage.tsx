@@ -30,7 +30,7 @@ import type {
   CourseContentLesson,
   CourseContentModule,
 } from "@/lib/api/types/common";
-import type { QuizQuestionRead } from "@/lib/api/types/teacher";
+import type { GenerationRun, QuizQuestionOptionRead, QuizQuestionRead } from "@/lib/api/types/teacher";
 import { cn } from "@/lib/utils";
 
 const LESSON_TYPE_CONFIG: Record<string, {
@@ -55,6 +55,28 @@ const BLOOM_LEVELS = ["remember", "understand", "apply", "analyze", "evaluate", 
 function configString(config: Record<string, unknown> | undefined, key: string) {
   const value = config?.[key];
   return typeof value === "string" ? value : null;
+}
+
+function generationFailureMessage(run: GenerationRun | undefined) {
+  if (!run || run.status !== "failed") return null;
+  const config = run.config_json;
+  const direct = configString(config, "error_message") ?? configString(config, "error");
+  if (direct) return direct;
+  const failure = config.failure;
+  if (failure && typeof failure === "object") {
+    const message = (failure as Record<string, unknown>).message;
+    if (typeof message === "string" && message.trim()) return message;
+  }
+  return "Generation failed. Check material readiness and try again.";
+}
+
+function questionOptionsDraft(options: QuizQuestionOptionRead[] = []) {
+  return options.map((option) => ({
+    id: option.id,
+    option_key: option.option_key,
+    option_text: option.option_text,
+    is_correct: option.is_correct,
+  }));
 }
 
 function sourceRefLabels(sourceRefs: unknown) {
@@ -276,6 +298,7 @@ function QuizQuestionReviewCard({ question }: { question: QuizQuestionRead }) {
     difficulty: question.difficulty ?? "medium",
     bloom_level: question.bloom_level ?? "understand",
     review_status: question.review_status,
+    options: questionOptionsDraft(question.options),
   });
 
   useEffect(() => {
@@ -285,22 +308,35 @@ function QuizQuestionReviewCard({ question }: { question: QuizQuestionRead }) {
       difficulty: question.difficulty ?? "medium",
       bloom_level: question.bloom_level ?? "understand",
       review_status: question.review_status,
+      options: questionOptionsDraft(question.options),
     });
   }, [
     question.bloom_level,
     question.difficulty,
     question.explanation,
     question.id,
+    question.options,
     question.prompt_text,
     question.review_status,
   ]);
 
   const sourceLabels = sourceRefLabels(question.source_refs_json);
+  const hasOptions = question.question_type === "mcq" && draft.options.length > 0;
 
   async function save(reviewStatus = draft.review_status) {
     if (!draft.prompt_text.trim()) {
       toast.error("Question text is required");
       return;
+    }
+    if (hasOptions) {
+      if (draft.options.some((option) => !option.option_text.trim())) {
+        toast.error("All option text is required");
+        return;
+      }
+      if (draft.options.filter((option) => option.is_correct).length !== 1) {
+        toast.error("Select exactly one correct answer");
+        return;
+      }
     }
     try {
       await patchQuestion.mutateAsync({
@@ -311,6 +347,15 @@ function QuizQuestionReviewCard({ question }: { question: QuizQuestionRead }) {
           difficulty: draft.difficulty,
           bloom_level: draft.bloom_level,
           review_status: reviewStatus,
+          ...(hasOptions
+            ? {
+                options: draft.options.map((option) => ({
+                  id: option.id,
+                  option_text: option.option_text.trim(),
+                  is_correct: option.is_correct,
+                })),
+              }
+            : {}),
         },
       });
       toast.success(reviewStatus === "approved" ? "Question approved" : "Question saved");
@@ -351,6 +396,62 @@ function QuizQuestionReviewCard({ question }: { question: QuizQuestionRead }) {
           className="w-full rounded-xl border border-m3-outline-variant/20 bg-m3-surface-container-lowest px-3 py-2.5 text-sm text-m3-on-surface resize-none focus:outline-none focus:ring-2 focus:ring-m3-secondary/30"
         />
       </div>
+
+      {hasOptions && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <label className="text-[10px] font-bold uppercase tracking-widest text-m3-on-surface-variant">
+              Options
+            </label>
+            <span className="text-[10px] font-semibold text-m3-on-surface-variant">Mark one correct</span>
+          </div>
+          <div className="space-y-2">
+            {draft.options.map((option) => (
+              <div
+                key={option.id}
+                className={cn(
+                  "flex flex-col gap-2 rounded-xl border p-2.5 sm:flex-row sm:items-center",
+                  option.is_correct
+                    ? "border-emerald-200 bg-emerald-50/70"
+                    : "border-m3-outline-variant/20 bg-m3-surface-container-lowest"
+                )}
+              >
+                <div className="flex items-center gap-2 sm:w-24 sm:shrink-0">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-m3-primary-fixed text-xs font-bold text-m3-primary">
+                    {option.option_key}
+                  </span>
+                  <label className="flex items-center gap-1.5 text-xs font-semibold text-m3-on-surface-variant cursor-pointer">
+                    <input
+                      type="radio"
+                      name={`correct-${question.id}`}
+                      checked={option.is_correct}
+                      onChange={() => setDraft((current) => ({
+                        ...current,
+                        options: current.options.map((item) => ({
+                          ...item,
+                          is_correct: item.id === option.id,
+                        })),
+                      }))}
+                      className="h-4 w-4 accent-emerald-600"
+                    />
+                    Correct
+                  </label>
+                </div>
+                <Input
+                  value={option.option_text}
+                  onChange={(e) => setDraft((current) => ({
+                    ...current,
+                    options: current.options.map((item) =>
+                      item.id === option.id ? { ...item, option_text: e.target.value } : item
+                    ),
+                  }))}
+                  className="bg-m3-surface text-sm"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-1.5">
@@ -511,6 +612,7 @@ function QuizGenerationPanel({ module, courseId }: { module: CourseContentModule
     activeRunId && (!activeRun || activeRun.status === "pending" || activeRun.status === "running")
   );
   const generationFailed = activeRun?.status === "failed";
+  const generationError = generationFailureMessage(activeRun);
   const publishDisabled = !quizId || questions.length === 0 || quiz?.status === "published" || publishQuiz.isPending;
 
   return (
@@ -655,7 +757,10 @@ function QuizGenerationPanel({ module, courseId }: { module: CourseContentModule
           {generationFailed && (
             <div className="rounded-2xl bg-red-50 p-4 border border-red-100 text-red-700 text-sm flex gap-2">
               <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-              Generation failed. Check material readiness and try again.
+              <div className="space-y-1">
+                <p className="font-semibold">Generation failed</p>
+                <p>{generationError}</p>
+              </div>
             </div>
           )}
 
