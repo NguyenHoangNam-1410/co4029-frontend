@@ -8,7 +8,6 @@ import {
   BookOpen,
   PlayCircle,
   HelpCircle,
-  Code,
   ArrowRight,
   Calendar,
   Mail,
@@ -57,7 +56,6 @@ function ItemTypeIcon({ type, lessonType }: { type: "lesson" | "quiz" | "intervi
   if (type === "quiz")      return <HelpCircle className="h-3.5 w-3.5 text-m3-primary shrink-0" />;
   if (type === "interview") return <Mic className="h-3.5 w-3.5 text-m3-secondary shrink-0" />;
   if (lessonType === "reading")  return <BookOpen   className="h-3.5 w-3.5 text-m3-secondary shrink-0" />;
-  if (lessonType === "exercise") return <Code        className="h-3.5 w-3.5 text-m3-secondary shrink-0" />;
   return <PlayCircle className="h-3.5 w-3.5 text-m3-secondary shrink-0" />;
 }
 

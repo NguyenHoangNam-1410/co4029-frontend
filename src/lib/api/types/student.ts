@@ -45,3 +45,39 @@ export interface Notification {
   is_read: boolean;
   created_at: string;
 }
+
+export interface QuizAttemptRead {
+  id: string;
+  quiz_id: string;
+  student_id: string;
+  attempt_number: number;
+  status: string;
+  started_at: string;
+  submitted_at: string | null;
+  time_taken_seconds: number | null;
+  score_points: string | null;
+  score_percent: string | null;
+  passed: boolean | null;
+  idempotency_key: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface QuizAttemptAnswerRead {
+  id: string;
+  attempt_id: string;
+  question_id: string;
+  selected_option_id: string | null;
+  answer_text: string | null;
+  is_correct: boolean;
+  hint_used: boolean;
+  response_time_ms: number | null;
+  points_awarded: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface QuizAttemptResult {
+  attempt: QuizAttemptRead;
+  answers: QuizAttemptAnswerRead[];
+}

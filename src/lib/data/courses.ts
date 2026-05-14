@@ -42,7 +42,7 @@ export interface CourseLesson {
   id: string;
   title: string;
   duration: string;
-  type: "video" | "reading" | "quiz" | "exercise";
+  type: "video" | "reading";
   completed?: boolean;
   resources?: CourseResource[];
   quizId?: string;
@@ -99,10 +99,10 @@ export const courses: Course[] = [
         lessons: [
           { id: "l1", title: "What is Machine Learning?", duration: "15m", type: "video", completed: true },
           { id: "l2", title: "Types of Learning", duration: "20m", type: "video", completed: true },
-          { id: "l3", title: "Setting Up Your Environment", duration: "25m", type: "exercise", completed: true },
+          { id: "l3", title: "Setting Up Your Environment", duration: "25m", type: "reading", completed: true },
           { id: "l4", title: "Your First Model", duration: "30m", type: "video", completed: true },
-          { id: "l5", title: "Module Quiz", duration: "15m", type: "quiz", completed: true, quizId: "quiz-ml-m1" },
-          { id: "l5b", title: "Applied Practice Quiz", duration: "10m", type: "quiz", completed: false, quizId: "quiz-ml-m1-b" },
+          { id: "l5", title: "Module Review", duration: "15m", type: "reading", completed: true },
+          { id: "l5b", title: "Applied Practice Review", duration: "10m", type: "reading", completed: false },
         ],
       },
       {
@@ -113,8 +113,8 @@ export const courses: Course[] = [
           { id: "l6", title: "Linear Regression Deep Dive", duration: "25m", type: "video", completed: true },
           { id: "l7", title: "Classification Algorithms", duration: "30m", type: "video", completed: true },
           { id: "l8", title: "Decision Trees & Random Forests", duration: "35m", type: "video", completed: false },
-          { id: "l9", title: "Hands-On: Predict Housing Prices", duration: "45m", type: "exercise", completed: false },
-          { id: "l10", title: "Module Quiz", duration: "15m", type: "quiz", completed: false, quizId: "quiz-ml-m2" },
+          { id: "l9", title: "Hands-On: Predict Housing Prices", duration: "45m", type: "reading", completed: false },
+          { id: "l10", title: "Module Review", duration: "15m", type: "reading", completed: false },
         ],
       },
       {
@@ -124,9 +124,9 @@ export const courses: Course[] = [
         lessons: [
           { id: "l11", title: "Introduction to Neural Networks", duration: "30m", type: "video", completed: false },
           { id: "l12", title: "Backpropagation Explained", duration: "35m", type: "video", completed: false },
-          { id: "l13", title: "Building with TensorFlow", duration: "45m", type: "exercise", completed: false },
+          { id: "l13", title: "Building with TensorFlow", duration: "45m", type: "reading", completed: false },
           { id: "l14", title: "CNNs for Image Recognition", duration: "40m", type: "video", completed: false },
-          { id: "l15", title: "Final Project", duration: "60m", type: "exercise", completed: false },
+          { id: "l15", title: "Final Project", duration: "60m", type: "reading", completed: false },
         ],
       },
     ],
@@ -169,8 +169,8 @@ export const courses: Course[] = [
         lessons: [
           { id: "react-l1", title: "The Compound Pattern", duration: "20m", type: "video", completed: true },
           { id: "react-l2", title: "Context API Mastery", duration: "25m", type: "video", completed: true },
-          { id: "react-l3", title: "Building a Tabs Component", duration: "35m", type: "exercise", completed: true },
-          { id: "react-l4", title: "Module Quiz", duration: "15m", type: "quiz", completed: false, quizId: "quiz-react-m1" },
+          { id: "react-l3", title: "Building a Tabs Component", duration: "35m", type: "reading", completed: true },
+          { id: "react-l4", title: "Module Review", duration: "15m", type: "reading", completed: false },
         ],
       },
       {
@@ -180,7 +180,7 @@ export const courses: Course[] = [
         lessons: [
           { id: "react-l5", title: "Introduction to XState", duration: "25m", type: "video", completed: false },
           { id: "react-l6", title: "Modeling UI States", duration: "30m", type: "video", completed: false },
-          { id: "react-l7", title: "Async State Machines", duration: "35m", type: "exercise", completed: false },
+          { id: "react-l7", title: "Async State Machines", duration: "35m", type: "reading", completed: false },
         ],
       },
       {
@@ -189,8 +189,8 @@ export const courses: Course[] = [
         duration: "1h 15m",
         lessons: [
           { id: "react-l8", title: "Memoization & React.memo", duration: "25m", type: "video", completed: false },
-          { id: "react-l9", title: "React Testing Library", duration: "35m", type: "exercise", completed: false },
-          { id: "react-l10", title: "Module Quiz", duration: "15m", type: "quiz", completed: false, quizId: "quiz-react-m3" },
+          { id: "react-l9", title: "React Testing Library", duration: "35m", type: "reading", completed: false },
+          { id: "react-l10", title: "Module Review", duration: "15m", type: "reading", completed: false },
         ],
       },
     ],
@@ -231,8 +231,8 @@ export const courses: Course[] = [
         lessons: [
           { id: "ds-l1", title: "Pandas Fundamentals", duration: "30m", type: "video" },
           { id: "ds-l2", title: "Data Cleaning Techniques", duration: "35m", type: "video" },
-          { id: "ds-l3", title: "Merging & Reshaping", duration: "40m", type: "exercise" },
-          { id: "ds-l4", title: "Module Quiz", duration: "15m", type: "quiz", quizId: "quiz-ds-m1" },
+          { id: "ds-l3", title: "Merging & Reshaping", duration: "40m", type: "reading" },
+          { id: "ds-l4", title: "Module Review", duration: "15m", type: "reading" },
         ],
       },
       {
@@ -243,7 +243,7 @@ export const courses: Course[] = [
           { id: "ds-l5", title: "Descriptive Statistics", duration: "30m", type: "video" },
           { id: "ds-l6", title: "Hypothesis Testing", duration: "35m", type: "video" },
           { id: "ds-l7", title: "Correlation & Causation", duration: "40m", type: "video" },
-          { id: "ds-l8", title: "Module Quiz", duration: "15m", type: "quiz", quizId: "quiz-ds-m2" },
+          { id: "ds-l8", title: "Module Review", duration: "15m", type: "reading" },
         ],
       },
       {
@@ -253,8 +253,8 @@ export const courses: Course[] = [
         lessons: [
           { id: "ds-l9", title: "Matplotlib Foundations", duration: "30m", type: "video" },
           { id: "ds-l10", title: "Seaborn Statistical Plots", duration: "35m", type: "video" },
-          { id: "ds-l11", title: "Interactive Plots with Plotly", duration: "40m", type: "exercise" },
-          { id: "ds-l12", title: "Final Project", duration: "60m", type: "exercise" },
+          { id: "ds-l11", title: "Interactive Plots with Plotly", duration: "40m", type: "reading" },
+          { id: "ds-l12", title: "Final Project", duration: "60m", type: "reading" },
         ],
       },
     ],
@@ -295,7 +295,7 @@ export const courses: Course[] = [
           { id: "aws-l2", title: "EC2 & VPC Deep Dive", duration: "35m", type: "video" },
           { id: "aws-l3", title: "S3 Storage & Lifecycle", duration: "30m", type: "video" },
           { id: "aws-l4", title: "IAM Roles & Policies", duration: "35m", type: "video" },
-          { id: "aws-l5", title: "Module Quiz", duration: "15m", type: "quiz", quizId: "quiz-aws-m1" },
+          { id: "aws-l5", title: "Module Review", duration: "15m", type: "reading" },
         ],
       },
       {
@@ -306,8 +306,8 @@ export const courses: Course[] = [
           { id: "aws-l6", title: "Lambda Functions Deep Dive", duration: "30m", type: "video" },
           { id: "aws-l7", title: "API Gateway", duration: "25m", type: "video" },
           { id: "aws-l8", title: "DynamoDB Fundamentals", duration: "35m", type: "video" },
-          { id: "aws-l9", title: "Build a Serverless API", duration: "45m", type: "exercise" },
-          { id: "aws-l10", title: "Module Quiz", duration: "15m", type: "quiz", quizId: "quiz-aws-m2" },
+          { id: "aws-l9", title: "Build a Serverless API", duration: "45m", type: "reading" },
+          { id: "aws-l10", title: "Module Review", duration: "15m", type: "reading" },
         ],
       },
       {
@@ -358,7 +358,7 @@ export const courses: Course[] = [
           { id: "hack-l2", title: "Network Scanning", duration: "30m", type: "video" },
           { id: "hack-l3", title: "OSINT Techniques", duration: "35m", type: "video" },
           { id: "hack-l4", title: "Vulnerability Scanning with Nessus", duration: "30m", type: "video" },
-          { id: "hack-l5", title: "Module Quiz", duration: "15m", type: "quiz", quizId: "quiz-hacking-m1" },
+          { id: "hack-l5", title: "Module Review", duration: "15m", type: "reading" },
         ],
       },
       {
@@ -369,8 +369,8 @@ export const courses: Course[] = [
           { id: "hack-l6", title: "Metasploit Framework", duration: "40m", type: "video" },
           { id: "hack-l7", title: "SQL Injection Deep Dive", duration: "35m", type: "video" },
           { id: "hack-l8", title: "XSS & CSRF Attacks", duration: "30m", type: "video" },
-          { id: "hack-l9", title: "Hands-On: CTF Challenge", duration: "60m", type: "exercise" },
-          { id: "hack-l10", title: "Module Quiz", duration: "15m", type: "quiz", quizId: "quiz-hacking-m2" },
+          { id: "hack-l9", title: "Hands-On: CTF Challenge", duration: "60m", type: "reading" },
+          { id: "hack-l10", title: "Module Review", duration: "15m", type: "reading" },
         ],
       },
       {
@@ -421,7 +421,7 @@ export const courses: Course[] = [
           { id: "flutter-l2", title: "OOP in Dart", duration: "25m", type: "video" },
           { id: "flutter-l3", title: "Null Safety in Dart", duration: "25m", type: "video" },
           { id: "flutter-l4", title: "Async/Await & Futures", duration: "30m", type: "video" },
-          { id: "flutter-l5", title: "Module Quiz", duration: "15m", type: "quiz", quizId: "quiz-flutter-m1" },
+          { id: "flutter-l5", title: "Module Review", duration: "15m", type: "reading" },
         ],
       },
       {
@@ -432,8 +432,8 @@ export const courses: Course[] = [
           { id: "flutter-l6", title: "Widget Tree & Composition", duration: "30m", type: "video" },
           { id: "flutter-l7", title: "Layouts: Row, Column, Stack", duration: "35m", type: "video" },
           { id: "flutter-l8", title: "Custom Paint & Animations", duration: "40m", type: "video" },
-          { id: "flutter-l9", title: "Build a Weather App UI", duration: "50m", type: "exercise" },
-          { id: "flutter-l10", title: "Module Quiz", duration: "15m", type: "quiz", quizId: "quiz-flutter-m2" },
+          { id: "flutter-l9", title: "Build a Weather App UI", duration: "50m", type: "reading" },
+          { id: "flutter-l10", title: "Module Review", duration: "15m", type: "reading" },
         ],
       },
       {
@@ -444,7 +444,7 @@ export const courses: Course[] = [
           { id: "flutter-l11", title: "setState & InheritedWidget", duration: "25m", type: "video" },
           { id: "flutter-l12", title: "Provider Pattern", duration: "35m", type: "video" },
           { id: "flutter-l13", title: "Riverpod in Practice", duration: "40m", type: "video" },
-          { id: "flutter-l14", title: "Final App Project", duration: "60m", type: "exercise" },
+          { id: "flutter-l14", title: "Final App Project", duration: "60m", type: "reading" },
         ],
       },
     ],

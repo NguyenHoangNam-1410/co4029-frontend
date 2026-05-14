@@ -18,7 +18,8 @@ import GoogleCallbackPage from "@/routes/google-callback";
 import CoursesListPage from "@/routes/courses-list";
 import CourseDetailPage from "@/routes/course-detail";
 import CourseLearnPage from "@/routes/course-learn";
-import { ProgressPage, SettingsPage, QuizPage, InterviewPage } from "@/routes/placeholder";
+import CourseQuizPage from "@/routes/course-quiz";
+import { ProgressPage, SettingsPage, InterviewPage } from "@/routes/placeholder";
 import TeacherDashboard from "@/routes/teacher/index";
 import TeacherCoursesPage from "@/routes/teacher/courses";
 import CourseNewPage from "@/routes/teacher/course-new";
@@ -28,6 +29,7 @@ import LessonMaterialsPage from "@/routes/teacher/lesson-materials";
 import CourseStudentsPage from "@/routes/teacher/course-students";
 import CourseStudentDetailPage from "@/routes/teacher/course-student-detail";
 import ModuleManagePage from "@/routes/teacher/module-manage";
+import QuizManagePage from "@/routes/teacher/quiz-manage";
 
 /* ── Root layout ── */
 function Root() {
@@ -101,7 +103,7 @@ const courseLearnRoute = createRoute({
 const courseQuizRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/courses/$slug/quiz/$quizId",
-  component: QuizPage,
+  component: CourseQuizPage,
 });
 
 const courseInterviewRoute = createRoute({
@@ -164,6 +166,12 @@ const teacherModuleManageRoute = createRoute({
   component: ModuleManagePage,
 });
 
+const teacherQuizManageRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/teacher/courses/$courseId/quizzes/$quizId",
+  component: QuizManagePage,
+});
+
 const teacherCourseStudentsRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/teacher/courses/$courseId/students",
@@ -207,6 +215,7 @@ const routeTree = rootRoute.addChildren([
     teacherLessonManageRoute,
     teacherLessonMaterialsRoute,
     teacherModuleManageRoute,
+    teacherQuizManageRoute,
     teacherCourseStudentsRoute,
     teacherCourseStudentDetailRoute,
   ]),

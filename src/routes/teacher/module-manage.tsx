@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, useParams } from "@tanstack/react-router";
+import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import {
-  ArrowLeft, ArrowRight, Video, HelpCircle, BookOpen, Code,
+  ArrowLeft, ArrowRight, Video, HelpCircle, BookOpen,
   GripVertical, Pencil, Check, Loader2, Plus, Save,
   ChevronDown, ChevronRight, Trash2, Sparkles, CheckCircle,
   AlertCircle, FileText, Brain,
@@ -13,6 +13,9 @@ import { Badge } from "@/components/ui/badge";
 import {
   useTeacherCourseById,
   useTeacherCourseContent,
+  useCreateQuiz,
+  useCreateQuizQuestion,
+  usePatchQuiz,
   useUpdateModule,
   useCreateLesson,
   useReorderModuleItems,
@@ -30,7 +33,7 @@ import type {
   CourseContentLesson,
   CourseContentModule,
 } from "@/lib/api/types/common";
-import type { GenerationRun, QuizQuestionOptionRead, QuizQuestionRead } from "@/lib/api/types/teacher";
+import type { GenerationRun, QuizQuestionOptionRead, QuizQuestionRead, QuizRead } from "@/lib/api/types/teacher";
 import { cn } from "@/lib/utils";
 
 const LESSON_TYPE_CONFIG: Record<string, {
@@ -39,10 +42,10 @@ const LESSON_TYPE_CONFIG: Record<string, {
   badge: string;
 }> = {
   video:    { label: "Video",    icon: Video,      badge: "bg-blue-50 text-blue-700" },
-  quiz:     { label: "Quiz",     icon: HelpCircle, badge: "bg-violet-50 text-violet-700" },
   reading:  { label: "Reading",  icon: BookOpen,   badge: "bg-emerald-50 text-emerald-700" },
-  exercise: { label: "Exercise", icon: Code,       badge: "bg-amber-50 text-amber-700" },
 };
+
+const QUIZ_ITEM_CONFIG = { label: "Quiz", icon: HelpCircle, badge: "bg-violet-50 text-violet-700" };
 
 const ADD_PILL_CLS =
   "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-m3-on-surface-variant " +
@@ -51,6 +54,56 @@ const ADD_PILL_CLS =
 
 const DIFFICULTIES = ["easy", "medium", "hard", "mixed"] as const;
 const BLOOM_LEVELS = ["remember", "understand", "apply", "analyze", "evaluate", "create"] as const;
+
+interface QuizSettingsDraft {
+  title: string;
+  description: string;
+  time_limit_seconds: string;
+  passing_score_percent: string;
+  max_attempts: string;
+  cooldown_hours: string;
+  initial_ef: string;
+  min_ef_for_unlock: string;
+  coverage_threshold: string;
+  allow_retakes: boolean;
+  shuffle_questions: boolean;
+  shuffle_options: boolean;
+  show_hints: boolean;
+  reminders_enabled: boolean;
+}
+
+function toDraftString(value: string | number | null | undefined) {
+  return value == null ? "" : String(value);
+}
+
+function integerOrNull(value: string) {
+  const trimmed = value.trim();
+  return trimmed ? Number(trimmed) : null;
+}
+
+function decimalOrNull(value: string) {
+  const trimmed = value.trim();
+  return trimmed || null;
+}
+
+function quizDraftFromQuiz(quiz: QuizRead): QuizSettingsDraft {
+  return {
+    title: quiz.title,
+    description: quiz.description ?? "",
+    time_limit_seconds: toDraftString(quiz.time_limit_seconds),
+    passing_score_percent: toDraftString(quiz.passing_score_percent),
+    max_attempts: toDraftString(quiz.max_attempts),
+    cooldown_hours: toDraftString(quiz.cooldown_hours),
+    initial_ef: toDraftString(quiz.initial_ef),
+    min_ef_for_unlock: toDraftString(quiz.min_ef_for_unlock),
+    coverage_threshold: toDraftString(quiz.coverage_threshold),
+    allow_retakes: quiz.allow_retakes,
+    shuffle_questions: quiz.shuffle_questions,
+    shuffle_options: quiz.shuffle_options,
+    show_hints: quiz.show_hints,
+    reminders_enabled: quiz.reminders_enabled,
+  };
+}
 
 function configString(config: Record<string, unknown> | undefined, key: string) {
   const value = config?.[key];
@@ -110,9 +163,12 @@ function ItemRow({
   onDelete: () => void;
 }) {
   const lesson: CourseContentLesson | null = item.lesson;
-  const cfg = lesson ? LESSON_TYPE_CONFIG[lesson.lesson_type ?? "video"] : null;
+  const quiz = item.quiz;
+  const cfg = quiz ? QUIZ_ITEM_CONFIG : lesson ? LESSON_TYPE_CONFIG[lesson.lesson_type ?? "video"] : null;
   const Icon = cfg?.icon ?? BookOpen;
-  const label = item.item_type === "quiz" ? "Quiz" : item.item_type === "interview" ? "Interview" : (cfg?.label ?? item.item_type);
+  const label = quiz ? QUIZ_ITEM_CONFIG.label : item.item_type === "interview" ? "Interview" : (cfg?.label ?? item.item_type);
+  const title = lesson?.title ?? quiz?.title ?? label;
+  const status = lesson?.status ?? quiz?.status;
 
   return (
     <div
@@ -134,14 +190,14 @@ function ItemRow({
         <Icon className="h-3.5 w-3.5" />
       </div>
       <span className="flex-1 text-sm font-medium text-m3-on-surface truncate">
-        {lesson?.title ?? label}
+        {title}
       </span>
       <Badge className={cn("text-[10px] border-0 shrink-0", cfg?.badge ?? "bg-slate-100 text-slate-500")}>
         {label}
       </Badge>
-      {lesson && (
-        <Badge className={cn("text-[10px] border-0 shrink-0", lesson.status === "published" ? "bg-emerald-100 text-emerald-700" : "bg-amber-50 text-amber-700")}>
-          {lesson.status}
+      {status && (
+        <Badge className={cn("text-[10px] border-0 shrink-0", status === "published" ? "bg-emerald-100 text-emerald-700" : "bg-amber-50 text-amber-700")}>
+          {status}
         </Badge>
       )}
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
@@ -152,6 +208,21 @@ function ItemRow({
             onClick={(e) => e.stopPropagation()}
           >
             <Button variant="ghost" size="icon" className="h-7 w-7">
+              <Pencil className="h-3.5 w-3.5" />
+            </Button>
+          </Link>
+        )}
+        {quiz && (
+          <Link
+            to="/teacher/courses/$courseId/quizzes/$quizId"
+            params={{ courseId, quizId: quiz.id }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+            >
               <Pencil className="h-3.5 w-3.5" />
             </Button>
           </Link>
@@ -168,10 +239,12 @@ function ItemRow({
 }
 
 /* ── Add lesson type pills ── */
-function AddLessonPills({ moduleId, courseId, itemCount }: {
+function AddContentPills({ moduleId, courseId, itemCount }: {
   moduleId: string; courseId: string; itemCount: number;
 }) {
+  const navigate = useNavigate();
   const createLesson = useCreateLesson(moduleId, courseId);
+  const createQuiz = useCreateQuiz(moduleId, courseId);
   const [adding, setAdding] = useState(false);
 
   function slugify(title: string) {
@@ -198,6 +271,26 @@ function AddLessonPills({ moduleId, courseId, itemCount }: {
     }
   }
 
+  async function handleAddQuiz() {
+    if (adding) return;
+    setAdding(true);
+    try {
+      const quiz = await createQuiz.mutateAsync({
+        title: `New Quiz ${itemCount + 1}`,
+        description: "Draft quiz for this module.",
+      });
+      void navigate({
+        to: "/teacher/courses/$courseId/quizzes/$quizId",
+        params: { courseId, quizId: quiz.id },
+      });
+      toast.success("Quiz added");
+    } catch (err: unknown) {
+      toast.error((err as Error).message || "Failed to add quiz");
+    } finally {
+      setAdding(false);
+    }
+  }
+
   return (
     <div className="flex flex-wrap gap-2 mt-1 pt-4 border-t border-m3-outline-variant/10">
       <span className="w-full text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant mb-1">Add Content</span>
@@ -215,6 +308,16 @@ function AddLessonPills({ moduleId, courseId, itemCount }: {
           </button>
         );
       })}
+      <button
+        type="button"
+        disabled={adding}
+        onClick={handleAddQuiz}
+        className={ADD_PILL_CLS}
+      >
+        <HelpCircle className="h-3.5 w-3.5" />
+        <Plus className="h-3 w-3 -ml-0.5" />
+        Quiz
+      </button>
     </div>
   );
 }
@@ -287,6 +390,40 @@ function SourceLessonToggle({
         </span>
       </div>
     </button>
+  );
+}
+
+function QuizToggle({
+  label,
+  description,
+  checked,
+  onChange,
+}: {
+  label: string;
+  description: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <label
+      className={cn(
+        "flex items-start gap-3 rounded-xl border p-3 transition-colors cursor-pointer",
+        checked
+          ? "border-m3-secondary bg-m3-secondary-fixed/20"
+          : "border-m3-outline-variant/20 bg-m3-surface"
+      )}
+    >
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="mt-0.5 h-4 w-4 shrink-0"
+      />
+      <div>
+        <p className="text-sm font-semibold text-m3-on-surface">{label}</p>
+        <p className="text-xs text-m3-on-surface-variant mt-0.5">{description}</p>
+      </div>
+    </label>
   );
 }
 
@@ -531,7 +668,7 @@ function QuizQuestionReviewCard({ question }: { question: QuizQuestionRead }) {
   );
 }
 
-function QuizGenerationPanel({ module, courseId }: { module: CourseContentModule; courseId: string }) {
+function QuizGenerationPanel({ module, courseId, targetQuizId }: { module: CourseContentModule; courseId: string; targetQuizId?: string | null }) {
   const lessonItems = module.items
     .filter((item) => item.item_type === "lesson" && item.lesson)
     .sort((a, b) => a.position - b.position) as Array<CourseContentItem & { lesson: CourseContentLesson }>;
@@ -550,7 +687,7 @@ function QuizGenerationPanel({ module, courseId }: { module: CourseContentModule
 
   const { data: activeRun } = useGenerationRun(activeRunId);
   const runQuizId = configString(activeRun?.config_json, "quiz_id");
-  const quizId = runQuizId ?? draftQuizId;
+  const quizId = targetQuizId ?? runQuizId ?? draftQuizId;
   const canLoadDraft = !activeRunId || activeRun?.status === "completed" || activeRun?.status === "failed";
   const { data: quiz } = useQuiz(canLoadDraft ? quizId : null);
   const { data: questions = [], isLoading: questionsLoading } = useQuizQuestions(canLoadDraft ? quizId : null);
@@ -583,6 +720,7 @@ function QuizGenerationPanel({ module, courseId }: { module: CourseContentModule
 
     try {
       const run = await generateQuiz.mutateAsync({
+        quiz_id: targetQuizId ?? null,
         title: form.title.trim(),
         description: form.description.trim() || null,
         question_count: form.question_count,
@@ -591,8 +729,8 @@ function QuizGenerationPanel({ module, courseId }: { module: CourseContentModule
         source_lesson_ids: readySelectedLessonIds,
       });
       setActiveRunId(run.id);
-      setDraftQuizId(configString(run.config_json, "quiz_id"));
-      toast.success("Quiz generation started");
+      if (!targetQuizId) setDraftQuizId(configString(run.config_json, "quiz_id"));
+      toast.success(targetQuizId ? "AI questions are being added" : "Quiz generation started");
     } catch (err: unknown) {
       toast.error((err as Error).message || "Failed to start quiz generation");
     }
@@ -623,8 +761,10 @@ function QuizGenerationPanel({ module, courseId }: { module: CourseContentModule
             <Brain className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h2 className="font-headline font-bold text-sm text-m3-on-surface">AI Quiz Generator</h2>
-            <p className="text-xs text-m3-on-surface-variant">Generate, review, and publish a quiz from ready lesson materials.</p>
+            <h2 className="font-headline font-bold text-sm text-m3-on-surface">AI Material Hub Quiz Generator</h2>
+            <p className="text-xs text-m3-on-surface-variant">
+              {targetQuizId ? "Add AI-generated questions to this quiz from ready lesson materials." : "Generate, review, and publish a quiz from ready lesson materials."}
+            </p>
           </div>
         </div>
         {quiz?.status && (
@@ -790,7 +930,7 @@ function QuizGenerationPanel({ module, courseId }: { module: CourseContentModule
                 </div>
               ) : questions.length === 0 ? (
                 <div className="rounded-2xl bg-m3-surface p-6 text-center text-sm text-m3-on-surface-variant">
-                  No questions have been created yet.
+                  No questions have been created yet. Add one manually or generate from ready materials.
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -802,6 +942,278 @@ function QuizGenerationPanel({ module, courseId }: { module: CourseContentModule
             </div>
           )}
         </div>
+      </div>
+    </section>
+  );
+}
+
+export function QuizAuthoringPanel({ quizId, module, courseId, onClose }: {
+  quizId: string;
+  module: CourseContentModule;
+  courseId: string;
+  onClose: () => void;
+}) {
+  const { data: quiz } = useQuiz(quizId);
+  const patchQuiz = usePatchQuiz(courseId);
+  const createQuestion = useCreateQuizQuestion();
+  const [draft, setDraft] = useState<QuizSettingsDraft>({
+    title: "",
+    description: "",
+    time_limit_seconds: "",
+    passing_score_percent: "70",
+    max_attempts: "",
+    cooldown_hours: "",
+    initial_ef: "",
+    min_ef_for_unlock: "",
+    coverage_threshold: "",
+    allow_retakes: true,
+    shuffle_questions: false,
+    shuffle_options: false,
+    show_hints: true,
+    reminders_enabled: false,
+  });
+
+  useEffect(() => {
+    if (!quiz) return;
+    setDraft(quizDraftFromQuiz(quiz));
+  }, [quiz]);
+
+  async function saveQuiz(e: React.FormEvent) {
+    e.preventDefault();
+    if (!draft.title.trim()) {
+      toast.error("Quiz title is required");
+      return;
+    }
+    try {
+      await patchQuiz.mutateAsync({
+        quizId,
+        payload: {
+          title: draft.title.trim(),
+          description: draft.description.trim() || null,
+          time_limit_seconds: integerOrNull(draft.time_limit_seconds),
+          passing_score_percent: decimalOrNull(draft.passing_score_percent),
+          max_attempts: integerOrNull(draft.max_attempts),
+          cooldown_hours: integerOrNull(draft.cooldown_hours),
+          initial_ef: decimalOrNull(draft.initial_ef),
+          min_ef_for_unlock: decimalOrNull(draft.min_ef_for_unlock),
+          coverage_threshold: decimalOrNull(draft.coverage_threshold),
+          allow_retakes: draft.allow_retakes,
+          shuffle_questions: draft.shuffle_questions,
+          shuffle_options: draft.shuffle_options,
+          show_hints: draft.show_hints,
+          reminders_enabled: draft.reminders_enabled,
+        },
+      });
+      toast.success("Quiz details saved");
+    } catch (err: unknown) {
+      toast.error((err as Error).message || "Failed to save quiz");
+    }
+  }
+
+  async function addQuestion() {
+    try {
+      await createQuestion.mutateAsync({
+        quizId,
+        payload: {
+          question_type: "mcq",
+          prompt_text: "Untitled question",
+          explanation: "Add an explanation for the correct answer.",
+          difficulty: "medium",
+          bloom_level: "understand",
+          options: [
+            { option_key: "A", option_text: "Option A", is_correct: true },
+            { option_key: "B", option_text: "Option B", is_correct: false },
+            { option_key: "C", option_text: "Option C", is_correct: false },
+            { option_key: "D", option_text: "Option D", is_correct: false },
+          ],
+        },
+      });
+      toast.success("Question added");
+    } catch (err: unknown) {
+      toast.error((err as Error).message || "Failed to add question");
+    }
+  }
+
+  return (
+    <section className="mt-6 rounded-2xl border border-violet-100 bg-m3-surface-container-low overflow-hidden">
+      <div className="px-5 py-4 border-b border-m3-outline-variant/10 flex flex-col sm:flex-row sm:items-center gap-3">
+        <div className="flex items-center gap-2 flex-1">
+          <div className="h-9 w-9 rounded-xl bg-violet-100 text-violet-700 flex items-center justify-center">
+            <HelpCircle className="h-5 w-5" />
+          </div>
+          <div>
+            <h2 className="font-headline font-bold text-sm text-m3-on-surface">Quiz Authoring</h2>
+            <p className="text-xs text-m3-on-surface-variant">Edit this real quiz, add manual questions, or use ready lesson materials to generate more.</p>
+          </div>
+        </div>
+        <Button type="button" variant="outline" size="sm" onClick={onClose}>Close</Button>
+      </div>
+
+      <div className="p-5 space-y-5">
+        <form onSubmit={saveQuiz} className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">Quiz Title</label>
+              <Input
+                value={draft.title}
+                onChange={(e) => setDraft((current) => ({ ...current, title: e.target.value }))}
+                className="bg-m3-surface text-sm"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">Description</label>
+              <Input
+                value={draft.description}
+                onChange={(e) => setDraft((current) => ({ ...current, description: e.target.value }))}
+                className="bg-m3-surface text-sm"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">Time Limit (sec)</label>
+              <Input
+                type="number"
+                min={0}
+                value={draft.time_limit_seconds}
+                onChange={(e) => setDraft((current) => ({ ...current, time_limit_seconds: e.target.value }))}
+                className="bg-m3-surface text-sm"
+                placeholder="900"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">Passing Score %</label>
+              <Input
+                type="number"
+                min={0}
+                max={100}
+                step="0.01"
+                value={draft.passing_score_percent}
+                onChange={(e) => setDraft((current) => ({ ...current, passing_score_percent: e.target.value }))}
+                className="bg-m3-surface text-sm"
+                placeholder="70"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">Max Attempts</label>
+              <Input
+                type="number"
+                min={1}
+                value={draft.max_attempts}
+                onChange={(e) => setDraft((current) => ({ ...current, max_attempts: e.target.value }))}
+                className="bg-m3-surface text-sm"
+                placeholder="Leave blank"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">Cooldown (hrs)</label>
+              <Input
+                type="number"
+                min={0}
+                value={draft.cooldown_hours}
+                onChange={(e) => setDraft((current) => ({ ...current, cooldown_hours: e.target.value }))}
+                className="bg-m3-surface text-sm"
+                placeholder="Optional"
+              />
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-m3-outline-variant/15 bg-m3-surface p-4 space-y-4">
+            <div>
+              <h3 className="font-headline font-bold text-sm text-m3-on-surface">Adaptive Review</h3>
+              <p className="text-xs text-m3-on-surface-variant mt-1">
+                Configure the SM2-style mastery settings already stored in the backend.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">Initial EF</label>
+                <Input
+                  type="number"
+                  min={1}
+                  step="0.01"
+                  value={draft.initial_ef}
+                  onChange={(e) => setDraft((current) => ({ ...current, initial_ef: e.target.value }))}
+                  className="bg-m3-surface text-sm"
+                  placeholder="e.g. 2.50"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">Unlock EF Floor</label>
+                <Input
+                  type="number"
+                  min={1}
+                  step="0.01"
+                  value={draft.min_ef_for_unlock}
+                  onChange={(e) => setDraft((current) => ({ ...current, min_ef_for_unlock: e.target.value }))}
+                  className="bg-m3-surface text-sm"
+                  placeholder="e.g. 2.30"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">Coverage Threshold %</label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={100}
+                  step="0.01"
+                  value={draft.coverage_threshold}
+                  onChange={(e) => setDraft((current) => ({ ...current, coverage_threshold: e.target.value }))}
+                  className="bg-m3-surface text-sm"
+                  placeholder="e.g. 85"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+            <QuizToggle
+              label="Allow Retakes"
+              description="Students can open another attempt after submitting."
+              checked={draft.allow_retakes}
+              onChange={(checked) => setDraft((current) => ({ ...current, allow_retakes: checked }))}
+            />
+            <QuizToggle
+              label="Shuffle Questions"
+              description="Keep the same quiz content but vary the question order."
+              checked={draft.shuffle_questions}
+              onChange={(checked) => setDraft((current) => ({ ...current, shuffle_questions: checked }))}
+            />
+            <QuizToggle
+              label="Shuffle Options"
+              description="Randomize answer option order for each question."
+              checked={draft.shuffle_options}
+              onChange={(checked) => setDraft((current) => ({ ...current, shuffle_options: checked }))}
+            />
+            <QuizToggle
+              label="Show Hints"
+              description="Let students reveal question hints during an attempt."
+              checked={draft.show_hints}
+              onChange={(checked) => setDraft((current) => ({ ...current, show_hints: checked }))}
+            />
+            <QuizToggle
+              label="Review Reminders"
+              description="Expose reminder intent for spaced review follow-up."
+              checked={draft.reminders_enabled}
+              onChange={(checked) => setDraft((current) => ({ ...current, reminders_enabled: checked }))}
+            />
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <Button type="submit" size="sm" disabled={patchQuiz.isPending} variant="outline">
+              {patchQuiz.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+              Save Quiz
+            </Button>
+            <Button type="button" size="sm" disabled={createQuestion.isPending} onClick={addQuestion} className="gap-2">
+              {createQuestion.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
+              Add MCQ
+            </Button>
+          </div>
+        </form>
+
+        <QuizGenerationPanel module={module} courseId={courseId} targetQuizId={quizId} />
       </div>
     </section>
   );
@@ -832,6 +1244,8 @@ function ModuleSettings({ module, courseId }: { module: CourseContentModule; cou
 
   const publishedCount = module.items.filter((i) => {
     if (i.item_type === "lesson") return i.lesson?.status === "published";
+    if (i.item_type === "quiz") return i.quiz?.status === "published";
+    if (i.item_type === "interview") return i.interview?.status === "published";
     return false;
   }).length;
   const draftCount = module.items.length - publishedCount;
@@ -1094,15 +1508,13 @@ export default function ModuleManagePage() {
                 />
               ))}
 
-              <AddLessonPills
+              <AddContentPills
                 moduleId={moduleId}
                 courseId={courseId}
                 itemCount={sortedItems.length}
               />
             </div>
           </div>
-
-          <QuizGenerationPanel module={module} courseId={courseId} />
         </div>
 
         {/* Sidebar — 4 cols */}

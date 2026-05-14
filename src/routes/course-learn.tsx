@@ -20,7 +20,6 @@ import {
   Download,
   Sparkles,
   HelpCircle,
-  Code,
 } from "lucide-react";
 import { MediaPlayer, MediaProvider } from "@vidstack/react";
 import { DefaultVideoLayout, defaultLayoutIcons } from "@vidstack/react/player/layouts/default";
@@ -103,27 +102,41 @@ export default function CourseLearnPage() {
               ? "AI Mock Interview"
               : item.lesson?.title ?? "Lesson",
         }))
-    );
+      );
   }, [content]);
+
+  const lessonItems = useMemo(
+    () => flatItems.filter((fi) => fi.item.item_type === "lesson"),
+    [flatItems]
+  );
 
   /* ── Active item index ── */
   const initialIdx = useMemo(() => {
-    if (!flatItems.length) return 0;
+    if (!lessonItems.length) return 0;
     // find first non-completed lesson
     const progressMap = new Map(lessonsProgress?.lessons.map((l) => [l.lesson_id, l.status]));
-    const idx = flatItems.findIndex(
+    const idx = lessonItems.findIndex(
       (fi) => fi.item.item_type === "lesson" && progressMap.get(fi.item.lesson_id ?? "") !== "completed"
     );
     return idx !== -1 ? idx : 0;
-  }, [flatItems, lessonsProgress]);
+  }, [lessonItems, lessonsProgress]);
 
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>("Lesson Notes");
 
   const resolvedIdx = activeIdx ?? initialIdx;
-  const activeEntry = flatItems[resolvedIdx] ?? null;
+  const activeEntry = lessonItems[resolvedIdx] ?? null;
   const activeItem = activeEntry?.item ?? null;
   const activeLesson = activeItem?.lesson ?? null;
+
+  const activeModuleQuiz = useMemo(() => {
+    if (!activeEntry) return null;
+    return (
+      flatItems.find(
+        (fi) => fi.moduleId === activeEntry.moduleId && fi.item.item_type === "quiz" && fi.item.quiz_id
+      ) ?? null
+    );
+  }, [activeEntry, flatItems]);
 
   /* ── Derive per-item state for sidebar ── */
   const progressMap = useMemo(
@@ -131,11 +144,9 @@ export default function CourseLearnPage() {
     [lessonsProgress]
   );
 
-  function itemState(idx: number): LessonState {
-    if (idx === resolvedIdx) return "active";
-    const fi = flatItems[idx];
-    if (!fi) return "pending";
+  function itemState(fi: FlatItem): LessonState {
     if (fi.item.item_type === "lesson") {
+      if (fi.item.lesson_id === activeLesson?.id) return "active";
       const s = progressMap.get(fi.item.lesson_id ?? "");
       if (s === "completed") return "completed";
     }
@@ -151,7 +162,7 @@ export default function CourseLearnPage() {
 
   /* ── Navigation ── */
   const hasPrev = resolvedIdx > 0;
-  const hasNext = resolvedIdx < flatItems.length - 1;
+  const hasNext = resolvedIdx < lessonItems.length - 1;
 
   function goPrev() { if (hasPrev) setActiveIdx(resolvedIdx - 1); }
   function goNext() { if (hasNext) setActiveIdx(resolvedIdx + 1); }
@@ -159,7 +170,7 @@ export default function CourseLearnPage() {
   /* ── Progress stats ── */
   const progress = courseStatus ? Number(courseStatus.progress_percent) : 0;
   const completedLessonCount = lessonsProgress?.lessons.filter((l) => l.status === "completed").length ?? 0;
-  const totalLessonCount = flatItems.filter((fi) => fi.item.item_type === "lesson").length;
+  const totalLessonCount = lessonItems.length;
 
   /* ── Loading state ── */
   if (courseLoading || contentLoading) {
@@ -181,6 +192,24 @@ export default function CourseLearnPage() {
           <Link to="/courses">
             <Button className="gradient-primary text-white rounded-xl gap-2">
               Browse Courses <ArrowRight className="h-4 w-4" />
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (!lessonItems.length) {
+    return (
+      <div className="min-h-screen bg-m3-surface flex items-center justify-center px-6">
+        <div className="text-center space-y-4 max-w-md">
+          <p className="text-m3-on-surface font-headline font-bold text-xl">No lessons available yet</p>
+          <p className="text-sm text-m3-on-surface-variant">
+            This course does not have any lesson content ready for students yet.
+          </p>
+          <Link to="/courses/$slug" params={{ slug }}>
+            <Button className="gradient-primary text-white rounded-xl gap-2">
+              Back to Course <ArrowRight className="h-4 w-4" />
             </Button>
           </Link>
         </div>
@@ -268,10 +297,10 @@ export default function CourseLearnPage() {
                       </span>
                     </>
                   )}
-                  {activeItem.item_type === "quiz" && activeItem.quiz_id && (
+                  {activeModuleQuiz?.item.quiz_id && (
                     <Link
                       to="/courses/$slug/quiz/$quizId"
-                      params={{ slug, quizId: activeItem.quiz_id }}
+                      params={{ slug, quizId: activeModuleQuiz.item.quiz_id }}
                       className="ml-auto"
                     >
                       <Button
@@ -337,11 +366,11 @@ export default function CourseLearnPage() {
                   disabled={!hasPrev}
                 >
                   <ChevronLeft className="h-4 w-4 mr-1" />
-                  {hasPrev ? (
-                    <span className="max-w-[120px] truncate">{flatItems[resolvedIdx - 1]?.label}</span>
-                  ) : (
-                    "Previous"
-                  )}
+                    {hasPrev ? (
+                      <span className="max-w-[120px] truncate">{lessonItems[resolvedIdx - 1]?.label}</span>
+                    ) : (
+                      "Previous"
+                    )}
                 </Button>
                 <Button
                   size="sm"
@@ -349,11 +378,11 @@ export default function CourseLearnPage() {
                   onClick={goNext}
                   disabled={!hasNext}
                 >
-                  {hasNext ? (
-                    <span className="max-w-[120px] truncate">Next: {flatItems[resolvedIdx + 1]?.label}</span>
-                  ) : (
-                    "Finished"
-                  )}
+                    {hasNext ? (
+                      <span className="max-w-[120px] truncate">Next: {lessonItems[resolvedIdx + 1]?.label}</span>
+                    ) : (
+                      "Finished"
+                    )}
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
@@ -499,9 +528,9 @@ export default function CourseLearnPage() {
                   .map((mod) => (
                     <ModuleSection
                       key={mod.id}
+                      slug={slug}
                       mod={mod}
                       flatItems={flatItems}
-                      resolvedIdx={resolvedIdx}
                       itemState={itemState}
                       onSelect={(idx) => setActiveIdx(idx)}
                     />
@@ -519,20 +548,21 @@ export default function CourseLearnPage() {
 /* ── Sub-components ── */
 
 function ModuleSection({
+  slug,
   mod,
   flatItems,
-  resolvedIdx,
   itemState,
   onSelect,
 }: {
+  slug: string;
   mod: CourseContentModule;
   flatItems: FlatItem[];
-  resolvedIdx: number;
-  itemState: (idx: number) => LessonState;
+  itemState: (fi: FlatItem) => LessonState;
   onSelect: (idx: number) => void;
 }) {
+  const lessonItems = flatItems.filter((fi) => fi.item.item_type === "lesson");
   const modItems = flatItems
-    .map((fi, idx) => ({ fi, idx }))
+    .map((fi) => ({ fi, idx: lessonItems.findIndex((lesson) => lesson.item.id === fi.item.id) }))
     .filter(({ fi }) => fi.moduleId === mod.id);
 
   if (!modItems.length) return null;
@@ -543,17 +573,32 @@ function ModuleSection({
         {mod.title}
       </p>
       {modItems.map(({ fi, idx }) => {
-        const state = itemState(idx);
+        const state = itemState(fi);
         const isQuiz = fi.item.item_type === "quiz";
         const isInterview = fi.item.item_type === "interview";
         const lessonType = fi.item.lesson?.lesson_type;
-        const LessonIcon = lessonType === "reading" ? BookOpen : lessonType === "exercise" ? Code : PlayCircle;
+        const LessonIcon = lessonType === "reading" ? BookOpen : PlayCircle;
+
+        if (isQuiz && fi.item.quiz_id) {
+          return (
+            <Link
+              key={fi.item.id}
+              to="/courses/$slug/quiz/$quizId"
+              params={{ slug, quizId: fi.item.quiz_id }}
+              className="w-full flex items-center gap-3 p-3 rounded-lg text-left transition-all duration-200 text-sm text-m3-on-surface-variant hover:bg-white/50 font-medium cursor-pointer"
+            >
+              <HelpCircle className="h-4 w-4 flex-shrink-0 opacity-60" />
+              <span className="truncate leading-snug">{fi.label}</span>
+              <Sparkles className="h-4 w-4 ml-auto text-m3-secondary" />
+            </Link>
+          );
+        }
 
         return (
           <button
             key={fi.item.id}
-            onClick={() => state !== "locked" && !isInterview && onSelect(idx)}
-            disabled={state === "locked" || isInterview}
+            onClick={() => state !== "locked" && !isInterview && idx >= 0 && onSelect(idx)}
+            disabled={state === "locked" || isInterview || idx < 0}
             className={cn(
               "w-full flex items-center gap-3 p-3 rounded-lg text-left transition-all duration-200 text-sm",
               state === "active" && "bg-m3-primary text-white shadow-md font-bold",

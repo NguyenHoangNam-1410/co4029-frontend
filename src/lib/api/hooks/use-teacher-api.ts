@@ -18,7 +18,9 @@ import type {
   LessonRead,
   MaterialStatus,
   ProcessingSummary,
+  QuizCreatePayload,
   QuizGeneratePayload,
+  QuizQuestionCreatePayload,
   QuizQuestionPatch,
   QuizQuestionRead,
   QuizRead,
@@ -303,6 +305,18 @@ export function useGenerateQuiz(moduleId: string | undefined) {
     onSuccess: (run) => {
       qc.invalidateQueries({ queryKey: ["teacher", "generation-runs", run.id] });
       if (moduleId) qc.invalidateQueries({ queryKey: ["teacher", "modules", moduleId, "quizzes"] });
+      if (run.course_id) qc.invalidateQueries({ queryKey: ["teacher", "courses", run.course_id, "content"] });
+    },
+  });
+}
+
+export function useCreateQuiz(moduleId: string | undefined, courseId: string | undefined) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: QuizCreatePayload) => apiPost<QuizRead>(`/modules/${moduleId}/quizzes`, payload),
+    onSuccess: (quiz) => {
+      qc.invalidateQueries({ queryKey: ["teacher", "quizzes", quiz.id] });
+      if (courseId) qc.invalidateQueries({ queryKey: ["teacher", "courses", courseId, "content"] });
     },
   });
 }
@@ -328,11 +342,34 @@ export function useQuiz(quizId: string | null | undefined) {
   });
 }
 
+export function usePatchQuiz(courseId: string | undefined) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ quizId, payload }: { quizId: string; payload: Partial<QuizCreatePayload> & { status?: string } }) =>
+      apiPatch<QuizRead>(`/quizzes/${quizId}`, payload),
+    onSuccess: (quiz) => {
+      qc.invalidateQueries({ queryKey: ["teacher", "quizzes", quiz.id] });
+      if (courseId) qc.invalidateQueries({ queryKey: ["teacher", "courses", courseId, "content"] });
+    },
+  });
+}
+
 export function useQuizQuestions(quizId: string | null | undefined) {
   return useQuery({
     queryKey: ["teacher", "quizzes", quizId, "questions"],
     queryFn: () => apiFetch<QuizQuestionRead[]>(`/quizzes/${quizId}/questions`),
     enabled: !!quizId,
+  });
+}
+
+export function useCreateQuizQuestion() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ quizId, payload }: { quizId: string; payload: QuizQuestionCreatePayload }) =>
+      apiPost<QuizQuestionRead>(`/quizzes/${quizId}/questions`, payload),
+    onSuccess: (question) => {
+      qc.invalidateQueries({ queryKey: ["teacher", "quizzes", question.quiz_id, "questions"] });
+    },
   });
 }
 

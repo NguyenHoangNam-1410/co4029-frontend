@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
-import { ApiError, apiFetch } from "../client";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ApiError, apiFetch, apiPost } from "../client";
 import type {
   Course,
   CourseContent,
@@ -14,7 +14,10 @@ import type {
   CourseModulesStatus,
   CourseStatus,
   Notification,
+  QuizAttemptRead,
+  QuizAttemptResult,
 } from "../types/student";
+import type { QuizQuestionRead, QuizRead } from "../types/teacher";
 
 export function useCourseList() {
   return useQuery({
@@ -138,6 +141,77 @@ export function useMaterialStreamUrl(materialId: string | null | undefined) {
 export async function fetchResourceDownloadUrl(resourceId: string): Promise<string> {
   const data = await apiFetch<StreamUrlResponse>(`/lesson-resources/${resourceId}/download-url`);
   return data.stream_url;
+}
+
+export function useStudentQuiz(quizId: string | null | undefined) {
+  return useQuery({
+    queryKey: ["student", "quizzes", quizId],
+    queryFn: () => apiFetch<QuizRead>(`/quizzes/${quizId}`),
+    enabled: !!quizId,
+  });
+}
+
+export function useStudentQuizQuestions(quizId: string | null | undefined) {
+  return useQuery({
+    queryKey: ["student", "quizzes", quizId, "questions"],
+    queryFn: () => apiFetch<QuizQuestionRead[]>(`/quizzes/${quizId}/questions`),
+    enabled: !!quizId,
+  });
+}
+
+export function useMyQuizAttempts(quizId: string | null | undefined) {
+  return useQuery({
+    queryKey: ["student", "quizzes", quizId, "attempts", "me"],
+    queryFn: () => apiFetch<QuizAttemptRead[]>(`/quizzes/${quizId}/attempts/me`),
+    enabled: !!quizId,
+  });
+}
+
+export function useQuizAttemptResult(attemptId: string | null | undefined) {
+  return useQuery({
+    queryKey: ["student", "quiz-attempts", attemptId, "result"],
+    queryFn: () => apiFetch<QuizAttemptResult>(`/quiz-attempts/${attemptId}/result`),
+    enabled: !!attemptId,
+  });
+}
+
+export function useCreateQuizAttempt(quizId: string | null | undefined) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => apiPost<QuizAttemptRead>(`/quizzes/${quizId}/attempts`, {}),
+    onSuccess: (attempt) => {
+      qc.invalidateQueries({ queryKey: ["student", "quizzes", attempt.quiz_id, "attempts", "me"] });
+    },
+  });
+}
+
+export function useAnswerQuizAttempt() {
+  return useMutation({
+    mutationFn: ({
+      attemptId,
+      payload,
+    }: {
+      attemptId: string;
+      payload: {
+        question_id: string;
+        selected_option_id?: string | null;
+        answer_text?: string | null;
+        hint_used?: boolean;
+        response_time_ms?: number | null;
+      };
+    }) => apiPost(`/quiz-attempts/${attemptId}/answers`, payload),
+  });
+}
+
+export function useSubmitQuizAttempt() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (attemptId: string) => apiPost<QuizAttemptRead>(`/quiz-attempts/${attemptId}/submit`),
+    onSuccess: (attempt) => {
+      qc.invalidateQueries({ queryKey: ["student", "quizzes", attempt.quiz_id, "attempts", "me"] });
+      qc.invalidateQueries({ queryKey: ["student", "quiz-attempts", attempt.id, "result"] });
+    },
+  });
 }
 
 export function useNotifications() {

@@ -47,6 +47,7 @@ export interface GenerationRun {
 }
 
 export interface QuizGeneratePayload {
+  quiz_id?: string | null;
   title: string;
   description?: string | null;
   question_count?: number;
@@ -57,6 +58,24 @@ export interface QuizGeneratePayload {
   model_preference?: string | null;
   source_lesson_ids?: string[];
   config_json?: Record<string, unknown>;
+}
+
+export interface QuizCreatePayload {
+  title: string;
+  description?: string | null;
+  time_limit_seconds?: number | null;
+  passing_score_percent?: string | null;
+  allow_retakes?: boolean;
+  max_attempts?: number | null;
+  cooldown_hours?: number | null;
+  shuffle_questions?: boolean;
+  shuffle_options?: boolean;
+  show_hints?: boolean;
+  initial_ef?: string | null;
+  min_ef_for_unlock?: string | null;
+  coverage_threshold?: string | null;
+  reminders_enabled?: boolean;
+  generation_instructions?: string | null;
 }
 
 export interface QuizRead {
@@ -74,6 +93,10 @@ export interface QuizRead {
   shuffle_questions: boolean;
   shuffle_options: boolean;
   show_hints: boolean;
+  initial_ef: string | null;
+  min_ef_for_unlock: string | null;
+  coverage_threshold: string | null;
+  reminders_enabled: boolean;
   generation_instructions: string | null;
   generation_run_id: string | null;
   published_at: string | null;
@@ -119,6 +142,25 @@ export interface QuizQuestionOptionPatch {
   option_key?: string | null;
   option_text?: string | null;
   is_correct?: boolean | null;
+}
+
+export interface QuizQuestionOptionCreate {
+  option_key: string;
+  option_text: string;
+  is_correct: boolean;
+}
+
+export interface QuizQuestionCreatePayload {
+  question_type?: string;
+  prompt_text: string;
+  hint_text?: string | null;
+  explanation?: string | null;
+  difficulty?: string | null;
+  bloom_level?: string | null;
+  review_status?: string;
+  expected_response_ms?: number;
+  source_refs_json?: unknown;
+  options?: QuizQuestionOptionCreate[];
 }
 
 export type QuizQuestionPatch = Partial<
@@ -196,7 +238,5 @@ export interface CourseEnrollmentRead {
 
 export const LESSON_TYPES = [
   { value: "video", label: "Video" },
-  { value: "quiz", label: "Quiz" },
   { value: "reading", label: "Reading" },
-  { value: "exercise", label: "Exercise" },
 ] as const;

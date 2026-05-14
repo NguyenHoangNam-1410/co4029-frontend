@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { Link, useParams } from "@tanstack/react-router";
 import {
   ArrowLeft, Plus, ChevronDown, ChevronRight,
-  Video, HelpCircle, BookOpen, Code, GripVertical,
+  Video, BookOpen, GripVertical,
   Pencil, Loader2, ArrowRight, Check, Users,
   Settings, Save, ExternalLink,
 } from "lucide-react";
@@ -28,9 +28,7 @@ import { cn } from "@/lib/utils";
 
 const LESSON_TYPE_CONFIG: Record<string, { label: string; icon: React.ComponentType<{ className?: string }>; badge: string }> = {
   video:    { label: "Video",    icon: Video,       badge: "bg-blue-50 text-blue-700" },
-  quiz:     { label: "Quiz",     icon: HelpCircle,  badge: "bg-violet-50 text-violet-700" },
   reading:  { label: "Reading",  icon: BookOpen,    badge: "bg-emerald-50 text-emerald-700" },
-  exercise: { label: "Exercise", icon: Code,        badge: "bg-amber-50 text-amber-700" },
 };
 
 const ADD_PILL_CLS =

@@ -3,8 +3,8 @@ import { Link, useParams } from "@tanstack/react-router";
 import {
   ArrowLeft, ArrowRight, Play, FileText, Download, Trash2, Plus,
   Paperclip, Bold, Italic, List, Link as LinkIcon, Code, Image,
-  Upload, Sparkles, BookOpen, Video, Dumbbell,
-  CheckSquare, X, Archive, Loader2, Save, Brain, Pencil, Check,
+  Upload, Sparkles, BookOpen, Video,
+  X, Archive, Loader2, Save, Brain, Pencil, Check,
   Hash, AlignLeft, Search,
 } from "lucide-react";
 import { MediaPlayer, MediaProvider } from "@vidstack/react";
@@ -36,8 +36,6 @@ import { cn } from "@/lib/utils";
 const LESSON_TYPE_OPTIONS = [
   { value: "video",    label: "Video",    icon: Video },
   { value: "reading",  label: "Reading",  icon: BookOpen },
-  { value: "quiz",     label: "Quiz",     icon: CheckSquare },
-  { value: "exercise", label: "Exercise", icon: Code },
 ] as const;
 
 /* ── Resource file-type style map ── */
@@ -289,58 +287,6 @@ function ReadingContent({ notes, setNotes, notesRef }: {
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
         />
-      </div>
-    </section>
-  );
-}
-
-/* ── Quiz type placeholder ── */
-function QuizPlaceholder({ lessonId, courseId }: { lessonId: string; courseId: string }) {
-  return (
-    <section className="space-y-4">
-      <div className="flex items-center gap-2">
-        <h2 className="font-headline font-bold text-2xl text-m3-primary">Quiz</h2>
-        <span className="text-xs bg-violet-50 text-violet-600 font-bold px-2.5 py-1 rounded-full">Coming soon</span>
-      </div>
-      <div className="flex flex-col items-center justify-center py-20 rounded-2xl bg-m3-surface-container-lowest ghost-border space-y-4">
-        <div className="w-16 h-16 rounded-2xl bg-violet-50 flex items-center justify-center">
-          <CheckSquare className="h-8 w-8 text-violet-400" />
-        </div>
-        <div className="text-center space-y-1">
-          <p className="font-bold text-m3-on-surface">Quiz Builder</p>
-          <p className="text-sm text-m3-on-surface-variant max-w-xs">
-            Quiz authoring is being built. In the meantime, you can use the AI Material Hub to auto-generate quizzes from uploaded materials.
-          </p>
-        </div>
-        <Link to="/teacher/courses/$courseId/lessons/$lessonId/materials" params={{ courseId, lessonId }}>
-          <Button variant="outline" size="sm" className="gap-2 border-violet-200 text-violet-600 hover:bg-violet-50">
-            <Brain className="h-4 w-4" />
-            Open AI Material Hub
-          </Button>
-        </Link>
-      </div>
-    </section>
-  );
-}
-
-/* ── Exercise type placeholder ── */
-function ExercisePlaceholder() {
-  return (
-    <section className="space-y-4">
-      <div className="flex items-center gap-2">
-        <h2 className="font-headline font-bold text-2xl text-m3-primary">Exercise</h2>
-        <span className="text-xs bg-amber-50 text-amber-600 font-bold px-2.5 py-1 rounded-full">Coming soon</span>
-      </div>
-      <div className="flex flex-col items-center justify-center py-20 rounded-2xl bg-m3-surface-container-lowest ghost-border space-y-4">
-        <div className="w-16 h-16 rounded-2xl bg-amber-50 flex items-center justify-center">
-          <Dumbbell className="h-8 w-8 text-amber-400" />
-        </div>
-        <div className="text-center space-y-1">
-          <p className="font-bold text-m3-on-surface">Exercise Builder</p>
-          <p className="text-sm text-m3-on-surface-variant max-w-xs">
-            Coding exercise authoring with starter code, test cases, and auto-grading is under development.
-          </p>
-        </div>
       </div>
     </section>
   );
@@ -704,12 +650,6 @@ export default function LessonManagePage() {
           )}
           {lessonType === "reading" && (
             <ReadingContent notes={notes} setNotes={setNotes} notesRef={notesRef} />
-          )}
-          {lessonType === "quiz" && (
-            <QuizPlaceholder lessonId={lessonId} courseId={courseId} />
-          )}
-          {lessonType === "exercise" && (
-            <ExercisePlaceholder />
           )}
 
           {/* ── Downloadable Resources (all types) ── */}
