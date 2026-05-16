@@ -5,6 +5,7 @@ import {
   GripVertical, Pencil, Check, Loader2, Plus, Save,
   ChevronDown, ChevronRight, Trash2, Sparkles, CheckCircle,
   AlertCircle, FileText, Brain, EyeOff, Workflow, Network,
+  RefreshCw, X, Tag, MessageSquare, Layers, ListChecks,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -22,13 +23,16 @@ import {
   useDeleteModuleItem,
   useGenerateQuiz,
   useGenerationRun,
+  useLessonOutline,
   usePatchQuizQuestion,
   useDeleteQuizQuestion,
   usePublishQuiz,
   useQuiz,
   useQuizQuestions,
+  useRegenerateQuestion,
   useTeacherProcessingSummary,
 } from "@/lib/api/hooks/use-teacher-api";
+import { ApiError } from "@/lib/api/client";
 import type {
   CourseContentItem,
   CourseContentLesson,
@@ -533,7 +537,10 @@ function QuizToggle({
 export function QuizQuestionReviewCard({ question }: { question: QuizQuestionRead }) {
   const patchQuestion = usePatchQuizQuestion();
   const deleteQuestion = useDeleteQuizQuestion(question.quiz_id);
+  const regenerateQuestion = useRegenerateQuestion(question.quiz_id);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [activeRegenRunId, setActiveRegenRunId] = useState<string | null>(null);
+  const { data: regenRun } = useGenerationRun(activeRegenRunId);
   const [draft, setDraft] = useState({
     prompt_text: question.prompt_text,
     explanation: question.explanation ?? "",
@@ -562,8 +569,23 @@ export function QuizQuestionReviewCard({ question }: { question: QuizQuestionRea
     question.review_status,
   ]);
 
+  // Clear the active regen banner once the run resolves so the card returns
+  // to its normal state. The hook's onSuccess already invalidates the quiz
+  // questions query, so the next render shows the rewritten prompt/options.
+  useEffect(() => {
+    if (!regenRun) return;
+    if (regenRun.status === "completed" || regenRun.status === "failed") {
+      const timer = window.setTimeout(() => setActiveRegenRunId(null), 1500);
+      return () => window.clearTimeout(timer);
+    }
+  }, [regenRun]);
+
   const sourceLabels = sourceRefLabels(question.source_refs_json);
   const hasOptions = question.question_type === "mcq" && draft.options.length > 0;
+  const regenInFlight =
+    regenerateQuestion.isPending ||
+    Boolean(activeRegenRunId && regenRun && (regenRun.status === "pending" || regenRun.status === "running"));
+  const regenFailed = regenRun?.status === "failed";
 
   async function save(reviewStatus = draft.review_status) {
     if (!draft.prompt_text.trim()) {
@@ -606,6 +628,20 @@ export function QuizQuestionReviewCard({ question }: { question: QuizQuestionRea
     }
   }
 
+  async function regenerate() {
+    try {
+      const run = await regenerateQuestion.mutateAsync(question.id);
+      setActiveRegenRunId(run.id);
+      toast.success("Regenerating this question");
+    } catch (err: unknown) {
+      if (err instanceof ApiError && err.status === 409) {
+        toast.error("A regeneration is already running for this question");
+        return;
+      }
+      toast.error((err as Error).message || "Failed to regenerate question");
+    }
+  }
+
   return (
     <div className="rounded-2xl border border-m3-outline-variant/20 bg-m3-surface p-4 space-y-3">
       <div className="flex items-center gap-2">
@@ -626,6 +662,20 @@ export function QuizQuestionReviewCard({ question }: { question: QuizQuestionRea
           {question.review_status}
         </Badge>
       </div>
+
+      {regenInFlight && (
+        <div className="rounded-xl border border-violet-200 bg-violet-50 px-3 py-2 text-xs text-violet-800 flex items-center gap-2">
+          <Loader2 className="h-3.5 w-3.5 animate-spin shrink-0" />
+          <span>Re-running the AI pipeline for this question. The card refreshes automatically when the run completes.</span>
+        </div>
+      )}
+
+      {regenFailed && !regenInFlight && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 flex items-start gap-2">
+          <AlertCircle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+          <span>{generationFailureMessage(regenRun) ?? "Regeneration failed. Try again or check material readiness."}</span>
+        </div>
+      )}
 
       <div className="space-y-1.5">
         <label className="text-[10px] font-bold uppercase tracking-widest text-m3-on-surface-variant">
@@ -753,7 +803,7 @@ export function QuizQuestionReviewCard({ question }: { question: QuizQuestionRea
           type="button"
           size="sm"
           variant="outline"
-          disabled={patchQuestion.isPending}
+          disabled={patchQuestion.isPending || regenInFlight}
           onClick={() => save()}
         >
           {patchQuestion.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
@@ -762,11 +812,27 @@ export function QuizQuestionReviewCard({ question }: { question: QuizQuestionRea
         <Button
           type="button"
           size="sm"
-          disabled={patchQuestion.isPending}
+          disabled={patchQuestion.isPending || regenInFlight}
           onClick={() => save("approved")}
           className="bg-emerald-600 text-white hover:bg-emerald-700"
         >
           <CheckCircle className="h-3.5 w-3.5" /> Approve
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          disabled={regenInFlight || patchQuestion.isPending}
+          onClick={regenerate}
+          className="gap-1.5 border-violet-200 text-violet-700 hover:bg-violet-50 hover:text-violet-700"
+          title="Re-run the AI pipeline for this question only"
+        >
+          {regenInFlight ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <RefreshCw className="h-3.5 w-3.5" />
+          )}
+          {regenInFlight ? "Regenerating…" : "Regenerate"}
         </Button>
         <div className="ml-auto relative">
           {confirmingDelete ? (
@@ -936,6 +1002,543 @@ function PipelineSummary({ run }: { run: GenerationRun | undefined }) {
   );
 }
 
+/* ── Generation mode toggle (FR-5: topic vs coverage) ── */
+function ModeToggle({
+  mode,
+  onChange,
+}: {
+  mode: "topic" | "coverage";
+  onChange: (mode: "topic" | "coverage") => void;
+}) {
+  const options: Array<{ key: "topic" | "coverage"; label: string; hint: string }> = [
+    { key: "topic", label: "Topic", hint: "Balanced spread across all lessons" },
+    { key: "coverage", label: "Coverage", hint: "One+ question per lesson section" },
+  ];
+
+  return (
+    <div className="space-y-1.5">
+      <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">
+        Generation mode
+      </label>
+      <div className="grid grid-cols-2 gap-2">
+        {options.map((option) => {
+          const active = mode === option.key;
+          return (
+            <button
+              key={option.key}
+              type="button"
+              onClick={() => onChange(option.key)}
+              aria-pressed={active}
+              className={cn(
+                "flex flex-col items-start gap-1 rounded-xl border px-3 py-2.5 text-left transition-all cursor-pointer",
+                active
+                  ? "border-m3-secondary bg-m3-secondary-fixed/30 shadow-sm"
+                  : "border-m3-outline-variant/20 bg-m3-surface hover:bg-m3-surface-container-low"
+              )}
+            >
+              <span className="text-sm font-semibold text-m3-on-surface">{option.label}</span>
+              <span className="text-[11px] text-m3-on-surface-variant">{option.hint}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ── Append vs replace toggle (FR-10b) ── */
+function AppendToggle({
+  append,
+  hasExistingQuestions,
+  onChange,
+}: {
+  append: boolean;
+  hasExistingQuestions: boolean;
+  onChange: (append: boolean) => void;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">
+        Existing questions
+      </label>
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          onClick={() => onChange(false)}
+          aria-pressed={!append}
+          className={cn(
+            "flex flex-col items-start gap-1 rounded-xl border px-3 py-2.5 text-left transition-all cursor-pointer",
+            !append
+              ? "border-m3-secondary bg-m3-secondary-fixed/30 shadow-sm"
+              : "border-m3-outline-variant/20 bg-m3-surface hover:bg-m3-surface-container-low"
+          )}
+        >
+          <span className="text-sm font-semibold text-m3-on-surface">Replace</span>
+          <span className="text-[11px] text-m3-on-surface-variant">
+            Wipe current questions and start fresh
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={() => onChange(true)}
+          aria-pressed={append}
+          className={cn(
+            "flex flex-col items-start gap-1 rounded-xl border px-3 py-2.5 text-left transition-all cursor-pointer",
+            append
+              ? "border-m3-secondary bg-m3-secondary-fixed/30 shadow-sm"
+              : "border-m3-outline-variant/20 bg-m3-surface hover:bg-m3-surface-container-low"
+          )}
+        >
+          <span className="text-sm font-semibold text-m3-on-surface">Append</span>
+          <span className="text-[11px] text-m3-on-surface-variant">
+            Add new questions next to existing ones
+          </span>
+        </button>
+      </div>
+      {hasExistingQuestions && !append && (
+        <p className="text-[11px] text-amber-700 flex items-start gap-1.5 mt-1">
+          <AlertCircle className="h-3 w-3 shrink-0 mt-0.5" />
+          This quiz already has questions. Replace will delete them before generating.
+        </p>
+      )}
+    </div>
+  );
+}
+
+/* ── Topic tag input ── */
+function TopicTagInput({
+  label,
+  hint,
+  icon: Icon,
+  values,
+  onChange,
+}: {
+  label: string;
+  hint: string;
+  icon: React.ComponentType<{ className?: string }>;
+  values: string[];
+  onChange: (values: string[]) => void;
+}) {
+  const [draft, setDraft] = useState("");
+  const atLimit = values.length >= 10;
+
+  function commit() {
+    const trimmed = draft.trim().slice(0, 200);
+    if (!trimmed) {
+      setDraft("");
+      return;
+    }
+    if (values.includes(trimmed)) {
+      setDraft("");
+      return;
+    }
+    if (atLimit) return;
+    onChange([...values, trimmed]);
+    setDraft("");
+  }
+
+  return (
+    <div className="space-y-1.5">
+      <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant flex items-center gap-1.5">
+        <Icon className="h-3.5 w-3.5" />
+        {label}
+      </label>
+      <div className="flex flex-wrap gap-1.5 rounded-xl border border-m3-outline-variant/20 bg-m3-surface-container-lowest px-2 py-2">
+        {values.map((value) => (
+          <span
+            key={value}
+            className="inline-flex items-center gap-1 rounded-lg bg-m3-secondary-fixed/40 px-2 py-1 text-xs font-semibold text-m3-secondary"
+          >
+            {value}
+            <button
+              type="button"
+              onClick={() => onChange(values.filter((entry) => entry !== value))}
+              className="text-m3-secondary hover:text-m3-primary cursor-pointer"
+              aria-label={`Remove ${value}`}
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </span>
+        ))}
+        <input
+          value={draft}
+          maxLength={200}
+          disabled={atLimit}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === ",") {
+              e.preventDefault();
+              commit();
+            }
+            if (e.key === "Backspace" && draft.length === 0 && values.length > 0) {
+              onChange(values.slice(0, -1));
+            }
+          }}
+          onBlur={commit}
+          placeholder={atLimit ? "Limit reached" : "Type and press Enter…"}
+          className="flex-1 min-w-[140px] bg-transparent text-sm text-m3-on-surface placeholder:text-m3-on-surface-variant/50 focus:outline-none disabled:cursor-not-allowed"
+        />
+      </div>
+      <p className="text-[10px] text-m3-on-surface-variant">
+        {hint} ({values.length}/10)
+      </p>
+    </div>
+  );
+}
+
+/* ── Coverage options form ── */
+function CoverageOptionsForm({
+  minPerSection,
+  maxPerSection,
+  skipSummaries,
+  slidesPerSection,
+  onChange,
+}: {
+  minPerSection: number;
+  maxPerSection: number;
+  skipSummaries: boolean;
+  slidesPerSection: number;
+  onChange: (patch: Partial<{
+    coverage_min_per_section: number;
+    coverage_max_per_section: number;
+    skip_summaries: boolean;
+    slides_per_section: number;
+  }>) => void;
+}) {
+  return (
+    <div className="space-y-3 rounded-xl border border-m3-secondary/20 bg-m3-secondary-fixed/10 p-3">
+      <div className="flex items-center gap-1.5">
+        <Layers className="h-3.5 w-3.5 text-m3-secondary" />
+        <p className="text-xs font-bold uppercase tracking-widest text-m3-secondary">
+          Coverage options
+        </p>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-bold uppercase tracking-widest text-m3-on-surface-variant">
+            Min per section
+          </label>
+          <Input
+            type="number"
+            min={0}
+            max={10}
+            value={minPerSection}
+            onChange={(e) =>
+              onChange({
+                coverage_min_per_section: Math.max(0, Math.min(10, Number(e.target.value) || 0)),
+              })
+            }
+            className="bg-m3-surface text-sm"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-bold uppercase tracking-widest text-m3-on-surface-variant">
+            Max per section
+          </label>
+          <Input
+            type="number"
+            min={1}
+            max={10}
+            value={maxPerSection}
+            onChange={(e) =>
+              onChange({
+                coverage_max_per_section: Math.max(1, Math.min(10, Number(e.target.value) || 1)),
+              })
+            }
+            className="bg-m3-surface text-sm"
+          />
+        </div>
+      </div>
+      <div className="space-y-1.5">
+        <label className="text-[10px] font-bold uppercase tracking-widest text-m3-on-surface-variant">
+          Slides per section (slide deck fallback)
+        </label>
+        <Input
+          type="number"
+          min={1}
+          max={20}
+          value={slidesPerSection}
+          onChange={(e) =>
+            onChange({
+              slides_per_section: Math.max(1, Math.min(20, Number(e.target.value) || 1)),
+            })
+          }
+          className="bg-m3-surface text-sm"
+        />
+        <p className="text-[10px] text-m3-on-surface-variant">
+          Only used when a lesson has no real headings. Lower = more questions per slide group.
+        </p>
+      </div>
+      <label className="flex items-start gap-2 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={skipSummaries}
+          onChange={(e) => onChange({ skip_summaries: e.target.checked })}
+          className="mt-0.5 h-4 w-4"
+        />
+        <span className="text-xs text-m3-on-surface">
+          Skip summary / review sections
+          <span className="block text-[10px] text-m3-on-surface-variant">
+            Recommended when lessons end with a recap section.
+          </span>
+        </span>
+      </label>
+    </div>
+  );
+}
+
+/* ── Section picker fed by useLessonOutline ── */
+function CoverageSectionPicker({
+  lessonItems,
+  selectedLessonIds,
+  selectedSectionIds,
+  onSectionsChange,
+  onSuggestQuestionCount,
+}: {
+  lessonItems: Array<CourseContentItem & { lesson: CourseContentLesson }>;
+  selectedLessonIds: string[];
+  selectedSectionIds: Record<string, string[]>;
+  onSectionsChange: (lessonId: string, sectionIds: string[]) => void;
+  onSuggestQuestionCount: (count: number) => void;
+}) {
+  const visibleLessons = lessonItems.filter((item) => selectedLessonIds.includes(item.lesson.id));
+
+  if (visibleLessons.length === 0) {
+    return (
+      <div className="rounded-xl border border-dashed border-m3-outline-variant/30 bg-m3-surface px-4 py-3 text-xs text-m3-on-surface-variant">
+        Select at least one ready lesson to preview its sections.
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between gap-2">
+        <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant flex items-center gap-1.5">
+          <ListChecks className="h-3.5 w-3.5" />
+          Sections to cover
+        </label>
+        <span className="text-[10px] text-m3-on-surface-variant">
+          Empty = include all eligible sections
+        </span>
+      </div>
+      <div className="space-y-2">
+        {visibleLessons.map((item) => (
+          <LessonOutlineSection
+            key={item.lesson.id}
+            lessonId={item.lesson.id}
+            fallbackTitle={item.lesson.title}
+            selectedSectionIds={selectedSectionIds[item.lesson.id] ?? []}
+            onSectionsChange={(ids) => onSectionsChange(item.lesson.id, ids)}
+            onSuggestQuestionCount={onSuggestQuestionCount}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function LessonOutlineSection({
+  lessonId,
+  fallbackTitle,
+  selectedSectionIds,
+  onSectionsChange,
+  onSuggestQuestionCount,
+}: {
+  lessonId: string;
+  fallbackTitle: string;
+  selectedSectionIds: string[];
+  onSectionsChange: (sectionIds: string[]) => void;
+  onSuggestQuestionCount: (count: number) => void;
+}) {
+  const { data: outline, isLoading, error } = useLessonOutline(lessonId);
+  const [expanded, setExpanded] = useState(true);
+
+  if (isLoading) {
+    return (
+      <div className="rounded-xl border border-m3-outline-variant/20 bg-m3-surface px-3 py-2.5 text-xs text-m3-on-surface-variant flex items-center gap-2">
+        <Loader2 className="h-3 w-3 animate-spin" />
+        Loading outline for {fallbackTitle}…
+      </div>
+    );
+  }
+
+  if (error || !outline) {
+    return (
+      <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs text-amber-800 flex items-start gap-2">
+        <AlertCircle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+        <span>
+          Could not load outline for <strong>{fallbackTitle}</strong>. Material may still be processing.
+        </span>
+      </div>
+    );
+  }
+
+  function toggleSection(sectionId: string) {
+    if (selectedSectionIds.includes(sectionId)) {
+      onSectionsChange(selectedSectionIds.filter((id) => id !== sectionId));
+    } else {
+      onSectionsChange([...selectedSectionIds, sectionId]);
+    }
+  }
+
+  return (
+    <div className="rounded-xl border border-m3-outline-variant/20 bg-m3-surface overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setExpanded((current) => !current)}
+        className="w-full flex items-center gap-2 px-3 py-2.5 text-left hover:bg-m3-surface-container-low cursor-pointer"
+      >
+        {expanded ? (
+          <ChevronDown className="h-3.5 w-3.5 text-m3-on-surface-variant" />
+        ) : (
+          <ChevronRight className="h-3.5 w-3.5 text-m3-on-surface-variant" />
+        )}
+        <span className="flex-1 text-sm font-semibold text-m3-on-surface truncate">
+          {outline.lesson_title}
+        </span>
+        <span className="text-[10px] text-m3-on-surface-variant">
+          {outline.sections.length} section{outline.sections.length === 1 ? "" : "s"}
+        </span>
+        <span className="text-[10px] font-semibold text-m3-secondary">
+          ~{outline.suggested_question_count} suggested
+        </span>
+      </button>
+
+      {expanded && (
+        <div className="border-t border-m3-outline-variant/20 p-2 space-y-1">
+          <div className="flex items-center justify-between gap-2 px-1 pb-1">
+            <span className="text-[10px] text-m3-on-surface-variant">
+              Min for full coverage: {outline.min_for_full_coverage}
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => onSuggestQuestionCount(outline.suggested_question_count)}
+                className="text-[10px] font-semibold text-m3-secondary hover:text-m3-primary cursor-pointer"
+              >
+                Apply suggested
+              </button>
+              <button
+                type="button"
+                onClick={() => onSectionsChange([])}
+                disabled={selectedSectionIds.length === 0}
+                className="text-[10px] font-semibold text-m3-on-surface-variant hover:text-m3-primary disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+          {outline.sections.map((section) => {
+            const checked = selectedSectionIds.includes(section.id);
+            return (
+              <label
+                key={section.id}
+                className={cn(
+                  "flex items-start gap-2 rounded-lg px-2 py-1.5 text-xs cursor-pointer",
+                  checked
+                    ? "bg-m3-secondary-fixed/30"
+                    : "hover:bg-m3-surface-container-low"
+                )}
+              >
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={() => toggleSection(section.id)}
+                  className="mt-0.5 h-3.5 w-3.5"
+                />
+                <span className="flex-1 min-w-0">
+                  <span className="block font-semibold text-m3-on-surface truncate">
+                    {section.title}
+                  </span>
+                  <span className="block text-[10px] text-m3-on-surface-variant">
+                    {section.chunk_count} chunk{section.chunk_count === 1 ? "" : "s"}
+                    {" · "}
+                    pages {section.page_range[0]}–{section.page_range[1]}
+                    {" · "}
+                    <span className="capitalize">{section.content_role}</span>
+                  </span>
+                </span>
+              </label>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Bloom distribution input ── */
+function BloomDistributionInput({
+  enabled,
+  distribution,
+  questionCount,
+  overflow,
+  onToggle,
+  onChange,
+}: {
+  enabled: boolean;
+  distribution: Record<(typeof BLOOM_LEVELS)[number], number>;
+  questionCount: number;
+  overflow: boolean;
+  onToggle: (enabled: boolean) => void;
+  onChange: (distribution: Record<(typeof BLOOM_LEVELS)[number], number>) => void;
+}) {
+  const total = Object.values(distribution).reduce((sum, value) => sum + value, 0);
+
+  return (
+    <div className="space-y-2">
+      <label className="flex items-center gap-2 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={enabled}
+          onChange={(e) => onToggle(e.target.checked)}
+          className="h-4 w-4"
+        />
+        <span className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">
+          Bloom distribution
+        </span>
+      </label>
+      {enabled && (
+        <div className="space-y-2 rounded-xl border border-m3-outline-variant/20 bg-m3-surface-container-lowest p-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {BLOOM_LEVELS.map((level) => (
+              <div key={level} className="space-y-1">
+                <label className="text-[10px] font-semibold uppercase tracking-wide text-m3-on-surface-variant">
+                  {level}
+                </label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={questionCount}
+                  value={distribution[level]}
+                  onChange={(e) => {
+                    const next = Math.max(0, Math.min(questionCount, Number(e.target.value) || 0));
+                    onChange({ ...distribution, [level]: next });
+                  }}
+                  className="bg-m3-surface text-sm"
+                />
+              </div>
+            ))}
+          </div>
+          <p
+            className={cn(
+              "text-[11px]",
+              overflow ? "text-red-600 font-semibold" : "text-m3-on-surface-variant"
+            )}
+          >
+            Total: {total}/{questionCount}
+            {overflow && " — exceeds question count"}
+          </p>
+          <p className="text-[10px] text-m3-on-surface-variant">
+            Levels with 0 are left to the generator. Total ≤ question count.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function QuizGenerationPanel({ module, courseId, targetQuizId, compact = false, showReview = true }: { module: CourseContentModule; courseId: string; targetQuizId?: string | null; compact?: boolean; showReview?: boolean }) {
   const lessonItems = module.items
     .filter((item) => item.item_type === "lesson" && item.lesson)
@@ -946,11 +1549,33 @@ export function QuizGenerationPanel({ module, courseId, targetQuizId, compact = 
   const [readyByLesson, setReadyByLesson] = useState<Record<string, boolean>>({});
   const [activeRunId, setActiveRunId] = useState<string | null>(null);
   const [draftQuizId, setDraftQuizId] = useState<string | null>(null);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [form, setForm] = useState({
     title: `${module.title} AI Quiz`,
     description: "Generated from indexed lesson materials.",
     question_count: 5,
     difficulty: "medium",
+    // FR-5 personalisation + coverage extensions. Defaults match the
+    // backend's topic-mode behaviour so the basic flow keeps working.
+    generation_mode: "topic" as "topic" | "coverage",
+    focus_topics: [] as string[],
+    avoid_topics: [] as string[],
+    extra_instructions: "",
+    append: false,
+    coverage_min_per_section: 1,
+    coverage_max_per_section: 5,
+    skip_summaries: true,
+    slides_per_section: 4,
+    selected_section_ids: {} as Record<string, string[]>,
+    bloom_enabled: false,
+    bloom_distribution: {
+      remember: 0,
+      understand: 0,
+      apply: 0,
+      analyze: 0,
+      evaluate: 0,
+      create: 0,
+    } as Record<(typeof BLOOM_LEVELS)[number], number>,
   });
 
   const { data: activeRun } = useGenerationRun(activeRunId);
@@ -969,10 +1594,52 @@ export function QuizGenerationPanel({ module, courseId, targetQuizId, compact = 
     .map((item) => item.lesson.id)
     .filter((lessonId) => readyByLesson[lessonId]);
 
+  const isCoverageMode = form.generation_mode === "coverage";
+  const hasExistingQuestions = (questions?.length ?? 0) > 0 && Boolean(targetQuizId);
+  const bloomTotal = Object.values(form.bloom_distribution).reduce((sum, value) => sum + value, 0);
+  const bloomOverflow = form.bloom_enabled && bloomTotal > form.question_count;
+
   function toggleLesson(lessonId: string) {
     setSelectedLessonIds((current) =>
       current.includes(lessonId) ? current.filter((id) => id !== lessonId) : [...current, lessonId]
     );
+  }
+
+  function setSelectedSectionIds(lessonId: string, sectionIds: string[]) {
+    setForm((current) => ({
+      ...current,
+      selected_section_ids: { ...current.selected_section_ids, [lessonId]: sectionIds },
+    }));
+  }
+
+  function buildCoverageOptions(): {
+    min_per_section: number;
+    max_per_section: number;
+    skip_summaries: boolean;
+    slides_per_section: number;
+    section_ids: string[] | null;
+  } | null {
+    if (!isCoverageMode) return null;
+    const sectionIds = readySelectedLessonIds
+      .flatMap((lessonId) => form.selected_section_ids[lessonId] ?? [])
+      .filter((value, index, array) => array.indexOf(value) === index);
+    return {
+      min_per_section: form.coverage_min_per_section,
+      max_per_section: form.coverage_max_per_section,
+      skip_summaries: form.skip_summaries,
+      slides_per_section: form.slides_per_section,
+      // null = use all eligible sections; non-empty list = subset filter.
+      section_ids: sectionIds.length > 0 ? sectionIds : null,
+    };
+  }
+
+  function buildBloomDistribution(): Record<string, number> {
+    if (!form.bloom_enabled) return {};
+    const filtered: Record<string, number> = {};
+    for (const [level, count] of Object.entries(form.bloom_distribution)) {
+      if (count > 0) filtered[level] = count;
+    }
+    return filtered;
   }
 
   async function handleGenerate(e: React.FormEvent) {
@@ -985,6 +1652,18 @@ export function QuizGenerationPanel({ module, courseId, targetQuizId, compact = 
       toast.error("Select at least one lesson with ready AI material");
       return;
     }
+    if (form.coverage_min_per_section > form.coverage_max_per_section) {
+      toast.error("Min per section cannot exceed max per section");
+      return;
+    }
+    if (bloomOverflow) {
+      toast.error("Bloom distribution exceeds total question count");
+      return;
+    }
+    if (form.extra_instructions.length > 1000) {
+      toast.error("Extra instructions must be 1000 characters or fewer");
+      return;
+    }
 
     try {
       const run = await generateQuiz.mutateAsync({
@@ -995,11 +1674,22 @@ export function QuizGenerationPanel({ module, courseId, targetQuizId, compact = 
         question_types: ["mcq"],
         difficulty: form.difficulty,
         source_lesson_ids: readySelectedLessonIds,
+        generation_mode: form.generation_mode,
+        focus_topics: form.focus_topics,
+        avoid_topics: form.avoid_topics,
+        extra_instructions: form.extra_instructions.trim() || null,
+        append: targetQuizId ? form.append : false,
+        coverage_options: buildCoverageOptions(),
+        bloom_distribution: buildBloomDistribution(),
       });
       setActiveRunId(run.id);
       if (!targetQuizId) setDraftQuizId(configString(run.config_json, "quiz_id"));
       toast.success(targetQuizId ? "AI questions are being added" : "Quiz generation started");
     } catch (err: unknown) {
+      if (err instanceof ApiError && err.status === 409) {
+        toast.error("A generation is still running for this quiz. Refresh in a moment.");
+        return;
+      }
       toast.error((err as Error).message || "Failed to start quiz generation");
     }
   }
@@ -1128,14 +1818,112 @@ export function QuizGenerationPanel({ module, courseId, targetQuizId, compact = 
             </div>
           </div>
 
+          <ModeToggle
+            mode={form.generation_mode}
+            onChange={(mode) => setForm((current) => ({ ...current, generation_mode: mode }))}
+          />
+
+          {targetQuizId && (
+            <AppendToggle
+              append={form.append}
+              hasExistingQuestions={hasExistingQuestions}
+              onChange={(value) => setForm((current) => ({ ...current, append: value }))}
+            />
+          )}
+
+          {isCoverageMode && (
+            <CoverageSectionPicker
+              lessonItems={lessonItems}
+              selectedLessonIds={readySelectedLessonIds}
+              selectedSectionIds={form.selected_section_ids}
+              onSectionsChange={setSelectedSectionIds}
+              onSuggestQuestionCount={(count) =>
+                setForm((current) => ({
+                  ...current,
+                  question_count: Math.min(20, Math.max(1, count)),
+                }))
+              }
+            />
+          )}
+
+          <button
+            type="button"
+            onClick={() => setShowAdvanced((current) => !current)}
+            className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-m3-secondary hover:text-m3-primary cursor-pointer"
+          >
+            {showAdvanced ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+            Advanced personalisation
+          </button>
+
+          {showAdvanced && (
+            <div className="space-y-4 rounded-xl border border-m3-outline-variant/20 bg-m3-surface p-4">
+              <TopicTagInput
+                label="Focus topics"
+                hint="The generator will lean toward these topics. Up to 10 entries, 200 chars each."
+                icon={Tag}
+                values={form.focus_topics}
+                onChange={(values) => setForm((current) => ({ ...current, focus_topics: values }))}
+              />
+
+              <TopicTagInput
+                label="Avoid topics"
+                hint="The generator will steer clear of these topics."
+                icon={X}
+                values={form.avoid_topics}
+                onChange={(values) => setForm((current) => ({ ...current, avoid_topics: values }))}
+              />
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant flex items-center gap-1.5">
+                  <MessageSquare className="h-3.5 w-3.5" />
+                  Extra instructions
+                </label>
+                <textarea
+                  value={form.extra_instructions}
+                  onChange={(e) => setForm((current) => ({ ...current, extra_instructions: e.target.value }))}
+                  rows={3}
+                  maxLength={1000}
+                  placeholder="Any extra constraints for the generator (style, audience, prior knowledge…)."
+                  className="w-full rounded-xl border border-m3-outline-variant/20 bg-m3-surface-container-lowest px-3 py-2.5 text-sm text-m3-on-surface resize-none focus:outline-none focus:ring-2 focus:ring-m3-secondary/30"
+                />
+                <p className="text-[10px] text-m3-on-surface-variant text-right">
+                  {form.extra_instructions.length}/1000
+                </p>
+              </div>
+
+              {isCoverageMode && (
+                <CoverageOptionsForm
+                  minPerSection={form.coverage_min_per_section}
+                  maxPerSection={form.coverage_max_per_section}
+                  skipSummaries={form.skip_summaries}
+                  slidesPerSection={form.slides_per_section}
+                  onChange={(patch) => setForm((current) => ({ ...current, ...patch }))}
+                />
+              )}
+
+              <BloomDistributionInput
+                enabled={form.bloom_enabled}
+                distribution={form.bloom_distribution}
+                questionCount={form.question_count}
+                overflow={bloomOverflow}
+                onToggle={(enabled) => setForm((current) => ({ ...current, bloom_enabled: enabled }))}
+                onChange={(distribution) => setForm((current) => ({ ...current, bloom_distribution: distribution }))}
+              />
+            </div>
+          )}
+
           <div className="rounded-xl bg-m3-secondary-fixed/20 border border-m3-secondary/10 p-3 flex gap-2 text-xs text-m3-on-surface-variant">
             <Sparkles className="h-4 w-4 text-m3-secondary shrink-0 mt-0.5" />
-            <p>Only selected lessons with ready indexed material are sent to the generator. Questions start as drafts for teacher review.</p>
+            <p>
+              {isCoverageMode
+                ? "Coverage mode allocates questions per section so every chunk of the lesson gets representation."
+                : "Topic mode picks a balanced spread across the selected lessons. Switch to coverage mode for full lesson breadth."}
+            </p>
           </div>
 
           <Button
             type="submit"
-            disabled={generationInProgress || readySelectedLessonIds.length === 0 || !form.title.trim()}
+            disabled={generationInProgress || readySelectedLessonIds.length === 0 || !form.title.trim() || bloomOverflow}
             className="w-full gap-2 gradient-primary text-white border-0 shadow-ai-glow"
           >
             {generationInProgress ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}

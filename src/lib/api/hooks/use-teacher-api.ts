@@ -418,6 +418,29 @@ export function useDeleteQuizQuestion(quizId: string | null | undefined) {
   });
 }
 
+/**
+ * Kick off a single-question regenerate (FR-9 of the
+ * 2026-05-16-quiz-quality-and-coverage spec).
+ *
+ * The endpoint returns a `GenerationRun` immediately; the worker rewrites the
+ * `QuizQuestion` row in place, so the caller should poll the run with
+ * `useGenerationRun` and invalidate the quiz question list once the run
+ * completes.
+ */
+export function useRegenerateQuestion(quizId: string | null | undefined) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (questionId: string) =>
+      apiPost<GenerationRun>(`/questions/${questionId}/regenerate`),
+    onSuccess: (run) => {
+      qc.invalidateQueries({ queryKey: ["teacher", "generation-runs", run.id] });
+      if (quizId) {
+        qc.invalidateQueries({ queryKey: ["teacher", "quizzes", quizId, "questions"] });
+      }
+    },
+  });
+}
+
 export function usePublishQuiz() {
   const qc = useQueryClient();
   return useMutation({
