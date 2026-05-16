@@ -58,6 +58,45 @@ export interface QuizGeneratePayload {
   model_preference?: string | null;
   source_lesson_ids?: string[];
   config_json?: Record<string, unknown>;
+
+  // Coverage / personalisation extensions (FR-5 of the
+  // 2026-05-16-quiz-quality-and-coverage spec).
+  // Defaults preserve topic-mode behaviour, so existing callers continue
+  // to work unchanged.
+  generation_mode?: "topic" | "coverage";
+  focus_topics?: string[];     // each <= 200 chars, list <= 10
+  avoid_topics?: string[];     // each <= 200 chars, list <= 10
+  extra_instructions?: string | null;  // <= 1000 chars
+  append?: boolean;            // default false: replace existing questions
+  coverage_options?: CoverageOptions | null;
+}
+
+export interface CoverageOptions {
+  min_per_section?: number;       // default 1, 0..10
+  max_per_section?: number;       // default 5, 1..10
+  skip_summaries?: boolean;       // default true
+  section_ids?: string[] | null;  // null = all sections
+}
+
+// --- Lesson outline preview (FR-3, FR-4) -----------------------------------
+
+export interface OutlineSectionRead {
+  id: string;
+  title: string;
+  depth: number;
+  chunk_count: number;
+  char_count: number;
+  page_range: [number, number];
+  content_role: "body" | "summary" | "review";
+  preview: string;
+}
+
+export interface LessonOutlineRead {
+  lesson_id: string;
+  lesson_title: string;
+  sections: OutlineSectionRead[];
+  suggested_question_count: number;
+  min_for_full_coverage: number;
 }
 
 export interface QuizCreatePayload {

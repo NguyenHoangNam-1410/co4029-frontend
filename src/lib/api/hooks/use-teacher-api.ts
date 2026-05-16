@@ -15,6 +15,7 @@ import type {
   GenerationRun,
   CourseRoster,
   LearningMaterial,
+  LessonOutlineRead,
   LessonRead,
   MaterialStatus,
   ProcessingSummary,
@@ -83,6 +84,26 @@ export function useTeacherLesson(lessonId: string | undefined) {
   return useQuery({
     queryKey: ["teacher", "lessons", lessonId],
     queryFn: () => apiFetch<LessonRead>(`/teacher/lessons/${lessonId}`),
+    enabled: !!lessonId,
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+/**
+ * Outline preview for a lesson (Quiz Quality + Coverage Mode spec FR-4).
+ *
+ * Returns the lesson's section structure derived at request time from the
+ * indexed chunks. Use this before calling `useGenerateQuiz` so the teacher
+ * can pick `coverage_options.section_ids`, see `suggested_question_count`,
+ * and decide between `generation_mode: "topic"` vs `"coverage"`.
+ *
+ * Cached for 5 minutes — the outline only changes when material is
+ * re-ingested, so longer staleTime is fine.
+ */
+export function useLessonOutline(lessonId: string | undefined) {
+  return useQuery({
+    queryKey: ["teacher", "lessons", lessonId, "outline"],
+    queryFn: () => apiFetch<LessonOutlineRead>(`/lessons/${lessonId}/outline`),
     enabled: !!lessonId,
     staleTime: 1000 * 60 * 5,
   });
