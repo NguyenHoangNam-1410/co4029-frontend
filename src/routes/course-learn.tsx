@@ -32,7 +32,7 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   useCourseBySlug,
-  useCourseContent,
+  useCourseContentBySlug,
   useCourseStatus,
   useCourseLessonsProgress,
   useLessonResources,
@@ -80,7 +80,7 @@ export default function CourseLearnPage() {
   const { data: course, isLoading: courseLoading } = useCourseBySlug(slug);
   const courseId = course?.id;
 
-  const { data: content, isLoading: contentLoading } = useCourseContent(courseId);
+  const { data: content, isLoading: contentLoading } = useCourseContentBySlug(slug);
   const { data: courseStatus } = useCourseStatus(courseId);
   const { data: lessonsProgress } = useCourseLessonsProgress(courseId);
 

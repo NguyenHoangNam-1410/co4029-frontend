@@ -168,7 +168,8 @@ export function useCreateCourse() {
 export function useUpdateCourse(courseId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (payload: CourseUpdatePayload) => apiPatch<Course>(`/teacher/courses/${courseId}`, payload),
+    mutationFn: (payload: CourseUpdatePayload & { slug?: string }) =>
+      apiPatch<Course>(`/teacher/courses/${courseId}`, payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["teacher", "courses"] });
       qc.invalidateQueries({ queryKey: ["teacher", "courses", courseId] });
@@ -384,6 +385,18 @@ export function usePatchQuizQuestion() {
   });
 }
 
+export function useDeleteQuizQuestion(quizId: string | null | undefined) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (questionId: string) => apiDelete(`/questions/${questionId}`),
+    onSuccess: () => {
+      if (quizId) {
+        qc.invalidateQueries({ queryKey: ["teacher", "quizzes", quizId, "questions"] });
+      }
+    },
+  });
+}
+
 export function usePublishQuiz() {
   const qc = useQueryClient();
   return useMutation({
@@ -391,6 +404,20 @@ export function usePublishQuiz() {
     onSuccess: (quiz) => {
       qc.invalidateQueries({ queryKey: ["teacher", "quizzes", quiz.id] });
       qc.invalidateQueries({ queryKey: ["teacher", "courses", quiz.course_id, "content"] });
+    },
+  });
+}
+
+export function useDeleteQuiz(courseId: string | undefined) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (quizId: string) => apiDelete(`/quizzes/${quizId}`),
+    onSuccess: (_, quizId) => {
+      qc.removeQueries({ queryKey: ["teacher", "quizzes", quizId] });
+      qc.removeQueries({ queryKey: ["teacher", "quizzes", quizId, "questions"] });
+      if (courseId) {
+        qc.invalidateQueries({ queryKey: ["teacher", "courses", courseId, "content"] });
+      }
     },
   });
 }

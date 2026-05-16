@@ -25,7 +25,7 @@ import { AIInsightChip } from "@/components/ui/ai-insight-chip";
 import { GradientProgress } from "@/components/ui/gradient-progress";
 import {
   useCourseBySlug,
-  useCourseContent,
+  useCourseContentBySlug,
   useCourseOutcomes,
   useCourseTags,
   useCourseStatus,
@@ -74,7 +74,7 @@ export default function CourseDetailPage() {
   const courseId = course?.id;
 
   const { data: outcomes, isLoading: outcomesLoading } = useCourseOutcomes(courseId);
-  const { data: content, isLoading: contentLoading } = useCourseContent(courseId);
+  const { data: content, isLoading: contentLoading } = useCourseContentBySlug(slug);
   const { data: tags } = useCourseTags(courseId);
   const { data: enrollmentStatus } = useCourseStatus(courseId);
 

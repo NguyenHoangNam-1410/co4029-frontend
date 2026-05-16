@@ -62,6 +62,15 @@ export function useCourseContent(courseId: string | undefined) {
   });
 }
 
+export function useCourseContentBySlug(slug: string | undefined) {
+  return useQuery({
+    queryKey: ["courses", "by-slug", slug, "content"],
+    queryFn: () => apiFetch<CourseContent>(`/courses/by-slug/${slug}/content`),
+    enabled: !!slug,
+    staleTime: 1000 * 60 * 10,
+  });
+}
+
 export function useCourseOutcomes(courseId: string | undefined) {
   return useQuery({
     queryKey: ["courses", courseId, "outcomes"],

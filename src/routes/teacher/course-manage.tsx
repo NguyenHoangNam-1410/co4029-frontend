@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { Link, useParams } from "@tanstack/react-router";
 import {
   ArrowLeft, Plus, ChevronDown, ChevronRight,
-  Video, BookOpen, GripVertical,
+  Video, BookOpen, GripVertical, HelpCircle, Mic,
   Pencil, Loader2, ArrowRight, Check, Users,
   Settings, Save, ExternalLink,
 } from "lucide-react";
@@ -19,17 +19,16 @@ import {
   useUpdateCourse,
   useReorderModuleItems,
 } from "@/lib/api/hooks/use-teacher-api";
-import type {
-  CourseContentItem,
-  CourseContentLesson,
-  CourseContentModule,
-} from "@/lib/api/types/common";
+import type { CourseContentItem, CourseContentModule } from "@/lib/api/types/common";
 import { cn } from "@/lib/utils";
 
 const LESSON_TYPE_CONFIG: Record<string, { label: string; icon: React.ComponentType<{ className?: string }>; badge: string }> = {
   video:    { label: "Video",    icon: Video,       badge: "bg-blue-50 text-blue-700" },
   reading:  { label: "Reading",  icon: BookOpen,    badge: "bg-emerald-50 text-emerald-700" },
 };
+
+const QUIZ_ITEM_CONFIG = { label: "Quiz", icon: HelpCircle, badge: "bg-violet-50 text-violet-700" };
+const INTERVIEW_ITEM_CONFIG = { label: "Interview", icon: Mic, badge: "bg-slate-50 text-slate-600" };
 
 const ADD_PILL_CLS =
   "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-m3-on-surface-variant " +
@@ -41,6 +40,7 @@ function CourseSettingsPanel({ courseId }: { courseId: string }) {
   const updateCourse = useUpdateCourse(courseId);
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
+  const [slug, setSlug] = useState("");
   const [description, setDescription] = useState("");
   const [level, setLevel] = useState("");
   const [status, setStatus] = useState("");
@@ -52,6 +52,7 @@ function CourseSettingsPanel({ courseId }: { courseId: string }) {
   if (course && !initialized.current) {
     initialized.current = true;
     setTitle(course.title ?? "");
+    setSlug(course.slug ?? "");
     setDescription(course.description ?? "");
     setLevel(course.level ?? "");
     setStatus(course.status ?? "draft");
@@ -64,6 +65,7 @@ function CourseSettingsPanel({ courseId }: { courseId: string }) {
     e.preventDefault();
     try {
       await updateCourse.mutateAsync({
+        slug: slug.trim() || undefined,
         title: title.trim() || undefined,
         description: description.trim() || undefined,
         level: level || undefined,
@@ -109,6 +111,20 @@ function CourseSettingsPanel({ courseId }: { courseId: string }) {
                 placeholder="e.g. Machine Learning Fundamentals"
                 className="text-sm"
               />
+            </div>
+
+            {/* Slug */}
+            <div className="sm:col-span-2 space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">Course Slug</label>
+              <Input
+                value={slug}
+                onChange={(e) => setSlug(e.target.value)}
+                placeholder="e.g. ml-fundamentals"
+                className="text-sm"
+              />
+              <p className="text-[11px] text-m3-on-surface-variant">
+                Used in the course URL. Must be unique.
+              </p>
             </div>
 
             {/* Description */}
@@ -259,10 +275,10 @@ function AddLessonPills({
   );
 }
 
-function LessonRow({
-  lesson, courseId, isDragOver, isDragging, onDragStart, onDragOver, onDrop, onDragEnd,
+function ModuleItemRow({
+  item, courseId, isDragOver, isDragging, onDragStart, onDragOver, onDrop, onDragEnd,
 }: {
-  lesson: CourseContentLesson;
+  item: CourseContentItem;
   courseId: string;
   isDragOver: boolean;
   isDragging: boolean;
@@ -271,8 +287,18 @@ function LessonRow({
   onDrop: () => void;
   onDragEnd: () => void;
 }) {
-  const cfg = LESSON_TYPE_CONFIG[lesson.lesson_type ?? "video"];
+  const lesson = item.lesson;
+  const quiz = item.quiz;
+  const interview = item.interview;
+  const cfg = item.item_type === "lesson"
+    ? LESSON_TYPE_CONFIG[lesson?.lesson_type ?? "video"]
+    : item.item_type === "quiz"
+    ? QUIZ_ITEM_CONFIG
+    : INTERVIEW_ITEM_CONFIG;
   const Icon = cfg?.icon ?? BookOpen;
+  const title = lesson?.title ?? quiz?.title ?? interview?.title ?? "Untitled";
+  const status = lesson?.status ?? quiz?.status ?? interview?.status;
+  const label = item.item_type === "lesson" ? (cfg?.label ?? "Lesson") : cfg?.label ?? item.item_type;
 
   return (
     <div
@@ -290,26 +316,44 @@ function LessonRow({
       )}
     >
       <GripVertical className="h-3.5 w-3.5 text-m3-outline-variant shrink-0" />
-      <Icon className="h-3.5 w-3.5 text-m3-on-surface-variant shrink-0" />
+      <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center shrink-0", cfg?.badge ?? "bg-slate-50 text-slate-500")}>
+        <Icon className="h-3.5 w-3.5" />
+      </div>
       <span className="flex-1 text-xs font-medium text-m3-on-surface truncate">
-        {lesson.title}
+        {title}
       </span>
       <Badge className={cn("text-[10px] border-0 shrink-0", cfg?.badge ?? "bg-slate-100 text-slate-500")}>
-        {cfg?.label ?? lesson.lesson_type}
+        {label}
       </Badge>
-      <Badge className={cn("text-[10px] border-0 shrink-0", lesson.status === "published" ? "bg-emerald-100 text-emerald-700" : "bg-amber-50 text-amber-700")}>
-        {lesson.status}
-      </Badge>
-      <Link
-        to="/teacher/courses/$courseId/lessons/$lessonId"
-        params={{ courseId, lessonId: lesson.id }}
-        className="opacity-0 group-hover:opacity-100 transition-opacity"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <Button variant="ghost" size="icon" className="h-6 w-6">
-          <Pencil className="h-3 w-3" />
-        </Button>
-      </Link>
+      {status && (
+        <Badge className={cn("text-[10px] border-0 shrink-0", status === "published" ? "bg-emerald-100 text-emerald-700" : "bg-amber-50 text-amber-700")}>
+          {status}
+        </Badge>
+      )}
+      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        {lesson && (
+          <Link
+            to="/teacher/courses/$courseId/lessons/$lessonId"
+            params={{ courseId, lessonId: lesson.id }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Button variant="ghost" size="icon" className="h-6 w-6">
+              <Pencil className="h-3 w-3" />
+            </Button>
+          </Link>
+        )}
+        {quiz && (
+          <Link
+            to="/teacher/courses/$courseId/quizzes/$quizId"
+            params={{ courseId, quizId: quiz.id }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Button variant="ghost" size="icon" className="h-6 w-6">
+              <Pencil className="h-3 w-3" />
+            </Button>
+          </Link>
+        )}
+      </div>
     </div>
   );
 }
@@ -334,18 +378,9 @@ function ModuleAccordion({
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
 
   const allItemsSorted = [...module.items].sort((a, b) => a.position - b.position);
-  const lessonItems = allItemsSorted.filter((i) => i.item_type === "lesson" && i.lesson);
-  const lessons = lessonItems.map((i) => i.lesson!);
+  const lessonCount = module.items.filter((i) => i.item_type === "lesson").length;
   const quizCount = module.items.filter((i) => i.item_type === "quiz").length;
   const interviewCount = module.items.filter((i) => i.item_type === "interview").length;
-
-  function buildReorderedIds(newLessonsOrder: CourseContentItem[]): string[] {
-    const lessonQueue = [...newLessonsOrder];
-    return allItemsSorted.map((item) => {
-      if (item.item_type === "lesson") return lessonQueue.shift()!.id;
-      return item.id;
-    });
-  }
 
   function handleDrop(dropIdx: number) {
     if (dragSourceIdx === null || dragSourceIdx === dropIdx) {
@@ -353,10 +388,10 @@ function ModuleAccordion({
       setDragOverIdx(null);
       return;
     }
-    const newOrder = [...lessonItems];
+    const newOrder = [...allItemsSorted];
     const [moved] = newOrder.splice(dragSourceIdx, 1);
     newOrder.splice(dropIdx, 0, moved);
-    const allIds = buildReorderedIds(newOrder);
+    const allIds = newOrder.map((item) => item.id);
     reorderItems.mutate(allIds, {
       onError: (err) => toast.error((err as Error).message || "Reorder failed"),
     });
@@ -450,7 +485,7 @@ function ModuleAccordion({
 
         {/* Meta counts */}
         <span className="text-[11px] text-m3-on-surface-variant hidden sm:block shrink-0">
-          {lessons.length}L
+          {lessonCount}L
           {quizCount > 0 && ` · ${quizCount}Q`}
           {interviewCount > 0 && ` · ${interviewCount}I`}
         </span>
@@ -493,13 +528,13 @@ function ModuleAccordion({
       {open && (
         <div className="border-t border-m3-outline-variant bg-card">
           <div className="p-4 flex flex-col gap-1">
-            {lessons.length === 0 && (
-              <p className="text-xs text-m3-on-surface-variant py-2 pl-1">No lessons yet.</p>
+            {allItemsSorted.length === 0 && (
+              <p className="text-xs text-m3-on-surface-variant py-2 pl-1">No items yet.</p>
             )}
-            {lessons.map((lesson, idx) => (
-              <LessonRow
-                key={lesson.id}
-                lesson={lesson}
+            {allItemsSorted.map((item, idx) => (
+              <ModuleItemRow
+                key={item.id}
+                item={item}
                 courseId={courseId}
                 isDragOver={dragOverIdx === idx}
                 isDragging={dragSourceIdx === idx}

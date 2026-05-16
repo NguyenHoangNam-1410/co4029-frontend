@@ -4,7 +4,7 @@ import {
   ArrowLeft, ArrowRight, Video, HelpCircle, BookOpen,
   GripVertical, Pencil, Check, Loader2, Plus, Save,
   ChevronDown, ChevronRight, Trash2, Sparkles, CheckCircle,
-  AlertCircle, FileText, Brain,
+  AlertCircle, FileText, Brain, EyeOff, Workflow, Network,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ import {
   useGenerateQuiz,
   useGenerationRun,
   usePatchQuizQuestion,
+  useDeleteQuizQuestion,
   usePublishQuiz,
   useQuiz,
   useQuizQuestions,
@@ -108,6 +109,108 @@ function quizDraftFromQuiz(quiz: QuizRead): QuizSettingsDraft {
 function configString(config: Record<string, unknown> | undefined, key: string) {
   const value = config?.[key];
   return typeof value === "string" ? value : null;
+}
+
+function configNumber(config: Record<string, unknown> | undefined, key: string) {
+  const value = config?.[key];
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function configRecord(config: Record<string, unknown> | undefined, key: string): Record<string, unknown> | null {
+  const value = config?.[key];
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : null;
+}
+
+interface PipelineMeta {
+  retrieval: {
+    chunkCount: number | null;
+    strategy: string | null;
+  };
+  kg: {
+    enabled: boolean;
+    conceptCount: number;
+    prerequisiteCount: number;
+    relatedCount: number;
+    topConcepts: string[];
+  };
+  ideation: {
+    requested: number | null;
+    received: number | null;
+    used: number | null;
+  };
+  generation: {
+    requested: number | null;
+    received: number | null;
+  };
+  validation: {
+    ran: boolean;
+    accepted: number | null;
+    rejectedCount: number;
+    rejectedReasons: Array<{ position: number; reason: string | null }>;
+  };
+  mode: string | null;
+}
+
+function extractPipelineMeta(run: GenerationRun | undefined): PipelineMeta | null {
+  if (!run?.config_json) return null;
+  const config = run.config_json as Record<string, unknown>;
+  const retrieval = configRecord(config, "retrieval");
+  const kg = configRecord(config, "kg");
+  const pipeline = configRecord(config, "pipeline");
+  if (!retrieval && !kg && !pipeline) return null;
+
+  const ideation = configRecord(pipeline ?? undefined, "ideation");
+  const generation = configRecord(pipeline ?? undefined, "generation");
+  const validation = configRecord(pipeline ?? undefined, "validation");
+  const rejectedRaw = validation?.rejected;
+  const rejectedReasons: Array<{ position: number; reason: string | null }> =
+    Array.isArray(rejectedRaw)
+      ? rejectedRaw
+          .map((entry) => {
+            if (!entry || typeof entry !== "object") return null;
+            const record = entry as Record<string, unknown>;
+            const position = typeof record.position === "number" ? record.position : null;
+            if (position == null) return null;
+            const reason = typeof record.reason === "string" ? record.reason : null;
+            return { position, reason };
+          })
+          .filter((value): value is { position: number; reason: string | null } => value !== null)
+      : [];
+
+  const topConceptsRaw = kg?.top_concepts;
+  const topConcepts = Array.isArray(topConceptsRaw)
+    ? topConceptsRaw.filter((value): value is string => typeof value === "string")
+    : [];
+
+  return {
+    retrieval: {
+      chunkCount: configNumber(retrieval ?? undefined, "chunk_count"),
+      strategy: configString(retrieval ?? undefined, "strategy"),
+    },
+    kg: {
+      enabled: Boolean(kg?.enabled),
+      conceptCount: configNumber(kg ?? undefined, "concept_count") ?? 0,
+      prerequisiteCount: configNumber(kg ?? undefined, "prerequisite_count") ?? 0,
+      relatedCount: configNumber(kg ?? undefined, "related_count") ?? 0,
+      topConcepts,
+    },
+    ideation: {
+      requested: configNumber(ideation ?? undefined, "requested_templates"),
+      received: configNumber(ideation ?? undefined, "received_templates"),
+      used: configNumber(ideation ?? undefined, "used_templates"),
+    },
+    generation: {
+      requested: configNumber(generation ?? undefined, "requested_questions"),
+      received: configNumber(generation ?? undefined, "received_questions"),
+    },
+    validation: {
+      ran: Boolean(validation?.ran),
+      accepted: configNumber(validation ?? undefined, "accepted"),
+      rejectedCount: rejectedReasons.length,
+      rejectedReasons,
+    },
+    mode: configString(pipeline ?? undefined, "mode"),
+  };
 }
 
 function generationFailureMessage(run: GenerationRun | undefined) {
@@ -427,8 +530,10 @@ function QuizToggle({
   );
 }
 
-function QuizQuestionReviewCard({ question }: { question: QuizQuestionRead }) {
+export function QuizQuestionReviewCard({ question }: { question: QuizQuestionRead }) {
   const patchQuestion = usePatchQuizQuestion();
+  const deleteQuestion = useDeleteQuizQuestion(question.quiz_id);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [draft, setDraft] = useState({
     prompt_text: question.prompt_text,
     explanation: question.explanation ?? "",
@@ -663,12 +768,175 @@ function QuizQuestionReviewCard({ question }: { question: QuizQuestionRead }) {
         >
           <CheckCircle className="h-3.5 w-3.5" /> Approve
         </Button>
+        <div className="ml-auto relative">
+          {confirmingDelete ? (
+            <div className="absolute right-0 bottom-full mb-2 w-64 rounded-xl bg-red-50 border border-red-200 p-3 shadow-lg space-y-2 z-10">
+              <div className="flex items-start gap-2">
+                <div className="h-7 w-7 rounded-lg bg-red-100 text-red-700 flex items-center justify-center shrink-0">
+                  <Trash2 className="h-3.5 w-3.5" />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-red-800">Delete this question?</p>
+                  <p className="text-[11px] text-red-600 mt-0.5">This cannot be undone.</p>
+                </div>
+              </div>
+              <div className="flex justify-end gap-1.5">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  disabled={deleteQuestion.isPending}
+                  onClick={() => setConfirmingDelete(false)}
+                  className="h-7 text-xs px-2.5"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  disabled={deleteQuestion.isPending}
+                  onClick={async () => {
+                    try {
+                      await deleteQuestion.mutateAsync(question.id);
+                      toast.success("Question deleted");
+                    } catch (err: unknown) {
+                      toast.error((err as Error).message || "Failed to delete question");
+                    } finally {
+                      setConfirmingDelete(false);
+                    }
+                  }}
+                  className="h-7 text-xs px-2.5 bg-red-600 text-white hover:bg-red-700 border-0 gap-1"
+                >
+                  {deleteQuestion.isPending ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-3 w-3" />
+                  )}
+                  Delete
+                </Button>
+              </div>
+            </div>
+          ) : null}
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            disabled={patchQuestion.isPending || deleteQuestion.isPending}
+            onClick={() => setConfirmingDelete(true)}
+            className="border-red-200 text-red-700 hover:bg-red-50 hover:text-red-700 gap-1.5"
+            title="Delete this question"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Delete
+          </Button>
+        </div>
       </div>
     </div>
   );
 }
 
-function QuizGenerationPanel({ module, courseId, targetQuizId }: { module: CourseContentModule; courseId: string; targetQuizId?: string | null }) {
+function PipelineSummary({ run }: { run: GenerationRun | undefined }) {
+  const meta = extractPipelineMeta(run);
+  if (!meta) return null;
+
+  const status = run?.status;
+  const isDone = status === "completed";
+  const isRegen = meta.mode === "regenerate_question";
+
+  const stages: Array<{ key: string; label: string; detail: string }> = [];
+  if (meta.retrieval.chunkCount != null) {
+    stages.push({
+      key: "retrieval",
+      label: "Retrieval",
+      detail: `${meta.retrieval.chunkCount} chunk${meta.retrieval.chunkCount === 1 ? "" : "s"}${
+        meta.retrieval.strategy ? ` · ${meta.retrieval.strategy}` : ""
+      }`,
+    });
+  }
+  if (meta.kg.enabled || meta.kg.conceptCount > 0) {
+    stages.push({
+      key: "kg",
+      label: "Knowledge graph",
+      detail: meta.kg.enabled
+        ? `${meta.kg.conceptCount} concept${meta.kg.conceptCount === 1 ? "" : "s"} · ${meta.kg.prerequisiteCount} prerequisite${
+            meta.kg.prerequisiteCount === 1 ? "" : "s"
+          } · ${meta.kg.relatedCount} related`
+        : "Disabled",
+    });
+  }
+  if (!isRegen && meta.ideation.received != null) {
+    stages.push({
+      key: "ideation",
+      label: "Ideation",
+      detail: `${meta.ideation.received} template${meta.ideation.received === 1 ? "" : "s"}${
+        meta.ideation.used != null ? ` · ${meta.ideation.used} used` : ""
+      }`,
+    });
+  }
+  if (meta.generation.received != null) {
+    stages.push({
+      key: "generation",
+      label: "Generation",
+      detail: `${meta.generation.received} candidate${meta.generation.received === 1 ? "" : "s"}`,
+    });
+  }
+  if (meta.validation.ran || meta.validation.accepted != null) {
+    const accepted = meta.validation.accepted ?? 0;
+    const rejected = meta.validation.rejectedCount;
+    stages.push({
+      key: "validation",
+      label: "Validation",
+      detail: `${accepted} accepted${rejected > 0 ? ` · ${rejected} rejected` : ""}`,
+    });
+  }
+
+  if (stages.length === 0) return null;
+
+  return (
+    <div className="rounded-2xl border border-m3-secondary/15 bg-m3-secondary-fixed/15 p-3 space-y-2">
+      <div className="flex items-center gap-2">
+        <Workflow className="h-3.5 w-3.5 text-m3-secondary" />
+        <p className="text-[10px] font-bold uppercase tracking-widest text-m3-secondary">
+          {isDone ? (isRegen ? "Question regenerated" : "Pipeline summary") : "Pipeline progress"}
+        </p>
+      </div>
+      <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1 text-xs text-m3-on-surface">
+        {stages.map((stage) => (
+          <li key={stage.key} className="flex items-baseline gap-1.5">
+            <span className="font-semibold text-m3-on-surface-variant">{stage.label}</span>
+            <span className="text-m3-on-surface">{stage.detail}</span>
+          </li>
+        ))}
+      </ul>
+      {meta.kg.topConcepts.length > 0 && (
+        <div className="flex items-start gap-1.5 text-[11px] text-m3-on-surface-variant">
+          <Network className="h-3 w-3 shrink-0 mt-0.5 text-m3-secondary" />
+          <span className="leading-relaxed">
+            <span className="font-semibold">Top concepts:</span>{" "}
+            {meta.kg.topConcepts.slice(0, 6).join(", ")}
+          </span>
+        </div>
+      )}
+      {meta.validation.rejectedReasons.length > 0 && (
+        <details className="text-[11px] text-m3-on-surface-variant">
+          <summary className="cursor-pointer font-semibold">
+            Why {meta.validation.rejectedReasons.length} candidate
+            {meta.validation.rejectedReasons.length === 1 ? " was" : "s were"} rejected
+          </summary>
+          <ul className="mt-1 space-y-0.5 list-disc list-inside">
+            {meta.validation.rejectedReasons.map((entry) => (
+              <li key={entry.position}>
+                #{entry.position} — {entry.reason ?? "No reason supplied."}
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+    </div>
+  );
+}
+
+export function QuizGenerationPanel({ module, courseId, targetQuizId, compact = false, showReview = true }: { module: CourseContentModule; courseId: string; targetQuizId?: string | null; compact?: boolean; showReview?: boolean }) {
   const lessonItems = module.items
     .filter((item) => item.item_type === "lesson" && item.lesson)
     .sort((a, b) => a.position - b.position) as Array<CourseContentItem & { lesson: CourseContentLesson }>;
@@ -777,7 +1045,7 @@ function QuizGenerationPanel({ module, courseId, targetQuizId }: { module: Cours
         )}
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-[0.85fr_1.15fr] gap-5 p-5">
+      <div className={cn("gap-5 p-5", compact ? "space-y-5" : "grid grid-cols-1 xl:grid-cols-[0.85fr_1.15fr]")}>
         <form onSubmit={handleGenerate} className="space-y-4">
           <div className="space-y-2">
             <div className="flex items-center justify-between gap-2">
@@ -875,9 +1143,13 @@ function QuizGenerationPanel({ module, courseId, targetQuizId }: { module: Cours
           </Button>
         </form>
 
+        {(showReview || generationInProgress || generationFailed) && (
         <div className="space-y-4">
-          {!quizId && !activeRunId && (
-            <div className="h-full min-h-[280px] rounded-2xl border border-dashed border-m3-outline-variant/30 bg-m3-surface/70 flex flex-col items-center justify-center text-center p-8">
+          {showReview && !quizId && !activeRunId && (
+            <div className={cn(
+              "h-full rounded-2xl border border-dashed border-m3-outline-variant/30 bg-m3-surface/70 flex flex-col items-center justify-center text-center p-8",
+              compact ? "min-h-[160px]" : "min-h-[280px]",
+            )}>
               <HelpCircle className="h-10 w-10 text-m3-outline-variant mb-3" />
               <p className="font-headline font-bold text-m3-on-surface">No quiz draft yet</p>
               <p className="text-sm text-m3-on-surface-variant mt-1 max-w-sm">
@@ -890,22 +1162,29 @@ function QuizGenerationPanel({ module, courseId, targetQuizId }: { module: Cours
             <div className="rounded-2xl bg-m3-surface p-6 border border-m3-secondary/10 text-center space-y-3">
               <Loader2 className="h-8 w-8 animate-spin text-m3-secondary mx-auto" />
               <p className="font-headline font-bold text-m3-on-surface">Building quiz draft</p>
-              <p className="text-sm text-m3-on-surface-variant">Retrieving source chunks and validating generated questions.</p>
+              <p className="text-sm text-m3-on-surface-variant">
+                Retrieval → knowledge graph → ideation → generation → validation.
+              </p>
+              <PipelineSummary run={activeRun} />
             </div>
           )}
 
           {generationFailed && (
-            <div className="rounded-2xl bg-red-50 p-4 border border-red-100 text-red-700 text-sm flex gap-2">
-              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-              <div className="space-y-1">
-                <p className="font-semibold">Generation failed</p>
-                <p>{generationError}</p>
+            <div className="rounded-2xl bg-red-50 p-4 border border-red-100 text-red-700 text-sm space-y-2">
+              <div className="flex gap-2">
+                <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="font-semibold">Generation failed</p>
+                  <p>{generationError}</p>
+                </div>
               </div>
+              <PipelineSummary run={activeRun} />
             </div>
           )}
 
-          {quizId && !generationInProgress && (
+          {showReview && quizId && !generationInProgress && (
             <div className="space-y-3">
+              {activeRun && <PipelineSummary run={activeRun} />}
               <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
                 <div>
                   <p className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">Review Draft</p>
@@ -942,16 +1221,18 @@ function QuizGenerationPanel({ module, courseId, targetQuizId }: { module: Cours
             </div>
           )}
         </div>
+        )}
       </div>
     </section>
   );
 }
 
-export function QuizAuthoringPanel({ quizId, module, courseId, onClose }: {
+export function QuizAuthoringPanel({ quizId, module, courseId, onClose, withGenerator = true }: {
   quizId: string;
   module: CourseContentModule;
   courseId: string;
   onClose: () => void;
+  withGenerator?: boolean;
 }) {
   const { data: quiz } = useQuiz(quizId);
   const patchQuiz = usePatchQuiz(courseId);
@@ -1213,7 +1494,9 @@ export function QuizAuthoringPanel({ quizId, module, courseId, onClose }: {
           </div>
         </form>
 
-        <QuizGenerationPanel module={module} courseId={courseId} targetQuizId={quizId} />
+        {withGenerator && (
+          <QuizGenerationPanel module={module} courseId={courseId} targetQuizId={quizId} />
+        )}
       </div>
     </section>
   );
@@ -1322,7 +1605,6 @@ export default function ModuleManagePage() {
 
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState("");
-  const [statusOpen, setStatusOpen] = useState(false);
   const titleInputRef = useRef<HTMLInputElement>(null);
 
   const [dragSourceIdx, setDragSourceIdx] = useState<number | null>(null);
@@ -1370,7 +1652,7 @@ export default function ModuleManagePage() {
   function toggleStatus() {
     const next = module!.status === "published" ? "draft" : "published";
     updateModule.mutate({ status: next }, {
-      onSuccess: () => toast.success(`Module ${next}`),
+      onSuccess: () => toast.success(next === "published" ? "Module published" : "Module unpublished"),
       onError: (err) => toast.error((err as Error).message),
     });
   }
@@ -1453,25 +1735,52 @@ export default function ModuleManagePage() {
           )}
 
           <div className="flex items-center gap-2 mt-1.5">
-            <button
-              type="button"
-              onClick={toggleStatus}
-              disabled={updateModule.isPending}
+            <span
               className={cn(
-                "text-[10px] font-bold px-2.5 py-1 rounded-full border-0 transition-colors cursor-pointer",
+                "text-[10px] font-bold px-2.5 py-1 rounded-full border-0",
                 module.status === "published"
-                  ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
-                  : "bg-amber-50 text-amber-700 hover:bg-amber-100"
+                  ? "bg-emerald-100 text-emerald-700"
+                  : "bg-amber-50 text-amber-700"
               )}
             >
-              {updateModule.isPending ? "…" : module.status}
-            </button>
+              {updateModule.isPending && updateModule.variables && "status" in updateModule.variables
+                ? "…"
+                : module.status}
+            </span>
             <span className="text-xs text-m3-on-surface-variant">
               {sortedItems.length} item{sortedItems.length !== 1 ? "s" : ""}
               {module.estimated_minutes && ` · ~${module.estimated_minutes}m`}
             </span>
           </div>
         </div>
+
+        {/* Publish / Unpublish action */}
+        <Button
+          type="button"
+          onClick={toggleStatus}
+          disabled={updateModule.isPending}
+          variant={module.status === "published" ? "outline" : "default"}
+          className={cn(
+            "shrink-0 gap-2",
+            module.status === "published"
+              ? ""
+              : "bg-emerald-600 text-white hover:bg-emerald-700 border-0"
+          )}
+          title={
+            module.status === "published"
+              ? "Hide this module from students"
+              : "Make this module visible to enrolled students"
+          }
+        >
+          {updateModule.isPending && updateModule.variables && "status" in updateModule.variables ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : module.status === "published" ? (
+            <EyeOff className="h-4 w-4" />
+          ) : (
+            <CheckCircle className="h-4 w-4" />
+          )}
+          {module.status === "published" ? "Unpublish" : "Publish"}
+        </Button>
       </div>
 
       {/* Main 2-col layout */}

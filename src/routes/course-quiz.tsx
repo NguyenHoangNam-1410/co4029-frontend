@@ -19,7 +19,7 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { GradientProgress } from "@/components/ui/gradient-progress";
 import {
   useCourseBySlug,
-  useCourseContent,
+  useCourseContentBySlug,
   useCreateQuizAttempt,
   useMyQuizAttempts,
   useQuizAttemptResult,
@@ -194,8 +194,7 @@ export default function CourseQuizPage() {
   const { slug, quizId } = useParams({ strict: false }) as { slug: string; quizId: string };
 
   const { data: course, isLoading: courseLoading } = useCourseBySlug(slug);
-  const courseId = course?.id;
-  const { data: content, isLoading: contentLoading } = useCourseContent(courseId);
+  const { data: content, isLoading: contentLoading } = useCourseContentBySlug(slug);
   const { data: quiz, isLoading: quizLoading } = useStudentQuiz(quizId);
   const { data: questions = [], isLoading: questionsLoading } = useStudentQuizQuestions(quizId);
   const { data: attempts = [] } = useMyQuizAttempts(quizId);
