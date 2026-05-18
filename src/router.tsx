@@ -19,6 +19,7 @@ import CoursesListPage from "@/routes/courses-list";
 import CourseDetailPage from "@/routes/course-detail";
 import CourseLearnPage from "@/routes/course-learn";
 import CourseQuizPage from "@/routes/course-quiz";
+import NotificationsPage from "@/routes/notifications";
 import { ProgressPage, SettingsPage, InterviewPage } from "@/routes/placeholder";
 import TeacherDashboard from "@/routes/teacher/index";
 import TeacherCoursesPage from "@/routes/teacher/courses";
@@ -129,6 +130,12 @@ const settingsRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/settings",
   component: SettingsPage,
+});
+
+const notificationsRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/notifications",
+  component: NotificationsPage,
 });
 
 const teacherRoute = createRoute({
@@ -257,6 +264,7 @@ const routeTree = rootRoute.addChildren([
     courseInterviewRoute,
     progressRoute,
     settingsRoute,
+    notificationsRoute,
     teacherRoute,
     teacherCoursesRoute,
     teacherCourseNewRoute,

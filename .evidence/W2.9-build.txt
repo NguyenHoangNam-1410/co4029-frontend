@@ -1,0 +1,8 @@
+
+> abridgeai-frontend@0.1.0 build
+> tsc -b && vite build
+
+src/lib/api/hooks/materials.ts(4,15): error TS2305: Module '"../types"' has no exported member 'ChunkPreview'.
+src/lib/api/hooks/materials.ts(4,29): error TS2305: Module '"../types"' has no exported member 'MaterialPublic'.
+src/lib/api/hooks/materials.ts(62,35): error TS2339: Property 'chunksPreview' does not exist on type '{ readonly detail: (id: string) => readonly ["materials", "detail", string]; readonly streamUrl: (id: string) => readonly ["materials", "stream-url", string]; readonly processing: (id: string) => readonly ["materials", "processing", string]; }'.
+src/routes/course-learn.tsx(264,44): error TS2339: Property 'stream_url' does not exist on type '{ url: string; expires_at: string; }'.

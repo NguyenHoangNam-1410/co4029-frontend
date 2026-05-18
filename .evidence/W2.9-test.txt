@@ -1,0 +1,23 @@
+
+> abridgeai-frontend@0.1.0 test:run
+> vitest run
+
+
+ RUN  v4.1.6 /home/co4029/co4029_projects/frontend-vite
+
+(node:710857) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:710858) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:710859) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:710945) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:710952) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+ Test Files  5 passed (5)
+      Tests  12 passed (12)
+   Start at  17:49:50
+   Duration  2.32s (transform 240ms, setup 785ms, import 513ms, tests 421ms, environment 3.63s)
+
