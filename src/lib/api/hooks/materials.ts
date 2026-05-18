@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiDelete, apiFetch, apiPatch, apiPost } from "../client";
+import { apiDelete, apiFetch, apiPatch, apiPost, ApiError } from "../client";
+import { queryKeys } from "../query-keys";
+import type { ChunkPreview, MaterialPublic, MaterialStreamUrl } from "../types";
 import type { StreamUrlResponse } from "../types/common";
 import type {
   LearningMaterial,
@@ -8,12 +10,56 @@ import type {
   UploadUrlResponse,
 } from "../types/teacher";
 
-export function useMaterialStreamUrl(materialId: string | null | undefined) {
+function retryUnless404(failureCount: number, error: unknown) {
+  if (error instanceof ApiError && error.status === 404) return false;
+  return failureCount < 3;
+}
+
+/** Narrow learner projection. 404 → "Tài liệu không khả dụng". */
+export function useMaterial(materialId: string | null | undefined) {
   return useQuery({
-    queryKey: ["materials", materialId, "stream-url"],
-    queryFn: () => apiFetch<StreamUrlResponse>(`/materials/${materialId}/stream-url`),
+    queryKey: queryKeys.materials.detail(materialId ?? ""),
+    queryFn: () => apiFetch<MaterialPublic>(`/materials/${materialId}`),
     enabled: !!materialId,
-    staleTime: 1000 * 60 * 4,
+    staleTime: 5 * 60_000,
+    retry: retryUnless404,
+  });
+}
+
+/** Presigned stream URL (TTL ≤ 1h). Refetches every 30 min as a buffer. */
+export function useStreamUrl(materialId: string | null | undefined) {
+  return useQuery({
+    queryKey: queryKeys.materials.streamUrl(materialId ?? ""),
+    queryFn: () =>
+      apiFetch<MaterialStreamUrl>(`/materials/${materialId}/stream-url`),
+    enabled: !!materialId,
+    staleTime: 30 * 60_000,
+    refetchInterval: 30 * 60_000,
+    retry: retryUnless404,
+  });
+}
+
+/** Back-compat alias. */
+export const useMaterialStreamUrl = useStreamUrl;
+
+/** Source-attribution preview chunks for quiz UI. Limit clamped to [1, 20]; default 5. */
+export function useChunksPreview(
+  materialId: string | null | undefined,
+  limit?: number,
+) {
+  const clampedLimit =
+    limit !== undefined ? Math.max(1, Math.min(20, limit)) : undefined;
+  const qs = clampedLimit !== undefined ? `?limit=${clampedLimit}` : "";
+
+  return useQuery({
+    queryKey: queryKeys.materials.chunksPreview(materialId ?? "", clampedLimit),
+    queryFn: () =>
+      apiFetch<ChunkPreview[]>(
+        `/materials/${materialId}/chunks/preview${qs}`,
+      ),
+    enabled: !!materialId,
+    staleTime: 5 * 60_000,
+    retry: retryUnless404,
   });
 }
 

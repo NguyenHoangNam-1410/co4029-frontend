@@ -1,0 +1,3 @@
+OK: no purple/violet
+---
+OK: radius scale enforced
