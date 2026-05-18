@@ -43,7 +43,7 @@ function CourseCard({ course }: { course: Course }) {
   const hours = totalMins ? Math.round(totalMins / 60) : null;
 
   return (
-    <div className="group bg-card rounded-2xl shadow-editorial ghost-border hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 overflow-hidden">
+    <div className="group bg-card rounded-xl shadow-editorial ghost-border hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 overflow-hidden">
       {/* Top accent bar */}
       <div
         className={cn(
@@ -180,7 +180,7 @@ export default function TeacherCoursesPage() {
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-48 bg-m3-surface-container animate-pulse rounded-2xl" />
+            <div key={i} className="h-48 bg-m3-surface-container animate-pulse rounded-xl" />
           ))}
         </div>
       ) : filtered.length === 0 ? (

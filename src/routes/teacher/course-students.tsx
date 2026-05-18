@@ -44,7 +44,7 @@ function avatarInitials(name: string) {
 
 const AVATAR_COLORS = [
   "bg-m3-primary-fixed text-m3-primary",
-  "bg-violet-100 text-violet-700",
+  "bg-blue-100 text-blue-800",
   "bg-emerald-100 text-emerald-700",
   "bg-amber-100 text-amber-700",
   "bg-pink-100 text-pink-700",
@@ -181,7 +181,7 @@ export default function CourseStudentsPage() {
               { label: "At Risk",     value: String(atRiskCount),      sub: "Need attention",icon: AlertTriangle, cls: atRiskCount > 0 ? "border-amber-200" : "" },
               { label: "Completed",   value: String(completedCount),   sub: "Finished",     icon: Award,         cls: "" },
             ].map((s) => (
-              <div key={s.label} className={cn("bg-m3-surface-container-lowest rounded-2xl p-4 ghost-border shadow-editorial space-y-2", s.cls)}>
+              <div key={s.label} className={cn("bg-m3-surface-container-lowest rounded-xl p-4 ghost-border shadow-editorial space-y-2", s.cls)}>
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">{s.label}</span>
                   <s.icon className="h-4 w-4 text-m3-secondary" />
@@ -193,7 +193,7 @@ export default function CourseStudentsPage() {
           </div>
 
           {/* Search + Filter bar */}
-          <div className="bg-m3-surface-container-lowest rounded-2xl p-5 ghost-border shadow-editorial space-y-4">
+          <div className="bg-m3-surface-container-lowest rounded-xl p-5 ghost-border shadow-editorial space-y-4">
             <div className="relative">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-m3-on-surface-variant/60" />
               <input
@@ -250,7 +250,7 @@ export default function CourseStudentsPage() {
           </div>
 
           {/* Student table */}
-          <div className="bg-m3-surface-container-lowest rounded-2xl ghost-border shadow-editorial overflow-hidden">
+          <div className="bg-m3-surface-container-lowest rounded-xl ghost-border shadow-editorial overflow-hidden">
             {/* Header */}
             <div className="hidden sm:grid grid-cols-[auto_1fr_130px_100px_90px_40px] gap-4 items-center px-5 py-3 border-b border-m3-outline-variant/10">
               <div className="w-10" />
@@ -343,7 +343,7 @@ export default function CourseStudentsPage() {
         <div className="col-span-12 lg:col-span-4 space-y-6 lg:sticky lg:top-24 self-start">
 
           {/* Cohort overview */}
-          <div className="bg-m3-surface-container-lowest rounded-2xl p-6 ghost-border shadow-editorial space-y-5">
+          <div className="bg-m3-surface-container-lowest rounded-xl p-6 ghost-border shadow-editorial space-y-5">
             <h3 className="font-headline font-bold text-m3-primary text-base">Cohort Overview</h3>
 
             {riskBreakdown.map(({ level, meta, count, pct }) => (
@@ -381,7 +381,7 @@ export default function CourseStudentsPage() {
           </div>
 
           {/* Quick filters */}
-          <div className="bg-m3-surface-container-lowest rounded-2xl p-6 ghost-border shadow-editorial space-y-2">
+          <div className="bg-m3-surface-container-lowest rounded-xl p-6 ghost-border shadow-editorial space-y-2">
             <h3 className="font-headline font-bold text-m3-primary text-base mb-4">Quick Filters</h3>
             {[
               { icon: AlertTriangle, label: "At-Risk Students",  color: "text-amber-600",   bg: "bg-amber-50",    filter: "at_risk"   as StatusFilter },
@@ -411,7 +411,7 @@ export default function CourseStudentsPage() {
               <Link
                 to="/teacher/courses/$courseId/students/$studentId"
                 params={{ courseId, studentId: top.student_id }}
-                className="gradient-primary rounded-2xl p-6 text-white relative overflow-hidden shadow-lg block hover:opacity-95 transition-opacity cursor-pointer"
+                className="gradient-primary rounded-xl p-6 text-white relative overflow-hidden shadow-lg block hover:opacity-95 transition-opacity cursor-pointer"
               >
                 <UserX className="absolute -bottom-4 -right-4 h-24 w-24 text-white/10 pointer-events-none" />
                 <div className="relative z-10 space-y-3">

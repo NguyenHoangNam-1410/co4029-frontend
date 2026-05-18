@@ -33,10 +33,10 @@ const featuredCourses = [
     tagColor: "bg-m3-primary-fixed text-m3-primary",
     rating: "4.9",
     students: "12.4k",
-    thumbFrom: "from-[#3a388b]",
-    thumbTo: "to-[#5250a4]",
-    overlayFrom: "from-[#3a388b]/80",
-    overlayTo: "to-[#5250a4]/60",
+    thumbFrom: "from-[#1e3a8a]",
+    thumbTo: "to-[#1e40af]",
+    overlayFrom: "from-[#1e3a8a]/80",
+    overlayTo: "to-[#1e40af]/60",
   },
   {
     title: "Data Science & ML: From Foundations to Deployment",
@@ -45,10 +45,10 @@ const featuredCourses = [
     tagColor: "bg-m3-secondary-fixed text-m3-secondary",
     rating: "4.8",
     students: "9.1k",
-    thumbFrom: "from-[#6b38d4]",
-    thumbTo: "to-[#8455ef]",
-    overlayFrom: "from-[#6b38d4]/80",
-    overlayTo: "to-[#8455ef]/60",
+    thumbFrom: "from-[#1d4ed8]",
+    thumbTo: "to-[#3b82f6]",
+    overlayFrom: "from-[#1d4ed8]/80",
+    overlayTo: "to-[#3b82f6]/60",
   },
   {
     title: "Creative Direction in the Age of Generative AI",
@@ -74,8 +74,8 @@ export default function LandingPage() {
         <section className="relative overflow-hidden gradient-hero min-h-[92vh] flex items-center">
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full bg-white/5 blur-3xl animate-pulse-slow" />
-            <div className="absolute -bottom-20 -right-20 w-[400px] h-[400px] rounded-full bg-[#6b38d4]/20 blur-3xl animate-pulse-slow" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-[#5250a4]/10 blur-3xl" />
+            <div className="absolute -bottom-20 -right-20 w-[400px] h-[400px] rounded-full bg-[#1d4ed8]/20 blur-3xl animate-pulse-slow" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-[#1e40af]/10 blur-3xl" />
           </div>
 
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full">
@@ -89,7 +89,7 @@ export default function LandingPage() {
                   <h1 className="font-headline font-extrabold text-4xl sm:text-5xl xl:text-6xl leading-[1.08] tracking-tight text-white">
                     The Bridge to
                     <br />
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#c5c0ff] to-[#d0bbff]">
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#bfdbfe] to-[#dbeafe]">
                       Human Mastery
                     </span>
                   </h1>
@@ -123,10 +123,10 @@ export default function LandingPage() {
                 <div className="flex items-center gap-4 pt-1">
                   <div className="flex -space-x-2">
                     {[
-                      { bg: "#3a388b", label: "A" },
-                      { bg: "#6b38d4", label: "M" },
-                      { bg: "#5250a4", label: "S" },
-                      { bg: "#8455ef", label: "J" },
+                      { bg: "#1e3a8a", label: "A" },
+                      { bg: "#1d4ed8", label: "M" },
+                      { bg: "#1e40af", label: "S" },
+                      { bg: "#3b82f6", label: "J" },
                     ].map(({ bg, label }, i) => (
                       <div
                         key={i}
@@ -145,8 +145,8 @@ export default function LandingPage() {
 
               {/* Right visual */}
               <div className="relative flex items-center justify-center">
-                <div className="relative w-full max-w-md aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl">
-                  <div className="absolute inset-0 bg-gradient-to-br from-[#2a2870] via-[#5250a4] to-[#8455ef]" />
+                <div className="relative w-full max-w-md aspect-[4/3] rounded-xl overflow-hidden shadow-2xl">
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#172554] via-[#1e40af] to-[#3b82f6]" />
                   <div
                     className="absolute inset-0 opacity-10"
                     style={{
@@ -156,7 +156,7 @@ export default function LandingPage() {
                     }}
                   />
                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-8">
-                    <div className="w-20 h-20 rounded-2xl bg-white/15 backdrop-blur-sm border border-white/20 flex items-center justify-center">
+                    <div className="w-20 h-20 rounded-xl bg-white/15 backdrop-blur-sm border border-white/20 flex items-center justify-center">
                       <GraduationCap className="w-10 h-10 text-white" />
                     </div>
                     <div className="text-center">
@@ -167,7 +167,7 @@ export default function LandingPage() {
                       {[80, 65, 90].map((w, i) => (
                         <div key={i} className="h-1.5 bg-white/10 rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-gradient-to-r from-[#c5c0ff] to-[#8455ef] rounded-full"
+                            className="h-full bg-gradient-to-r from-[#bfdbfe] to-[#3b82f6] rounded-full"
                             style={{ width: `${w}%` }}
                           />
                         </div>
@@ -200,7 +200,7 @@ export default function LandingPage() {
 
                 {/* Top-right stat badge */}
                 <div className="absolute -top-4 -right-2 sm:right-0">
-                  <div className="glass ghost-border shadow-glass rounded-2xl px-4 py-3 text-center">
+                  <div className="glass ghost-border shadow-glass rounded-xl px-4 py-3 text-center">
                     <p className="text-2xl font-headline font-extrabold text-m3-primary">94%</p>
                     <p className="text-xs text-m3-on-surface-variant mt-0.5">Completion Rate</p>
                   </div>
@@ -238,8 +238,8 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-[260px]">
             {/* Software Engineering — 2-col */}
-            <div className="sm:col-span-2 relative rounded-3xl overflow-hidden group cursor-pointer shadow-editorial">
-              <div className="absolute inset-0 bg-gradient-to-br from-[#3a388b] via-[#5250a4] to-[#6b38d4]" />
+            <div className="sm:col-span-2 relative rounded-xl overflow-hidden group cursor-pointer shadow-editorial">
+              <div className="absolute inset-0 bg-gradient-to-br from-[#1e3a8a] via-[#1e40af] to-[#1d4ed8]" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
               <div className="absolute top-7 right-7 space-y-2 opacity-25 group-hover:opacity-40 transition-opacity">
                 {[32, 20, 28, 16, 24].map((w, i) => (
@@ -266,7 +266,7 @@ export default function LandingPage() {
             </div>
 
             {/* Creative Arts */}
-            <div className="relative rounded-3xl overflow-hidden group cursor-pointer shadow-editorial">
+            <div className="relative rounded-xl overflow-hidden group cursor-pointer shadow-editorial">
               <div className="absolute inset-0 bg-gradient-to-br from-[#004a57] to-[#00796b]" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-6">
@@ -282,7 +282,7 @@ export default function LandingPage() {
             </div>
 
             {/* Digital Business */}
-            <div className="relative rounded-3xl overflow-hidden group cursor-pointer shadow-editorial bg-m3-primary-fixed">
+            <div className="relative rounded-xl overflow-hidden group cursor-pointer shadow-editorial bg-m3-primary-fixed">
               <div className="absolute inset-0 bg-gradient-to-br from-m3-primary-fixed via-m3-secondary-fixed/40 to-m3-primary-fixed" />
               <div className="absolute bottom-0 left-0 right-0 p-6">
                 <div className="flex items-center gap-2 mb-3">
@@ -297,7 +297,7 @@ export default function LandingPage() {
             </div>
 
             {/* Data Science — 2-col */}
-            <div className="sm:col-span-2 relative rounded-3xl overflow-hidden group cursor-pointer shadow-editorial">
+            <div className="sm:col-span-2 relative rounded-xl overflow-hidden group cursor-pointer shadow-editorial">
               <div className="absolute inset-0 gradient-secondary" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-6">
@@ -352,12 +352,12 @@ export default function LandingPage() {
               {featuredCourses.map((course, i) => (
                 <div
                   key={i}
-                  className="bg-m3-surface-container-lowest rounded-3xl overflow-hidden shadow-editorial hover:shadow-glass transition-shadow duration-300 group cursor-pointer"
+                  className="bg-m3-surface-container-lowest rounded-xl overflow-hidden shadow-editorial hover:shadow-glass transition-shadow duration-300 group cursor-pointer"
                 >
                   <div className="relative h-44 overflow-hidden">
                     <div className={`absolute inset-0 bg-gradient-to-br ${course.thumbFrom} ${course.thumbTo}`} />
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-16 h-16 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                      <div className="w-16 h-16 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                         <GraduationCap className="w-8 h-8 text-white" />
                       </div>
                     </div>
@@ -390,20 +390,20 @@ export default function LandingPage() {
         {/* 5. TESTIMONIAL */}
         <section className="bg-[#1e1b4b] py-24 overflow-hidden relative">
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute top-0 left-0 w-[400px] h-[400px] rounded-full bg-[#6b38d4]/10 blur-3xl" />
-            <div className="absolute bottom-0 right-0 w-[300px] h-[300px] rounded-full bg-[#3a388b]/20 blur-3xl" />
+            <div className="absolute top-0 left-0 w-[400px] h-[400px] rounded-full bg-[#1d4ed8]/10 blur-3xl" />
+            <div className="absolute bottom-0 right-0 w-[300px] h-[300px] rounded-full bg-[#1e3a8a]/20 blur-3xl" />
           </div>
 
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
               <div className="space-y-8">
-                <div className="w-12 h-12 rounded-2xl gradient-secondary flex items-center justify-center">
+                <div className="w-12 h-12 rounded-xl gradient-secondary flex items-center justify-center">
                   <Quote className="w-6 h-6 text-white" />
                 </div>
                 <blockquote>
                   <p className="font-headline font-bold text-2xl sm:text-3xl lg:text-4xl text-white leading-tight">
                     &ldquo;aBridgeAI didn&apos;t just teach me to code — it taught me{" "}
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#c5c0ff] to-[#d0bbff]">
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#bfdbfe] to-[#dbeafe]">
                       how to think like an engineer.
                     </span>{" "}
                     The AI insights were game-changing.&rdquo;
@@ -411,7 +411,7 @@ export default function LandingPage() {
                 </blockquote>
 
                 <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-full gradient-secondary flex items-center justify-center shrink-0 ring-2 ring-[#6b38d4]/40">
+                  <div className="w-14 h-14 rounded-full gradient-secondary flex items-center justify-center shrink-0 ring-2 ring-[#1d4ed8]/40">
                     <span className="font-headline font-bold text-white text-lg">JR</span>
                   </div>
                   <div>
@@ -429,8 +429,8 @@ export default function LandingPage() {
 
               <div className="relative flex justify-center lg:justify-end">
                 <div className="relative">
-                  <div className="relative w-72 h-80 rounded-3xl overflow-hidden shadow-2xl rotate-3">
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#5250a4] via-[#6b38d4] to-[#8455ef]" />
+                  <div className="relative w-72 h-80 rounded-xl overflow-hidden shadow-2xl rotate-3">
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#1e40af] via-[#1d4ed8] to-[#3b82f6]" />
                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-8">
                       <div className="w-20 h-20 rounded-full bg-white/20 border-2 border-white/30 flex items-center justify-center">
                         <span className="font-headline font-bold text-white text-3xl">JR</span>
@@ -445,14 +445,14 @@ export default function LandingPage() {
                           <span>96%</span>
                         </div>
                         <div className="h-2 bg-white/15 rounded-full overflow-hidden">
-                          <div className="h-full w-[96%] bg-gradient-to-r from-[#c5c0ff] to-[#8455ef] rounded-full" />
+                          <div className="h-full w-[96%] bg-gradient-to-r from-[#bfdbfe] to-[#3b82f6] rounded-full" />
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div className="absolute inset-0 w-72 h-80 rounded-3xl bg-gradient-to-br from-[#3a388b]/50 to-[#8455ef]/30 -rotate-3 -z-10 blur-sm" />
+                  <div className="absolute inset-0 w-72 h-80 rounded-xl bg-gradient-to-br from-[#1e3a8a]/50 to-[#3b82f6]/30 -rotate-3 -z-10 blur-sm" />
                   <div className="absolute -top-4 -left-6">
-                    <div className="glass-dark ghost-border rounded-2xl px-4 py-2.5 text-center">
+                    <div className="glass-dark ghost-border rounded-xl px-4 py-2.5 text-center">
                       <p className="font-headline font-bold text-white text-lg">4.9</p>
                       <p className="text-xs text-white/50">Avg. rating</p>
                     </div>
@@ -465,11 +465,11 @@ export default function LandingPage() {
 
         {/* 6. INSTRUCTOR CTA */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-          <div className="relative rounded-3xl overflow-hidden shadow-editorial">
+          <div className="relative rounded-xl overflow-hidden shadow-editorial">
             <div className="absolute inset-0 gradient-hero" />
             <div className="absolute inset-0 pointer-events-none">
               <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-white/5 blur-3xl" />
-              <div className="absolute -bottom-16 -left-16 w-64 h-64 rounded-full bg-[#8455ef]/20 blur-3xl" />
+              <div className="absolute -bottom-16 -left-16 w-64 h-64 rounded-full bg-[#3b82f6]/20 blur-3xl" />
             </div>
             <div className="relative px-8 py-16 sm:px-16 text-center space-y-6">
               <AIInsightChip>Share Your Expertise</AIInsightChip>

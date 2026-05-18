@@ -72,8 +72,8 @@ export default function AppShell({ children, navItems }: AppShellProps) {
   if (status !== "authenticated") {
     return (
       <div className="flex min-h-screen items-center justify-center bg-m3-surface px-6">
-        <div className="flex items-center gap-3 rounded-2xl bg-white/80 px-5 py-4 text-sm font-semibold text-m3-on-surface shadow-[0_24px_80px_rgba(25,28,30,0.08)] ring-1 ring-m3-outline-variant/20 backdrop-blur">
-          <Loader2 className="h-4 w-4 animate-spin text-m3-secondary" />
+        <div className="flex items-center gap-3 rounded-xl bg-card px-5 py-4 text-sm font-semibold text-m3-on-surface shadow-editorial border border-border">
+          <Loader2 className="h-4 w-4 animate-spin text-primary" />
           <span>
             {status === "unauthenticated" || stalled
               ? "Redirecting to sign in..."

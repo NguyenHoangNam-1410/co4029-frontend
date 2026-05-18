@@ -258,7 +258,7 @@ export default function CourseLearnPage() {
                 )}
               </GlassCard>
             ) : (
-              <div className="rounded-2xl overflow-hidden bg-black shadow-2xl">
+              <div className="rounded-xl overflow-hidden bg-black shadow-2xl">
                 {streamData ? (
                   <MediaPlayer
                     src={{ src: streamData.stream_url, type: "video/mp4" }}
@@ -270,7 +270,7 @@ export default function CourseLearnPage() {
                   </MediaPlayer>
                 ) : (
                   <div className="relative aspect-video">
-                    <div className="absolute inset-0 bg-gradient-to-br from-violet-900 via-indigo-800 to-slate-900 opacity-80" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-blue-900 to-slate-900 opacity-80" />
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className="w-20 h-20 bg-m3-primary/90 text-white rounded-full flex items-center justify-center shadow-2xl">
                         <Play className="h-9 w-9 fill-white" />
@@ -318,7 +318,7 @@ export default function CourseLearnPage() {
 
             {/* ── Instructor card ── */}
             {course.instructor && (
-              <div className="glass ghost-border rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-center gap-6 shadow-sm">
+              <div className="glass ghost-border rounded-xl p-6 sm:p-8 flex flex-col sm:flex-row items-center gap-6 shadow-sm">
                 <Avatar className="h-20 w-20 shrink-0 ring-4 ring-white shadow-xl">
                   <AvatarFallback className="gradient-primary text-white text-xl font-bold font-headline">
                     {initials(course.instructor.display_name)}

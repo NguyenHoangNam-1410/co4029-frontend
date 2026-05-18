@@ -37,12 +37,12 @@ import { cn } from "@/lib/utils";
 /* ── Constants ── */
 
 const CARD_GRADIENTS = [
-  "from-violet-500 via-purple-600 to-indigo-700",
+  "from-blue-500 via-blue-700 to-blue-800",
   "from-blue-500 via-cyan-500 to-teal-500",
   "from-pink-500 via-rose-500 to-orange-500",
   "from-emerald-500 via-teal-500 to-cyan-600",
   "from-amber-500 via-orange-500 to-red-500",
-  "from-indigo-500 via-blue-600 to-sky-500",
+  "from-blue-500 via-blue-600 to-sky-500",
 ];
 
 /* ── Helpers ── */
@@ -60,7 +60,7 @@ function ItemTypeIcon({ type, lessonType }: { type: "lesson" | "quiz" | "intervi
 }
 
 function SkeletonBlock({ className }: { className?: string }) {
-  return <div className={cn("animate-pulse rounded-2xl bg-m3-surface-container", className)} />;
+  return <div className={cn("animate-pulse rounded-xl bg-m3-surface-container", className)} />;
 }
 
 /* ════════════════════════════════════════════════════════
@@ -92,7 +92,7 @@ export default function CourseDetailPage() {
   const levelColor =
     course?.level === "Beginner"     ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
     course?.level === "Intermediate" ? "bg-amber-50 text-amber-700 border-amber-200" :
-    course?.level                    ? "bg-purple-50 text-purple-700 border-purple-200" : "";
+    course?.level                    ? "bg-blue-50 text-blue-800 border-blue-200" : "";
 
   if (courseLoading) {
     return (
@@ -287,7 +287,7 @@ export default function CourseDetailPage() {
               ) : content && content.modules.length > 0 ? (
                 <ModuleAccordion modules={content.modules} />
               ) : (
-                <div className="rounded-2xl border border-dashed border-m3-outline-variant p-10 text-center">
+                <div className="rounded-xl border border-dashed border-m3-outline-variant p-10 text-center">
                   <p className="text-sm text-m3-on-surface-variant">No modules available yet.</p>
                 </div>
               )}
@@ -358,7 +358,7 @@ function ModuleAccordion({ modules }: { modules: CourseContentModule[] }) {
         return (
           <div
             key={mod.id}
-            className="rounded-2xl overflow-hidden border border-m3-outline-variant/30 bg-m3-surface-container-lowest shadow-sm"
+            className="rounded-xl overflow-hidden border border-m3-outline-variant/30 bg-m3-surface-container-lowest shadow-sm"
           >
             <button
               onClick={() => toggle(mod.id)}
@@ -491,7 +491,7 @@ function CtaCard({
   tags: CourseTag[] | undefined;
 }) {
   return (
-    <div className="rounded-3xl overflow-hidden shadow-editorial ghost-border bg-m3-surface-container-lowest">
+    <div className="rounded-xl overflow-hidden shadow-editorial ghost-border bg-m3-surface-container-lowest">
       {/* Thumbnail */}
       <div className={cn("relative h-44 bg-gradient-to-br", gradientClass)}>
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />

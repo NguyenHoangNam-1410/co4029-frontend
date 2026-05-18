@@ -49,9 +49,9 @@ function CourseProgressCard({ course }: { course: Course }) {
   }[courseStatus];
 
   return (
-    <div className="bg-m3-surface-container-lowest rounded-3xl shadow-editorial ghost-border p-6 flex flex-col gap-4 hover:-translate-y-0.5 transition-transform duration-200">
+    <div className="bg-m3-surface-container-lowest rounded-xl shadow-editorial ghost-border p-6 flex flex-col gap-4 hover:-translate-y-0.5 transition-transform duration-200">
       {/* Thumbnail placeholder */}
-      <div className="relative h-32 rounded-2xl overflow-hidden bg-gradient-to-br from-m3-primary to-m3-secondary flex items-center justify-center">
+      <div className="relative h-32 rounded-xl overflow-hidden bg-gradient-to-br from-m3-primary to-m3-secondary flex items-center justify-center">
         <GraduationCap className="h-10 w-10 text-white/60" />
         <div className="absolute top-3 right-3">
           <Badge className={`${statusColor} border-0 text-xs font-medium`}>
@@ -96,8 +96,8 @@ function CourseProgressCard({ course }: { course: Course }) {
 
 function EmptyCourses() {
   return (
-    <div className="col-span-full rounded-3xl border-2 border-dashed border-m3-outline-variant flex flex-col items-center justify-center gap-4 py-16 px-8 text-center">
-      <div className="w-14 h-14 rounded-2xl bg-m3-primary-fixed flex items-center justify-center">
+    <div className="col-span-full rounded-xl border-2 border-dashed border-m3-outline-variant flex flex-col items-center justify-center gap-4 py-16 px-8 text-center">
+      <div className="w-14 h-14 rounded-xl bg-m3-primary-fixed flex items-center justify-center">
         <BookOpen className="h-7 w-7 text-m3-primary" />
       </div>
       <div>
@@ -127,7 +127,7 @@ function NotificationItem({ notification }: {
   const Icon = icon;
 
   return (
-    <div className={`flex items-start gap-3 p-4 rounded-2xl transition-colors ${notification.is_read ? "opacity-60" : "bg-m3-secondary-fixed/20"}`}>
+    <div className={`flex items-start gap-3 p-4 rounded-xl transition-colors ${notification.is_read ? "opacity-60" : "bg-m3-secondary-fixed/20"}`}>
       <div className="w-8 h-8 rounded-xl gradient-secondary flex items-center justify-center shrink-0">
         <Icon className="h-4 w-4 text-white" />
       </div>
@@ -261,7 +261,7 @@ export default function DashboardPage() {
           {coursesLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="bg-m3-surface-container-lowest rounded-3xl ghost-border p-6 h-72 animate-pulse" />
+                <div key={i} className="bg-m3-surface-container-lowest rounded-xl ghost-border p-6 h-72 animate-pulse" />
               ))}
             </div>
           ) : enrolledCount === 0 ? (
@@ -297,16 +297,16 @@ export default function DashboardPage() {
             />
           </div>
 
-          <div className="bg-m3-surface-container-lowest rounded-3xl shadow-editorial ghost-border overflow-hidden">
+          <div className="bg-m3-surface-container-lowest rounded-xl shadow-editorial ghost-border overflow-hidden">
             {notificationsLoading ? (
               <div className="p-6 space-y-3">
                 {[1, 2].map((i) => (
-                  <div key={i} className="h-14 rounded-2xl bg-m3-surface-container animate-pulse" />
+                  <div key={i} className="h-14 rounded-xl bg-m3-surface-container animate-pulse" />
                 ))}
               </div>
             ) : !notifications || notifications.length === 0 ? (
               <div className="p-10 text-center space-y-3">
-                <div className="w-12 h-12 rounded-2xl bg-m3-primary-fixed flex items-center justify-center mx-auto">
+                <div className="w-12 h-12 rounded-xl bg-m3-primary-fixed flex items-center justify-center mx-auto">
                   <Bell className="h-6 w-6 text-m3-primary" />
                 </div>
                 <p className="text-sm font-semibold text-m3-on-surface">No notifications yet</p>
@@ -325,8 +325,8 @@ export default function DashboardPage() {
         </section>
 
         {/* ── 5. What's Next ── */}
-        <section className="relative overflow-hidden rounded-3xl gradient-primary p-8 flex flex-col gap-5 shadow-editorial">
-          <div className="pointer-events-none absolute -bottom-10 -right-10 w-48 h-48 rounded-full opacity-20 blur-2xl" style={{ background: "#8455ef" }} />
+        <section className="relative overflow-hidden rounded-xl gradient-primary p-8 flex flex-col gap-5 shadow-editorial">
+          <div className="pointer-events-none absolute -bottom-10 -right-10 w-48 h-48 rounded-full opacity-20 blur-2xl" style={{ background: "#1d4ed8" }} />
 
           <AIInsightChip className="self-start bg-white/15 text-white border-0">
             AI Powered
@@ -376,7 +376,7 @@ export default function DashboardPage() {
           onMouseLeave={() => setFabHovered(false)}
           onFocus={() => setFabHovered(true)}
           onBlur={() => setFabHovered(false)}
-          className="gradient-primary text-white w-14 h-14 rounded-2xl flex items-center justify-center shadow-ai-glow hover:opacity-90 active:scale-95 transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-m3-secondary"
+          className="gradient-primary text-white w-14 h-14 rounded-xl flex items-center justify-center shadow-ai-glow hover:opacity-90 active:scale-95 transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-m3-secondary"
           aria-label="Ask AI Coach"
         >
           <Bot className="h-6 w-6" />

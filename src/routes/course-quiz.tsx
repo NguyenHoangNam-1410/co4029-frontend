@@ -345,7 +345,7 @@ export default function CourseQuizPage() {
         <div className="space-y-3 w-full max-w-sm">
           <div className="h-4 rounded-full bg-m3-surface-container animate-pulse" />
           <div className="h-4 rounded-full bg-m3-surface-container animate-pulse w-4/5" />
-          <div className="h-32 rounded-3xl bg-m3-surface-container animate-pulse mt-6" />
+          <div className="h-32 rounded-xl bg-m3-surface-container animate-pulse mt-6" />
         </div>
       </div>
     );
@@ -431,7 +431,7 @@ export default function CourseQuizPage() {
                 </p>
 
                 {(noRetakesLeft || maxAttemptsReached || cooldownActive) && (
-                  <div className="rounded-2xl bg-m3-surface-container-low px-4 py-3 text-sm text-m3-on-surface-variant mb-6">
+                  <div className="rounded-xl bg-m3-surface-container-low px-4 py-3 text-sm text-m3-on-surface-variant mb-6">
                     {noRetakesLeft && "Retakes are disabled for this quiz."}
                     {maxAttemptsReached && ` You have used all ${quiz.max_attempts} attempts.`}
                     {cooldownActive && cooldownEndsAt && ` Next attempt available ${formatCooldown(cooldownEndsAt)}.`}
@@ -633,7 +633,7 @@ export default function CourseQuizPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           <div className="lg:col-span-8">
-            <div className="bg-m3-surface-container-lowest rounded-2xl p-6 sm:p-10 relative overflow-hidden shadow-editorial">
+            <div className="bg-m3-surface-container-lowest rounded-xl p-6 sm:p-10 relative overflow-hidden shadow-editorial">
               <div className="absolute top-0 right-0 m-5">
                 <Badge className="bg-m3-secondary-fixed text-m3-on-surface border-0 font-bold text-[10px] px-3 py-1.5 gap-1.5 rounded-full">
                   <Sparkles className="h-3 w-3" />
@@ -791,7 +791,7 @@ export default function CourseQuizPage() {
             </GlassCard>
 
             {activeSourceRefs.length > 0 && (
-              <div className="bg-m3-surface-container-low rounded-2xl p-5">
+              <div className="bg-m3-surface-container-low rounded-xl p-5">
                 <h4 className="text-[10px] font-bold text-m3-outline uppercase tracking-widest mb-4">
                   Source Material
                 </h4>
@@ -822,7 +822,7 @@ export default function CourseQuizPage() {
             )}
 
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-white rounded-2xl p-4 shadow-sm">
+              <div className="bg-white rounded-xl p-4 shadow-sm">
                 <span className="block text-[10px] text-m3-outline uppercase font-bold mb-1 tracking-wider">
                   Answered
                 </span>
@@ -831,13 +831,13 @@ export default function CourseQuizPage() {
                   <span className="text-sm text-m3-outline-variant font-medium">/{displayQuestions.length}</span>
                 </span>
               </div>
-              <div className="bg-white rounded-2xl p-4 shadow-sm">
+              <div className="bg-white rounded-xl p-4 shadow-sm">
                 <span className="block text-[10px] text-m3-outline uppercase font-bold mb-1 tracking-wider">
                   Flagged
                 </span>
                 <span className="text-xl font-black font-headline text-amber-500">{flaggedCount}</span>
               </div>
-              <div className="bg-white rounded-2xl p-4 shadow-sm col-span-2">
+              <div className="bg-white rounded-xl p-4 shadow-sm col-span-2">
                 <span className="block text-[10px] text-m3-outline uppercase font-bold mb-1 tracking-wider">
                   Pass Mark
                 </span>

@@ -27,7 +27,7 @@ const LESSON_TYPE_CONFIG: Record<string, { label: string; icon: React.ComponentT
   reading:  { label: "Reading",  icon: BookOpen,    badge: "bg-emerald-50 text-emerald-700" },
 };
 
-const QUIZ_ITEM_CONFIG = { label: "Quiz", icon: HelpCircle, badge: "bg-violet-50 text-violet-700" };
+const QUIZ_ITEM_CONFIG = { label: "Quiz", icon: HelpCircle, badge: "bg-blue-50 text-blue-800" };
 const INTERVIEW_ITEM_CONFIG = { label: "Interview", icon: Mic, badge: "bg-slate-50 text-slate-600" };
 
 const ADD_PILL_CLS =
@@ -81,7 +81,7 @@ function CourseSettingsPanel({ courseId }: { courseId: string }) {
   }
 
   return (
-    <div className="rounded-2xl border border-m3-outline-variant/20 overflow-hidden">
+    <div className="rounded-xl border border-m3-outline-variant/20 overflow-hidden">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -586,7 +586,7 @@ function AddModuleForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2 p-4 bg-m3-surface-container rounded-2xl">
+    <form onSubmit={handleSubmit} className="flex gap-2 p-4 bg-m3-surface-container rounded-xl">
       <Input
         autoFocus
         required
@@ -655,7 +655,7 @@ export default function CourseManagePage() {
       {isLoading ? (
         <div className="space-y-3">
           {[1, 2].map((i) => (
-            <div key={i} className="h-16 bg-m3-surface-container animate-pulse rounded-2xl" />
+            <div key={i} className="h-16 bg-m3-surface-container animate-pulse rounded-xl" />
           ))}
         </div>
       ) : (

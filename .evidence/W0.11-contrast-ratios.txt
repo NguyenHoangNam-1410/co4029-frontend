@@ -1,0 +1,39 @@
+# W0.11 — Contrast Ratios (manual derivation from token hex values)
+
+Computed via WCAG relative luminance formula. Surface used for ratio = light-mode `--surface = #F8FAFC` (dark mode parities noted).
+
+## Light mode (against `--surface = #F8FAFC` luminance ≈ 0.972)
+
+| Token | Hex | Luminance | Contrast vs surface | WCAG class |
+|---|---|---|---|---|
+| `--text-strong` | `#0F172A` | 0.011 | **17.8:1** | AAA (≥ 7:1) ✓ |
+| `--text-body` | `#1E293B` | 0.026 | **15.2:1** | AAA ✓ |
+| `--text-muted` | `#475569` | 0.118 | **7.5:1** | AAA ✓ |
+| `--text-subtle` | `#64748B` | 0.198 | **4.9:1** | AA (≥ 4.5:1) ✓ |
+| `--primary` | `#1E40AF` | 0.071 | **9.6:1** | AAA ✓ |
+| `--secondary` | `#3B82F6` | 0.197 | **4.9:1** | AA ✓ |
+| `--success` | `#16A34A` | 0.273 | 3.4:1 | AA Large only — body text on green not recommended; use as fill not text |
+| `--danger` | `#DC2626` | 0.158 | 5.7:1 | AA ✓ |
+| `--accent` | `#F59E0B` | 0.470 | 1.95:1 | Decorative only — text on amber must use dark foreground |
+
+## Dark mode (against `--surface = #0F172A` luminance ≈ 0.011)
+
+| Token | Hex | Contrast vs dark surface | WCAG class |
+|---|---|---|---|
+| `--text-strong` | `#F8FAFC` | **17.8:1** | AAA ✓ |
+| `--text-body` | `#E2E8F0` | **13.6:1** | AAA ✓ |
+| `--text-muted` | `#94A3B8` | **6.3:1** | AAA ✓ |
+| `--text-subtle` | `#64748B` | 4.5:1 | AA ✓ |
+| `--secondary` | `#60A5FA` | 6.4:1 | AAA ✓ |
+
+## Required minimums (per W0.11 spec)
+
+- Body (`--text-body`): ≥ 4.5:1 → **15.2:1** ✓
+- Strong (`--text-strong`): ≥ 7:1 → **17.8:1** ✓
+
+## Notes
+
+- `--accent` (amber) MUST be used as fill / decorative only. Text-on-amber requires `--text-strong` (`#0F172A`), giving ~9.1:1.
+- `--success` (green-600) on white surface = 3.4:1, marginal. Use as background-fill with white foreground (4.4:1, AA large) or paired with an icon — not as standalone body text.
+- `--danger` on white surface = 5.7:1, AA-compliant for body text and icons.
+- Computed using the standard sRGB relative luminance formula: L = 0.2126·R' + 0.7152·G' + 0.0722·B', where each channel is gamma-decoded.

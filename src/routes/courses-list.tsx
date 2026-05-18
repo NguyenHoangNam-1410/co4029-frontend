@@ -12,12 +12,12 @@ import type { Course } from "@/lib/api/types/common";
 import { cn } from "@/lib/utils";
 
 const CARD_GRADIENTS = [
-  "from-violet-500 via-purple-600 to-indigo-700",
+  "from-blue-500 via-blue-700 to-blue-800",
   "from-blue-500 via-cyan-500 to-teal-500",
   "from-pink-500 via-rose-500 to-orange-500",
   "from-emerald-500 via-teal-500 to-cyan-600",
   "from-amber-500 via-orange-500 to-red-500",
-  "from-indigo-500 via-blue-600 to-sky-500",
+  "from-blue-500 via-blue-600 to-sky-500",
 ];
 
 const LEVELS = ["All", "Beginner", "Intermediate", "Advanced"];
@@ -28,7 +28,7 @@ function CourseCard({ course, index }: { course: Course; index: number }) {
 
   return (
     <Link to="/courses/$slug" params={{ slug: course.slug }} className="group block">
-      <div className="bg-card rounded-2xl overflow-hidden shadow-editorial ghost-border transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-glass h-full flex flex-col">
+      <div className="bg-card rounded-xl overflow-hidden shadow-editorial ghost-border transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-glass h-full flex flex-col">
         {/* Thumbnail */}
         <div className="relative aspect-video overflow-hidden shrink-0">
           <div className={cn("absolute inset-0 bg-gradient-to-br", gradientClass)} />
@@ -71,7 +71,7 @@ function CourseCard({ course, index }: { course: Course; index: number }) {
                   "text-[10px] px-1.5 py-0 border-0 font-medium rounded-md",
                   course.level === "Beginner"     && "bg-emerald-50 text-emerald-700",
                   course.level === "Intermediate" && "bg-amber-50 text-amber-700",
-                  course.level === "Advanced"     && "bg-purple-50 text-purple-700",
+                  course.level === "Advanced"     && "bg-blue-50 text-blue-800",
                   !["Beginner", "Intermediate", "Advanced"].includes(course.level) && "bg-m3-surface-container text-m3-on-surface-variant"
                 )}
               >
@@ -98,7 +98,7 @@ function CourseCard({ course, index }: { course: Course; index: number }) {
 
 function SkeletonCard() {
   return (
-    <div className="rounded-2xl ghost-border overflow-hidden">
+    <div className="rounded-xl ghost-border overflow-hidden">
       <div className="aspect-video bg-m3-surface-container animate-pulse" />
       <div className="p-4 space-y-3">
         <div className="h-4 bg-m3-surface-container animate-pulse rounded-lg w-3/4" />
@@ -228,7 +228,7 @@ export default function CoursesListPage() {
           />
 
           {error && (
-            <div className="rounded-2xl bg-m3-error-container border border-m3-error/20 p-6 text-center">
+            <div className="rounded-xl bg-m3-error-container border border-m3-error/20 p-6 text-center">
               <p className="text-m3-on-error-container text-sm font-semibold">Failed to load courses</p>
               <p className="text-m3-on-error-container/70 text-xs mt-1">{String(error)}</p>
             </div>

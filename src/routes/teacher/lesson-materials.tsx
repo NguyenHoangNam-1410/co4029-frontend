@@ -30,8 +30,8 @@ const PROC_STATUS: Record<string, { label: string; color: string; spin?: boolean
   not_queued:  { label: "Not Queued",    color: "bg-amber-50 text-amber-600" },
   pending:     { label: "Pending",       color: "bg-slate-100 text-slate-500" },
   extracting:  { label: "Extracting",    color: "bg-blue-100 text-blue-700",      spin: true },
-  chunking:    { label: "Chunking",      color: "bg-violet-100 text-violet-700",  spin: true },
-  embedding:   { label: "Embedding",     color: "bg-indigo-100 text-indigo-700",  spin: true },
+  chunking:    { label: "Chunking",      color: "bg-blue-100 text-blue-800",  spin: true },
+  embedding:   { label: "Embedding",     color: "bg-blue-100 text-blue-800",  spin: true },
   building_kg: { label: "Building Graph", color: "bg-fuchsia-100 text-fuchsia-700", spin: true },
   ready:       { label: "Ready",         color: "bg-emerald-100 text-emerald-700" },
   failed:      { label: "Failed",        color: "bg-red-100 text-red-700" },
@@ -89,7 +89,7 @@ function UploadDropzone({
       onDrop={handleDrop}
       onClick={() => !disabled && inputRef.current?.click()}
       className={cn(
-        "relative cursor-pointer rounded-3xl border-2 border-dashed p-10 text-center transition-all",
+        "relative cursor-pointer rounded-xl border-2 border-dashed p-10 text-center transition-all",
         dragging
           ? "border-m3-secondary bg-m3-secondary-fixed/20 scale-[1.01]"
           : "border-m3-outline-variant/40 hover:border-m3-secondary/50 hover:bg-m3-surface-container-low/60",
@@ -109,13 +109,13 @@ function UploadDropzone({
 
       {/* Icon cluster */}
       <div className="flex items-center justify-center gap-3 mb-5">
-        <div className="w-12 h-12 rounded-2xl bg-m3-primary-fixed flex items-center justify-center">
+        <div className="w-12 h-12 rounded-xl bg-m3-primary-fixed flex items-center justify-center">
           <FileText className="h-6 w-6 text-m3-primary" />
         </div>
-        <div className="w-14 h-14 rounded-2xl gradient-primary flex items-center justify-center shadow-ai-glow">
+        <div className="w-14 h-14 rounded-xl gradient-primary flex items-center justify-center shadow-ai-glow">
           <CloudUpload className="h-7 w-7 text-white" />
         </div>
-        <div className="w-12 h-12 rounded-2xl bg-m3-secondary-fixed flex items-center justify-center">
+        <div className="w-12 h-12 rounded-xl bg-m3-secondary-fixed flex items-center justify-center">
           <Video className="h-6 w-6 text-m3-secondary" />
         </div>
       </div>
@@ -194,10 +194,10 @@ function SelectedFileForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-4 p-6 bg-m3-surface-container-low rounded-3xl border border-m3-outline-variant/20"
+      className="space-y-4 p-6 bg-m3-surface-container-low rounded-xl border border-m3-outline-variant/20"
     >
       {/* File info pill */}
-      <div className="flex items-center gap-3 p-3 bg-m3-surface-container rounded-2xl">
+      <div className="flex items-center gap-3 p-3 bg-m3-surface-container rounded-xl">
         <div className="w-9 h-9 rounded-xl bg-m3-primary-fixed flex items-center justify-center shrink-0">
           {form.material_type === "video" ? (
             <Video className="h-4 w-4 text-m3-primary" />
@@ -297,7 +297,7 @@ function ProcessingStatusCard({ material }: { material: LearningMaterial }) {
   const currentStep = steps.indexOf(status?.processing_status ?? "");
 
   return (
-    <div className="p-6 bg-m3-surface-container-low rounded-3xl border border-m3-secondary/10 space-y-4">
+    <div className="p-6 bg-m3-surface-container-low rounded-xl border border-m3-secondary/10 space-y-4">
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-xl bg-m3-secondary-fixed flex items-center justify-center shrink-0">
           <Icon className="h-5 w-5 text-m3-secondary" />
@@ -383,7 +383,7 @@ function MaterialCard({
   const enablingAI = updateMaterial.isPending || reprocess.isPending;
 
   return (
-    <div className="flex items-center gap-4 p-4 bg-card rounded-2xl border border-m3-outline-variant/20 group hover:border-m3-outline-variant/40 transition-colors">
+    <div className="flex items-center gap-4 p-4 bg-card rounded-xl border border-m3-outline-variant/20 group hover:border-m3-outline-variant/40 transition-colors">
       <div className="h-10 w-10 rounded-xl bg-m3-surface-container flex items-center justify-center shrink-0">
         <Icon className="h-5 w-5 text-m3-on-surface-variant" />
       </div>
@@ -469,7 +469,7 @@ function KnowledgeGraphPreview({ readyCount }: { readyCount: number }) {
   const [toastVisible, setToastVisible] = useState(false);
 
   return (
-    <div className="glass ghost-border shadow-glass rounded-3xl p-8 text-center space-y-4">
+    <div className="glass ghost-border shadow-glass rounded-xl p-8 text-center space-y-4">
       <div className="flex items-center justify-center gap-2">
         <Brain className="h-5 w-5 text-m3-secondary" />
         <h3 className="font-headline font-bold text-lg text-m3-on-surface">
@@ -496,14 +496,14 @@ function KnowledgeGraphPreview({ readyCount }: { readyCount: number }) {
           <line x1="55"  y1="38"  x2="205" y2="38"  stroke="#c5c5d4" strokeWidth="1" />
           <line x1="38"  y1="105" x2="95"  y2="148" stroke="#c5c5d4" strokeWidth="1" />
           <line x1="222" y1="112" x2="178" y2="148" stroke="#c5c5d4" strokeWidth="1" />
-          <circle cx="55"  cy="38"  r="17" fill="#e2dfff" stroke="#3a388b" strokeWidth="1.5" />
-          <circle cx="205" cy="38"  r="17" fill="#e2dfff" stroke="#3a388b" strokeWidth="1.5" />
-          <circle cx="38"  cy="105" r="15" fill="#e2dfff" stroke="#3a388b" strokeWidth="1.5" />
-          <circle cx="222" cy="112" r="15" fill="#e2dfff" stroke="#3a388b" strokeWidth="1.5" />
-          <circle cx="95"  cy="148" r="13" fill="#e2dfff" stroke="#3a388b" strokeWidth="1.5" />
-          <circle cx="178" cy="148" r="13" fill="#e2dfff" stroke="#3a388b" strokeWidth="1.5" />
-          <circle cx="240" cy="62"  r="11" fill="#e2dfff" stroke="#3a388b" strokeWidth="1.5" />
-          <circle cx="130" cy="85"  r="26" fill="#3a388b" />
+          <circle cx="55"  cy="38"  r="17" fill="#dbeafe" stroke="#1e40af" strokeWidth="1.5" />
+          <circle cx="205" cy="38"  r="17" fill="#dbeafe" stroke="#1e40af" strokeWidth="1.5" />
+          <circle cx="38"  cy="105" r="15" fill="#dbeafe" stroke="#1e40af" strokeWidth="1.5" />
+          <circle cx="222" cy="112" r="15" fill="#dbeafe" stroke="#1e40af" strokeWidth="1.5" />
+          <circle cx="95"  cy="148" r="13" fill="#dbeafe" stroke="#1e40af" strokeWidth="1.5" />
+          <circle cx="178" cy="148" r="13" fill="#dbeafe" stroke="#1e40af" strokeWidth="1.5" />
+          <circle cx="240" cy="62"  r="11" fill="#dbeafe" stroke="#1e40af" strokeWidth="1.5" />
+          <circle cx="130" cy="85"  r="26" fill="#1e40af" />
           <text x="130" y="89" textAnchor="middle" fill="white" fontSize="9" fontWeight="700" fontFamily="Epilogue, sans-serif">
             Core
           </text>
@@ -664,8 +664,8 @@ export default function LessonMaterialsPage() {
           {processingCount > 0 && processingMaterial ? (
             <ProcessingStatusCard material={processingMaterial} />
           ) : (
-            <div className="bg-m3-surface-container-low rounded-3xl p-7 text-center">
-              <div className="w-12 h-12 rounded-2xl bg-m3-surface-container flex items-center justify-center mx-auto mb-3">
+            <div className="bg-m3-surface-container-low rounded-xl p-7 text-center">
+              <div className="w-12 h-12 rounded-xl bg-m3-surface-container flex items-center justify-center mx-auto mb-3">
                 <Brain className="h-6 w-6 text-m3-on-surface-variant" />
               </div>
               <p className="font-headline font-bold text-m3-on-surface text-sm mb-1">
@@ -679,7 +679,7 @@ export default function LessonMaterialsPage() {
 
           {/* AI insight strip */}
           {readyCount > 0 && (
-            <div className="flex items-center gap-3 p-4 bg-m3-secondary-fixed/30 rounded-2xl border border-m3-secondary/10">
+            <div className="flex items-center gap-3 p-4 bg-m3-secondary-fixed/30 rounded-xl border border-m3-secondary/10">
               <Sparkles className="h-5 w-5 text-m3-secondary shrink-0" />
               <p className="text-sm font-medium text-m3-on-surface">
                 AI has indexed {readyCount} material{readyCount !== 1 ? "s" : ""} — knowledge graph is active for quiz generation
@@ -709,11 +709,11 @@ export default function LessonMaterialsPage() {
           {materialsLoading ? (
             <div className="space-y-3">
               {[1, 2].map((i) => (
-                <div key={i} className="h-16 bg-m3-surface-container animate-pulse rounded-2xl" />
+                <div key={i} className="h-16 bg-m3-surface-container animate-pulse rounded-xl" />
               ))}
             </div>
           ) : materials.length === 0 ? (
-            <div className="text-center py-10 text-m3-on-surface-variant bg-m3-surface-container-low/50 rounded-2xl">
+            <div className="text-center py-10 text-m3-on-surface-variant bg-m3-surface-container-low/50 rounded-xl">
               <FileText className="h-9 w-9 mx-auto mb-3 opacity-20" />
               <p className="text-sm font-medium">No materials yet</p>
               <p className="text-xs mt-1 text-m3-on-surface-variant/70">

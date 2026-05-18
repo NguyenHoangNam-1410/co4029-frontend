@@ -29,7 +29,7 @@ const ENROLL_META: Record<string, { label: string; badge: string }> = {
 
 const AVATAR_COLORS = [
   "bg-m3-primary-fixed text-m3-primary",
-  "bg-violet-100 text-violet-700",
+  "bg-blue-100 text-blue-800",
   "bg-emerald-100 text-emerald-700",
   "bg-amber-100 text-amber-700",
   "bg-pink-100 text-pink-700",
@@ -129,10 +129,10 @@ export default function CourseStudentDetailPage() {
       </div>
 
       {/* ── Profile hero card ── */}
-      <div className="bg-m3-surface-container-lowest rounded-2xl p-6 ghost-border shadow-editorial mb-8">
+      <div className="bg-m3-surface-container-lowest rounded-xl p-6 ghost-border shadow-editorial mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
           <div className="flex items-center gap-5">
-            <div className={cn("w-16 h-16 rounded-2xl flex items-center justify-center text-xl font-bold shrink-0 uppercase", aColor)}>
+            <div className={cn("w-16 h-16 rounded-xl flex items-center justify-center text-xl font-bold shrink-0 uppercase", aColor)}>
               {initials || "?"}
             </div>
             <div className="space-y-1">
@@ -187,7 +187,7 @@ export default function CourseStudentDetailPage() {
         <div className="col-span-12 lg:col-span-8 space-y-6">
 
           {/* Course progress */}
-          <section className="bg-m3-surface-container-lowest rounded-2xl p-6 ghost-border shadow-editorial space-y-5">
+          <section className="bg-m3-surface-container-lowest rounded-xl p-6 ghost-border shadow-editorial space-y-5">
             <h2 className="font-headline font-bold text-lg text-m3-on-surface">Course Progress</h2>
 
             <div className="space-y-3">
@@ -211,7 +211,7 @@ export default function CourseStudentDetailPage() {
           </section>
 
           {/* Enrollment timeline */}
-          <section className="bg-m3-surface-container-lowest rounded-2xl p-6 ghost-border shadow-editorial space-y-5">
+          <section className="bg-m3-surface-container-lowest rounded-xl p-6 ghost-border shadow-editorial space-y-5">
             <h2 className="font-headline font-bold text-lg text-m3-on-surface">Enrollment Timeline</h2>
 
             <div className="space-y-0 relative">
@@ -268,7 +268,7 @@ export default function CourseStudentDetailPage() {
         <div className="col-span-12 lg:col-span-4 space-y-6 lg:sticky lg:top-24 self-start">
 
           {/* Enrollment management */}
-          <div className="bg-m3-surface-container-lowest rounded-2xl p-6 ghost-border shadow-editorial space-y-4">
+          <div className="bg-m3-surface-container-lowest rounded-xl p-6 ghost-border shadow-editorial space-y-4">
             <h3 className="font-headline font-bold text-m3-primary text-base">Enrollment Management</h3>
 
             <div className="space-y-3">
@@ -354,7 +354,7 @@ export default function CourseStudentDetailPage() {
 
           {/* At-risk alert */}
           {(student.at_risk_level === "medium" || student.at_risk_level === "high") && (
-            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 space-y-2">
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 space-y-2">
               <div className="flex items-center gap-2 text-amber-700">
                 <AlertTriangle className="h-4 w-4" />
                 <span className="font-bold text-sm">Attention Needed</span>
@@ -375,7 +375,7 @@ export default function CourseStudentDetailPage() {
           )}
 
           {/* Navigate back */}
-          <div className="bg-m3-surface-container-lowest rounded-2xl p-5 ghost-border shadow-editorial">
+          <div className="bg-m3-surface-container-lowest rounded-xl p-5 ghost-border shadow-editorial">
             <p className="text-xs font-bold text-m3-on-surface-variant uppercase tracking-wider mb-3">Navigate</p>
             <Link
               to="/teacher/courses/$courseId/students"

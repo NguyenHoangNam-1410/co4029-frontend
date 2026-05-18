@@ -28,23 +28,23 @@ export default function ContentTopBar() {
   }
 
   return (
-    <header className="w-full sticky top-0 z-20 bg-m3-surface/80 backdrop-blur-md flex items-center justify-end px-8 h-16">
+    <header className="w-full sticky top-0 z-20 bg-surface/85 backdrop-blur-md border-b border-border flex items-center justify-end px-8 h-16">
       <div className="flex items-center gap-4">
         <button
-          className="relative text-m3-on-surface-variant cursor-pointer hover:bg-m3-primary-fixed p-2.5 rounded-full transition-colors"
+          className="relative text-text-muted cursor-pointer hover:bg-surface-muted hover:text-primary p-2.5 rounded-md transition-colors"
           aria-label="Notifications"
         >
           <Bell className="h-5 w-5" />
-          <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-m3-secondary ring-2 ring-m3-surface" />
+          <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-accent ring-2 ring-surface" />
         </button>
 
         <DropdownMenu>
           <DropdownMenuTrigger
-            className="cursor-pointer rounded-full outline-none focus-visible:ring-2 focus-visible:ring-m3-secondary focus-visible:ring-offset-2 transition-all hover:opacity-90"
+            className="cursor-pointer rounded-full outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-colors hover:opacity-90"
             aria-label="User menu"
           >
-            <Avatar className="h-9 w-9 ring-2 ring-white shadow-sm">
-              <AvatarFallback className="bg-m3-primary text-white text-xs font-bold">
+            <Avatar className="h-9 w-9 ring-2 ring-surface-elev shadow-sm">
+              <AvatarFallback className="bg-primary text-white text-xs font-bold">
                 {getAuthUserInitials(user)}
               </AvatarFallback>
             </Avatar>
@@ -53,7 +53,7 @@ export default function ContentTopBar() {
           <DropdownMenuContent
             align="end"
             sideOffset={8}
-            className="w-56 rounded-xl bg-m3-surface-container-lowest shadow-editorial border border-m3-outline-variant/15 p-1.5"
+            className="w-56 rounded-lg bg-card shadow-editorial border border-border p-1.5"
           >
             <div className="px-3 py-2.5">
               <p className="text-sm font-semibold text-m3-on-surface truncate">{displayName}</p>
@@ -62,17 +62,17 @@ export default function ContentTopBar() {
               </p>
             </div>
 
-            <DropdownMenuSeparator className="bg-m3-outline-variant/15" />
+            <DropdownMenuSeparator className="bg-border" />
 
             <DropdownMenuGroup>
-              <DropdownMenuItem className="rounded-lg px-3 py-2 gap-3 cursor-pointer text-m3-on-surface hover:bg-m3-primary-fixed focus:bg-m3-primary-fixed focus:text-m3-primary">
+              <DropdownMenuItem className="rounded-md px-3 py-2 gap-3 cursor-pointer text-m3-on-surface hover:bg-primary-soft focus:bg-primary-soft focus:text-primary">
                 <Link to="/settings" className="flex items-center gap-3 w-full">
                   <Settings className="h-4 w-4 text-m3-on-surface-variant" />
                   <span className="text-sm font-medium">Settings</span>
                 </Link>
               </DropdownMenuItem>
 
-              <DropdownMenuItem className="rounded-lg px-3 py-2 gap-3 cursor-pointer text-m3-on-surface hover:bg-m3-primary-fixed focus:bg-m3-primary-fixed focus:text-m3-primary">
+              <DropdownMenuItem className="rounded-md px-3 py-2 gap-3 cursor-pointer text-m3-on-surface hover:bg-primary-soft focus:bg-primary-soft focus:text-primary">
                 <Link to="/settings" className="flex items-center gap-3 w-full">
                   <User className="h-4 w-4 text-m3-on-surface-variant" />
                   <span className="text-sm font-medium">Profile</span>
@@ -80,11 +80,11 @@ export default function ContentTopBar() {
               </DropdownMenuItem>
             </DropdownMenuGroup>
 
-            <DropdownMenuSeparator className="bg-m3-outline-variant/15" />
+            <DropdownMenuSeparator className="bg-border" />
 
             <DropdownMenuItem
               variant="destructive"
-              className="rounded-lg px-3 py-2 gap-3 cursor-pointer"
+              className="rounded-md px-3 py-2 gap-3 cursor-pointer"
               disabled={isLoggingOut}
               onClick={() => void handleLogout()}
             >

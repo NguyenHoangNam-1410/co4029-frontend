@@ -11,7 +11,7 @@ export function SectionHeader({ title, subtitle, action, className }: SectionHea
   return (
     <div className={cn("flex items-start justify-between gap-4", className)}>
       <div>
-        <h2 className="font-headline font-bold text-xl lg:text-2xl text-m3-on-surface tracking-tight">
+        <h2 className="font-heading font-semibold text-xl lg:text-2xl text-m3-on-surface tracking-tight">
           {title}
         </h2>
         {subtitle && (

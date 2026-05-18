@@ -3,135 +3,257 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ────────────────────────────────────────────────────────────────────
+   W0.11 — Design system overhaul (academic blue + Atkinson Hyperlegible)
+   Reference: Metronic Demo 6 — dense rows, crisp 1px borders, 4–10px radii
+   Palette: blue-800 primary / blue-500 secondary / amber-500 accent
+   Body: Atkinson Hyperlegible (low-vision friendly) — Heading: Inter
+   ──────────────────────────────────────────────────────────────────── */
+
 /* ── Tailwind v4 Theme ── */
 @theme inline {
   /* Fonts */
-  --font-headline: "Epilogue", ui-sans-serif, system-ui, sans-serif;
-  --font-body: "Manrope", ui-sans-serif, system-ui, sans-serif;
-  --font-sans: var(--font-body);
-  --font-heading: var(--font-headline);
+  --font-sans: "Atkinson Hyperlegible", system-ui, -apple-system, sans-serif;
+  --font-heading: "Inter", system-ui, -apple-system, sans-serif;
+  --font-headline: var(--font-heading);
+  --font-body: var(--font-sans);
 
-  /* shadcn mapped colors */
+  /* Semantic color tokens (W0.11) — all driven by CSS vars below for dark-mode parity */
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-destructive: var(--destructive);
+  --color-warning: var(--warning);
+
+  --color-surface: var(--surface);
+  --color-surface-elev: var(--surface-elev);
+  --color-surface-muted: var(--surface-muted);
+
+  --color-text-strong: var(--text-strong);
+  --color-text-body: var(--text-body);
+  --color-text-muted: var(--text-muted);
+  --color-text-subtle: var(--text-subtle);
+
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+
+  /* shadcn-shaped aliases */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-border: var(--border);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-soft-foreground: var(--accent-soft-foreground);
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  /* Chart colors */
+  /* Chart colors — academic blue + amber */
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
 
-  /* ── M3 Custom Colors ── */
-  --color-m3-primary: #3a388b;
-  --color-m3-primary-container: #5250a4;
-  --color-m3-secondary: #6b38d4;
-  --color-m3-secondary-container: #8455ef;
-  --color-m3-tertiary: #004a57;
-  --color-m3-tertiary-container: #006374;
-  --color-m3-surface: #f7f9fb;
-  --color-m3-surface-dim: #d8dadc;
-  --color-m3-surface-bright: #f7f9fb;
-  --color-m3-surface-tint: #5654a8;
-  --color-m3-surface-container-lowest: #ffffff;
-  --color-m3-surface-container-low: #f2f4f6;
-  --color-m3-surface-container: #eceef0;
-  --color-m3-surface-container-high: #e6e8ea;
-  --color-m3-surface-container-highest: #e0e3e5;
-  --color-m3-surface-variant: #e0e3e5;
-  --color-m3-on-surface: #191c1e;
-  --color-m3-on-surface-variant: #454652;
-  --color-m3-on-background: #191c1e;
-  --color-m3-outline: #757684;
-  --color-m3-outline-variant: #c5c5d4;
-  --color-m3-error: #ba1a1a;
-  --color-m3-error-container: #ffdad6;
+  /* ── M3 Custom Colors (REMAPPED to academic blue — preserves existing class usages) ── */
+  --color-m3-primary: var(--primary);
+  --color-m3-primary-container: var(--primary-hover);
+  --color-m3-secondary: var(--secondary);
+  --color-m3-secondary-container: var(--secondary-soft);
+  --color-m3-tertiary: var(--accent);
+  --color-m3-tertiary-container: var(--accent-hover);
+  --color-m3-surface: var(--surface);
+  --color-m3-surface-dim: var(--surface-muted);
+  --color-m3-surface-bright: var(--surface);
+  --color-m3-surface-tint: var(--primary);
+  --color-m3-surface-container-lowest: var(--surface-elev);
+  --color-m3-surface-container-low: var(--surface-muted);
+  --color-m3-surface-container: var(--surface-muted);
+  --color-m3-surface-container-high: var(--border);
+  --color-m3-surface-container-highest: var(--border-strong);
+  --color-m3-surface-variant: var(--border);
+  --color-m3-on-surface: var(--text-strong);
+  --color-m3-on-surface-variant: var(--text-muted);
+  --color-m3-on-background: var(--text-strong);
+  --color-m3-outline: var(--text-subtle);
+  --color-m3-outline-variant: var(--border);
+  --color-m3-error: var(--danger);
+  --color-m3-error-container: var(--danger-soft);
   --color-m3-on-error: #ffffff;
-  --color-m3-on-error-container: #93000a;
+  --color-m3-on-error-container: #7f1d1d;
   --color-m3-on-primary: #ffffff;
-  --color-m3-on-primary-container: #d0cdff;
+  --color-m3-on-primary-container: #ffffff;
   --color-m3-on-secondary: #ffffff;
-  --color-m3-on-secondary-container: #fffbff;
+  --color-m3-on-secondary-container: #ffffff;
   --color-m3-on-tertiary: #ffffff;
-  --color-m3-on-tertiary-container: #66e2ff;
-  --color-m3-primary-fixed: #e2dfff;
-  --color-m3-primary-fixed-dim: #c3c0ff;
-  --color-m3-on-primary-fixed: #100563;
-  --color-m3-on-primary-fixed-variant: #3e3c8f;
-  --color-m3-secondary-fixed: #e9ddff;
-  --color-m3-secondary-fixed-dim: #d0bcff;
-  --color-m3-on-secondary-fixed: #23005c;
-  --color-m3-on-secondary-fixed-variant: #5516be;
-  --color-m3-tertiary-fixed: #acedff;
-  --color-m3-tertiary-fixed-dim: #4cd7f6;
-  --color-m3-on-tertiary-fixed: #001f26;
-  --color-m3-on-tertiary-fixed-variant: #004e5c;
-  --color-m3-inverse-surface: #2d3133;
-  --color-m3-inverse-on-surface: #eff1f3;
-  --color-m3-inverse-primary: #c3c0ff;
+  --color-m3-on-tertiary-container: #ffffff;
+  --color-m3-primary-fixed: var(--primary-soft);
+  --color-m3-primary-fixed-dim: var(--primary-soft-dim);
+  --color-m3-on-primary-fixed: var(--primary);
+  --color-m3-on-primary-fixed-variant: var(--primary-hover);
+  --color-m3-secondary-fixed: var(--secondary-soft);
+  --color-m3-secondary-fixed-dim: var(--secondary-soft-dim);
+  --color-m3-on-secondary-fixed: var(--primary);
+  --color-m3-on-secondary-fixed-variant: var(--secondary);
+  --color-m3-tertiary-fixed: var(--accent-soft);
+  --color-m3-tertiary-fixed-dim: var(--accent);
+  --color-m3-on-tertiary-fixed: var(--accent-hover);
+  --color-m3-on-tertiary-fixed-variant: var(--accent-hover);
+  --color-m3-inverse-surface: var(--text-strong);
+  --color-m3-inverse-on-surface: var(--surface-elev);
+  --color-m3-inverse-primary: var(--primary-soft-dim);
 
-  /* Radii */
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  /* Radii — tighter, Metronic-style. Cards/buttons ≤ 10px; pills via rounded-full. */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 10px;
+  --radius-2xl: 10px; /* capped — over-radius forbidden by CI */
+  --radius-3xl: 10px; /* capped */
+  --radius-4xl: 9999px; /* pill — used by some legacy badges */
+  --radius-pill: 9999px;
 
-  /* Custom shadows */
-  --shadow-editorial: 0px 20px 40px rgba(25, 28, 30, 0.06);
-  --shadow-glass: 0px 8px 32px rgba(58, 56, 139, 0.08);
-  --shadow-ai-glow: 0px 0px 24px rgba(107, 56, 212, 0.15);
+  /* Shadows — softer, more modern */
+  --shadow-editorial: 0px 1px 2px rgba(15, 23, 42, 0.04), 0px 4px 12px rgba(15, 23, 42, 0.04);
+  --shadow-glass: 0px 8px 24px rgba(30, 64, 175, 0.06);
+  --shadow-ai-glow: 0px 0px 24px rgba(245, 158, 11, 0.18);
 
-  /* Custom animations */
+  /* Animations */
   --animate-pulse-slow: pulse-slow 3s ease-in-out infinite;
   --animate-float: float 6s ease-in-out infinite;
   --animate-ai-pulse: ai-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* ── M3 Color Tokens on :root ── */
+/* ── Light mode tokens ── */
 :root {
-  --background: #f7f9fb;
-  --foreground: #191c1e;
-  --card: #ffffff;
-  --card-foreground: #191c1e;
-  --popover: #ffffff;
-  --popover-foreground: #191c1e;
-  --primary: #3a388b;
+  /* Primary (academic blue) */
+  --primary: #1e40af;            /* blue-800 */
+  --primary-hover: #1d4ed8;       /* blue-700 */
+  --primary-soft: #dbeafe;        /* blue-100 */
+  --primary-soft-dim: #bfdbfe;    /* blue-200 */
   --primary-foreground: #ffffff;
-  --secondary: #6b38d4;
+
+  /* Secondary */
+  --secondary: #3b82f6;           /* blue-500 */
+  --secondary-soft: #dbeafe;      /* blue-100 */
+  --secondary-soft-dim: #bfdbfe;  /* blue-200 */
   --secondary-foreground: #ffffff;
-  --muted: #f2f4f6;
-  --muted-foreground: #454652;
-  --accent: #e9ddff;
-  --accent-foreground: #3a388b;
-  --destructive: #ba1a1a;
-  --border: #c5c5d4;
-  --input: #eceef0;
-  --ring: #6b38d4;
-  --chart-1: #3a388b;
-  --chart-2: #6b38d4;
-  --chart-3: #8455ef;
-  --chart-4: #004a57;
-  --chart-5: #5250a4;
-  --radius: 0.75rem;
+
+  /* Accent / CTA (amber) */
+  --accent: #f59e0b;              /* amber-500 */
+  --accent-hover: #d97706;        /* amber-600 */
+  --accent-soft: #fef3c7;         /* amber-100 */
+  --accent-soft-foreground: #78350f;
+  --accent-foreground: #1f2937;
+
+  /* Status */
+  --success: #16a34a;             /* green-600 */
+  --danger: #dc2626;              /* red-600 */
+  --danger-soft: #fee2e2;         /* red-100 */
+  --destructive: #dc2626;
+  --warning: #ea580c;             /* orange-600 */
+
+  /* Surfaces */
+  --surface: #f8fafc;             /* slate-50 */
+  --surface-elev: #ffffff;
+  --surface-muted: #f1f5f9;       /* slate-100 */
+
+  /* Text */
+  --text-strong: #0f172a;         /* slate-900 — strong contrast for headers */
+  --text-body: #1e293b;           /* slate-800 — body copy */
+  --text-muted: #475569;          /* slate-600 — muted captions */
+  --text-subtle: #64748b;         /* slate-500 — subtlest hints */
+
+  /* Borders */
+  --border: #e2e8f0;              /* slate-200 */
+  --border-strong: #cbd5e1;       /* slate-300 */
+
+  /* shadcn shape */
+  --background: var(--surface);
+  --foreground: var(--text-body);
+  --card: var(--surface-elev);
+  --card-foreground: var(--text-body);
+  --popover: var(--surface-elev);
+  --popover-foreground: var(--text-body);
+  --muted: var(--surface-muted);
+  --muted-foreground: var(--text-muted);
+  --input: var(--border);
+  --ring: var(--primary);
+
+  /* Charts */
+  --chart-1: #1e40af; /* primary */
+  --chart-2: #3b82f6; /* secondary */
+  --chart-3: #f59e0b; /* accent */
+  --chart-4: #16a34a; /* success */
+  --chart-5: #64748b; /* subtle */
+
+  --radius: 0.5rem; /* 8px — base for component radius */
+}
+
+/* ── Dark mode tokens (parity) ── */
+.dark,
+[data-theme="dark"] {
+  --primary: #1e40af;             /* keep same — works in both modes */
+  --primary-hover: #1d4ed8;
+  --primary-soft: #1e3a8a;        /* blue-900 */
+  --primary-soft-dim: #1e40af;
+  --primary-foreground: #ffffff;
+
+  --secondary: #60a5fa;            /* blue-400 — lighter for dark surface */
+  --secondary-soft: #1e3a8a;
+  --secondary-soft-dim: #1e40af;
+  --secondary-foreground: #0f172a;
+
+  --accent: #f59e0b;
+  --accent-hover: #d97706;
+  --accent-soft: #78350f;
+  --accent-soft-foreground: #fef3c7;
+  --accent-foreground: #ffffff;
+
+  --success: #16a34a;
+  --danger: #dc2626;
+  --danger-soft: #7f1d1d;
+  --destructive: #ef4444;
+  --warning: #ea580c;
+
+  --surface: #0f172a;             /* slate-900 */
+  --surface-elev: #1e293b;        /* slate-800 */
+  --surface-muted: #1e293b;
+
+  --text-strong: #f8fafc;          /* slate-50 */
+  --text-body: #e2e8f0;            /* slate-200 */
+  --text-muted: #94a3b8;           /* slate-400 */
+  --text-subtle: #64748b;          /* slate-500 */
+
+  --border: #334155;               /* slate-700 */
+  --border-strong: #475569;        /* slate-600 */
+
+  --background: var(--surface);
+  --foreground: var(--text-body);
+  --card: var(--surface-elev);
+  --card-foreground: var(--text-body);
+  --popover: var(--surface-elev);
+  --popover-foreground: var(--text-body);
+  --muted: var(--surface-muted);
+  --muted-foreground: var(--text-muted);
+  --input: var(--border);
+  --ring: var(--secondary);
+
+  --chart-1: #60a5fa;
+  --chart-2: #3b82f6;
+  --chart-3: #fbbf24;
+  --chart-4: #4ade80;
+  --chart-5: #94a3b8;
 }
 
 /* ── Keyframes ── */
@@ -147,60 +269,69 @@
 
 @keyframes ai-pulse {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  50% { opacity: 0.55; }
 }
 
-/* ── Base Styles ── */
+/* ── Base styles ── */
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground font-body;
+    background-color: var(--surface);
+    color: var(--text-body);
+    font-family: "Atkinson Hyperlegible", system-ui, -apple-system, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   html {
-    @apply font-body;
+    font-family: "Atkinson Hyperlegible", system-ui, -apple-system, sans-serif;
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-headline tracking-tight;
+    font-family: "Inter", system-ui, -apple-system, sans-serif;
+    font-weight: 600;
+    color: var(--text-strong);
+    letter-spacing: -0.01em;
   }
 }
 
-/* ── Custom Utility Classes ── */
+/* ── Custom utility classes ── */
 @layer utilities {
   .glass {
-    background: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
   }
   .glass-dark {
-    background: rgba(28, 29, 34, 0.8);
+    background: rgba(15, 23, 42, 0.85);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
   }
   .gradient-primary {
-    background: linear-gradient(135deg, #3a388b, #5250a4);
+    background: linear-gradient(135deg, #1e40af, #1d4ed8);
   }
   .gradient-secondary {
-    background: linear-gradient(135deg, #6b38d4, #8455ef);
+    background: linear-gradient(135deg, #3b82f6, #60a5fa);
   }
   .gradient-hero {
-    background: linear-gradient(135deg, #3a388b 0%, #5250a4 40%, #6b38d4 100%);
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 40%, #1d4ed8 100%);
   }
   .text-gradient-primary {
-    background: linear-gradient(135deg, #3a388b, #6b38d4);
+    background: linear-gradient(135deg, #1e40af, #3b82f6);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
   .ghost-border {
-    border: 1px solid rgba(197, 197, 212, 0.15);
+    border: 1px solid rgba(226, 232, 240, 0.8);
   }
   .ai-pulse {
     animation: ai-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
   .bridge-line {
-    background: linear-gradient(90deg, transparent, rgba(107, 56, 212, 0.2), transparent);
+    background: linear-gradient(90deg, transparent, rgba(30, 64, 175, 0.2), transparent);
     height: 1px;
     width: 100%;
   }

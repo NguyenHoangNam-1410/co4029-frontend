@@ -44,7 +44,7 @@ const LESSON_TYPE_OPTIONS = [
 const RESOURCE_STYLES: Record<string, { bg: string; text: string }> = {
   pdf:  { bg: "bg-red-50",    text: "text-red-600" },
   zip:  { bg: "bg-blue-50",   text: "text-blue-600" },
-  mp4:  { bg: "bg-purple-50", text: "text-purple-600" },
+  mp4:  { bg: "bg-blue-50", text: "text-blue-700" },
   xlsx: { bg: "bg-green-50",  text: "text-green-600" },
   pptx: { bg: "bg-orange-50", text: "text-orange-600" },
 };
@@ -167,7 +167,7 @@ function VideoContent({
   return (
     <>
       {streamUrl ? (
-        <div className="rounded-2xl overflow-hidden shadow-xl shadow-m3-primary/5 bg-black">
+        <div className="rounded-xl overflow-hidden shadow-xl shadow-m3-primary/5 bg-black">
           <MediaPlayer
             src={{ src: streamUrl, type: "video/mp4" }}
             className="w-full aspect-video"
@@ -178,7 +178,7 @@ function VideoContent({
           </MediaPlayer>
         </div>
       ) : (
-        <div className="relative aspect-video rounded-2xl overflow-hidden bg-m3-surface-container-highest shadow-xl shadow-m3-primary/5">
+        <div className="relative aspect-video rounded-xl overflow-hidden bg-m3-surface-container-highest shadow-xl shadow-m3-primary/5">
           <div className="absolute inset-0 bg-gradient-to-br from-m3-primary/20 via-m3-secondary/10 to-transparent" />
           <div
             className="absolute inset-0 opacity-10"
@@ -276,7 +276,7 @@ function ReadingContent({ notes, setNotes, notesRef }: {
           <ToolbarBtn icon={Code}     label="Code Block"   onClick={() => applyMarkdown("```\n", "\n```")} />
         </div>
       </div>
-      <div className="rounded-2xl border border-m3-outline-variant/20 overflow-hidden shadow-sm">
+      <div className="rounded-xl border border-m3-outline-variant/20 overflow-hidden shadow-sm">
         <div className="bg-m3-primary/5 border-b border-m3-outline-variant/10 px-4 py-2 flex items-center gap-2">
           <AlignLeft className="h-3.5 w-3.5 text-m3-secondary" />
           <span className="text-xs font-bold text-m3-on-surface-variant uppercase tracking-widest">Markdown Editor</span>
@@ -693,7 +693,7 @@ export default function LessonManagePage() {
         <aside className="col-span-12 lg:col-span-4 space-y-6 lg:sticky lg:top-32 self-start">
 
           {/* ── Lesson Settings ── */}
-          <div className="bg-m3-surface-container-low rounded-2xl p-6 space-y-6 shadow-sm">
+          <div className="bg-m3-surface-container-low rounded-xl p-6 space-y-6 shadow-sm">
             <h3 className="font-headline font-bold text-xl text-m3-primary">Lesson Settings</h3>
 
             {/* Visibility */}
@@ -767,7 +767,7 @@ export default function LessonManagePage() {
           </div>
 
           {/* ── Prerequisites ── */}
-          <div className="bg-m3-surface-container-low rounded-2xl p-6 space-y-4 shadow-sm">
+          <div className="bg-m3-surface-container-low rounded-xl p-6 space-y-4 shadow-sm">
             <div>
               <h3 className="font-headline font-bold text-base text-m3-primary">Prerequisites</h3>
               <p className="text-xs text-m3-on-surface-variant mt-0.5">Lessons students should complete first.</p>
@@ -854,7 +854,7 @@ export default function LessonManagePage() {
           </div>
 
           {/* ── AI Material Hub teaser ── */}
-          <div className="ghost-border rounded-2xl p-5 flex items-start gap-3">
+          <div className="ghost-border rounded-xl p-5 flex items-start gap-3">
             <div className="w-9 h-9 rounded-xl bg-m3-secondary-fixed flex items-center justify-center shrink-0">
               <Sparkles className="h-4 w-4 text-m3-secondary" />
             </div>
@@ -930,7 +930,7 @@ export default function LessonManagePage() {
       <div
         aria-live="polite"
         className={cn(
-          "fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-2xl shadow-xl bg-m3-on-surface text-m3-surface text-sm font-bold transition-all duration-300",
+          "fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl shadow-xl bg-m3-on-surface text-m3-surface text-sm font-bold transition-all duration-300",
           feedback ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 translate-y-4 pointer-events-none"
         )}
       >

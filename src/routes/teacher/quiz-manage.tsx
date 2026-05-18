@@ -151,7 +151,7 @@ export default function QuizManagePage() {
     return (
       <div className="text-center py-24 text-m3-on-surface-variant space-y-4">
         <div className="flex justify-center">
-          <div className="h-12 w-12 rounded-2xl bg-violet-100 text-violet-700 flex items-center justify-center">
+          <div className="h-12 w-12 rounded-xl bg-blue-100 text-blue-800 flex items-center justify-center">
             <HelpCircle className="h-6 w-6" />
           </div>
         </div>
@@ -393,7 +393,7 @@ export default function QuizManagePage() {
       </div>
 
       {/* Tabs */}
-      <div className="bg-m3-surface-container-low rounded-2xl p-1 inline-flex gap-1 border border-m3-outline-variant/20 shadow-glass">
+      <div className="bg-m3-surface-container-low rounded-xl p-1 inline-flex gap-1 border border-m3-outline-variant/20 shadow-glass">
         {TABS.map((entry) => {
           const active = entry.key === tab;
           return (
@@ -444,7 +444,7 @@ export default function QuizManagePage() {
       {/* Delete confirm modal */}
       {confirmDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-md rounded-2xl bg-m3-surface p-6 shadow-xl space-y-4">
+          <div className="w-full max-w-md rounded-xl bg-m3-surface p-6 shadow-xl space-y-4">
             <div className="flex items-start gap-3">
               <div className="h-10 w-10 rounded-xl bg-red-100 text-red-700 flex items-center justify-center shrink-0">
                 <Trash2 className="h-5 w-5" />
@@ -531,11 +531,11 @@ function QuestionsTab({
         {questionsLoading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((idx) => (
-              <div key={idx} className="h-32 rounded-2xl bg-m3-surface-container animate-pulse" />
+              <div key={idx} className="h-32 rounded-xl bg-m3-surface-container animate-pulse" />
             ))}
           </div>
         ) : questions.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-m3-outline-variant/30 bg-m3-surface-container-lowest p-10 text-center space-y-3">
+          <div className="rounded-xl border border-dashed border-m3-outline-variant/30 bg-m3-surface-container-lowest p-10 text-center space-y-3">
             <HelpCircle className="h-10 w-10 text-m3-outline-variant mx-auto" />
             <div>
               <p className="font-headline font-bold text-m3-on-surface">
@@ -557,7 +557,7 @@ function QuestionsTab({
           type="button"
           onClick={onAddQuestion}
           disabled={addPending}
-          className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-m3-outline-variant/40 rounded-2xl px-6 py-4 text-sm font-bold text-m3-on-surface-variant hover:border-m3-primary hover:text-m3-primary hover:bg-m3-primary/5 transition-all disabled:opacity-60 cursor-pointer"
+          className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-m3-outline-variant/40 rounded-xl px-6 py-4 text-sm font-bold text-m3-on-surface-variant hover:border-m3-primary hover:text-m3-primary hover:bg-m3-primary/5 transition-all disabled:opacity-60 cursor-pointer"
         >
           {addPending ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -604,7 +604,7 @@ function SettingsTab({
   return (
     <form
       onSubmit={onSubmit}
-      className="bg-m3-surface-container-lowest border border-m3-outline-variant/20 rounded-2xl p-6 lg:p-8 space-y-8 shadow-glass"
+      className="bg-m3-surface-container-lowest border border-m3-outline-variant/20 rounded-xl p-6 lg:p-8 space-y-8 shadow-glass"
     >
       {/* Basics */}
       <SettingsSection
@@ -884,7 +884,7 @@ function PreviewTab({
   questions: QuizQuestionRead[];
 }) {
   return (
-    <div className="bg-m3-surface-container-lowest border border-m3-outline-variant/20 rounded-2xl p-6 lg:p-8 space-y-6 shadow-glass">
+    <div className="bg-m3-surface-container-lowest border border-m3-outline-variant/20 rounded-xl p-6 lg:p-8 space-y-6 shadow-glass">
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
         <div>
           <h2 className="font-headline font-extrabold text-xl text-m3-on-surface">
@@ -929,7 +929,7 @@ function PreviewQuestion({
     question.question_type === "mcq" && question.options.length > 0;
 
   return (
-    <div className="rounded-2xl bg-m3-surface-container-low border border-m3-outline-variant/15 p-5 space-y-3">
+    <div className="rounded-xl bg-m3-surface-container-low border border-m3-outline-variant/15 p-5 space-y-3">
       <div className="flex items-start gap-3">
         <span className="shrink-0 h-7 w-7 rounded-full gradient-primary text-white flex items-center justify-center text-xs font-extrabold">
           {index + 1}

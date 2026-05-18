@@ -32,10 +32,10 @@ export default function TopNavBar() {
   }
 
   return (
-    <nav className="fixed top-0 w-full z-50 bg-white/70 backdrop-blur-xl shadow-[0px_20px_40px_rgba(25,28,30,0.06)]">
+    <nav className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-xl border-b border-border">
       <div className="flex items-center justify-between px-8 h-16 w-full max-w-7xl mx-auto">
         <div className="flex items-center gap-8">
-          <Link to="/" className="text-2xl font-bold tracking-tighter text-m3-primary font-headline">
+          <Link to="/" className="text-2xl font-bold tracking-tight text-primary font-heading cursor-pointer">
             aBridgeAI
           </Link>
           <div className="hidden md:flex gap-6 items-center">
@@ -44,10 +44,10 @@ export default function TopNavBar() {
                 key={link.href}
                 to={link.href}
                 className={cn(
-                  "font-headline tracking-tight text-sm font-semibold transition-colors",
+                  "font-heading tracking-tight text-sm font-semibold transition-colors cursor-pointer",
                   location.pathname === link.href
-                    ? "text-m3-secondary border-b-2 border-m3-secondary pb-1"
-                    : "text-m3-on-surface-variant hover:text-m3-primary"
+                    ? "text-primary border-b-2 border-primary pb-1"
+                    : "text-text-muted hover:text-primary"
                 )}
               >
                 {link.label}
@@ -84,7 +84,7 @@ export default function TopNavBar() {
                 <DropdownMenuContent
                   align="end"
                   sideOffset={8}
-                  className="w-56 rounded-xl bg-m3-surface-container-lowest shadow-editorial border border-m3-outline-variant/15 p-1.5"
+                  className="w-56 rounded-lg bg-card shadow-editorial border border-border p-1.5"
                 >
                   <div className="px-3 py-2.5">
                     <p className="text-sm font-semibold text-m3-on-surface truncate">{displayName}</p>

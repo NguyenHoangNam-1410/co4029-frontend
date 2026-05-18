@@ -69,7 +69,7 @@ export default function GoogleCallbackPage() {
   return (
     <main className="min-h-screen bg-m3-surface-bright px-6 py-10 flex items-center justify-center">
       <section className="w-full max-w-md rounded-[2rem] bg-white/80 p-8 text-center shadow-[0_24px_80px_rgba(25,28,30,0.08)] ring-1 ring-m3-outline-variant/20 backdrop-blur">
-        <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-m3-secondary-fixed text-m3-secondary">
+        <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-xl bg-m3-secondary-fixed text-m3-secondary">
           {hasFailed ? (
             <AlertCircle className="h-7 w-7" />
           ) : (

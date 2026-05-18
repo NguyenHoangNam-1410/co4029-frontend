@@ -3,11 +3,11 @@ import { cn } from "@/lib/utils";
 import { type LucideIcon } from "lucide-react";
 
 const statCardVariants = cva(
-  "rounded-2xl p-5 transition-all duration-200 hover:-translate-y-0.5",
+  "rounded-xl p-5 transition-colors duration-200",
   {
     variants: {
       variant: {
-        default: "bg-card shadow-editorial ghost-border",
+        default: "bg-card shadow-editorial ghost-border hover:border-border-strong",
         primary: "gradient-primary text-white",
         glow: "bg-card shadow-ai-glow ghost-border",
         surface: "bg-m3-surface-container-low",
@@ -38,7 +38,7 @@ export function StatCard({ label, value, sublabel, icon: Icon, trend, variant, c
           <p className={cn("text-xs font-medium uppercase tracking-wider", isPrimary ? "text-white/70" : "text-m3-on-surface-variant")}>
             {label}
           </p>
-          <p className={cn("text-2xl font-headline font-bold", isPrimary ? "text-white" : "text-m3-on-surface")}>
+          <p className={cn("text-2xl font-heading font-semibold", isPrimary ? "text-white" : "text-m3-on-surface")}>
             {value}
           </p>
           {sublabel && (
@@ -48,7 +48,7 @@ export function StatCard({ label, value, sublabel, icon: Icon, trend, variant, c
           )}
         </div>
         {Icon && (
-          <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", isPrimary ? "bg-white/15" : "bg-m3-primary-fixed")}>
+          <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center", isPrimary ? "bg-white/15" : "bg-m3-primary-fixed")}>
             <Icon className={cn("h-5 w-5", isPrimary ? "text-white" : "text-m3-primary")} />
           </div>
         )}

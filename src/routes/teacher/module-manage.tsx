@@ -52,7 +52,7 @@ const LESSON_TYPE_CONFIG: Record<string, {
   reading:  { label: "Reading",  icon: BookOpen,   badge: "bg-emerald-50 text-emerald-700" },
 };
 
-const QUIZ_ITEM_CONFIG = { label: "Quiz", icon: HelpCircle, badge: "bg-violet-50 text-violet-700" };
+const QUIZ_ITEM_CONFIG = { label: "Quiz", icon: HelpCircle, badge: "bg-blue-50 text-blue-800" };
 
 const ADD_PILL_CLS =
   "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-m3-on-surface-variant " +
@@ -645,12 +645,12 @@ export function QuizQuestionReviewCard({ question }: { question: QuizQuestionRea
   }
 
   return (
-    <div className="rounded-2xl border border-m3-outline-variant/20 bg-m3-surface p-4 space-y-3">
+    <div className="rounded-xl border border-m3-outline-variant/20 bg-m3-surface p-4 space-y-3">
       <div className="flex items-center gap-2">
         <Badge className="border-0 bg-m3-primary-fixed text-m3-primary text-[10px]">
           Q{question.position}
         </Badge>
-        <Badge className="border-0 bg-violet-50 text-violet-700 text-[10px] capitalize">
+        <Badge className="border-0 bg-blue-50 text-blue-800 text-[10px] capitalize">
           {question.question_type.replace("_", " ")}
         </Badge>
         <Badge
@@ -666,7 +666,7 @@ export function QuizQuestionReviewCard({ question }: { question: QuizQuestionRea
       </div>
 
       {regenInFlight && (
-        <div className="rounded-xl border border-violet-200 bg-violet-50 px-3 py-2 text-xs text-violet-800 flex items-center gap-2">
+        <div className="rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-900 flex items-center gap-2">
           <Loader2 className="h-3.5 w-3.5 animate-spin shrink-0" />
           <span>Re-running the AI pipeline for this question. The card refreshes automatically when the run completes.</span>
         </div>
@@ -826,7 +826,7 @@ export function QuizQuestionReviewCard({ question }: { question: QuizQuestionRea
           variant="outline"
           disabled={regenInFlight || patchQuestion.isPending}
           onClick={regenerate}
-          className="gap-1.5 border-violet-200 text-violet-700 hover:bg-violet-50 hover:text-violet-700"
+          className="gap-1.5 border-blue-200 text-blue-800 hover:bg-blue-50 hover:text-blue-800"
           title="Re-run the AI pipeline for this question only"
         >
           {regenInFlight ? (
@@ -961,7 +961,7 @@ function PipelineSummary({ run }: { run: GenerationRun | undefined }) {
   if (stages.length === 0) return null;
 
   return (
-    <div className="rounded-2xl border border-m3-secondary/15 bg-m3-secondary-fixed/15 p-3 space-y-2">
+    <div className="rounded-xl border border-m3-secondary/15 bg-m3-secondary-fixed/15 p-3 space-y-2">
       <div className="flex items-center gap-2">
         <Workflow className="h-3.5 w-3.5 text-m3-secondary" />
         <p className="text-[10px] font-bold uppercase tracking-widest text-m3-secondary">
@@ -1714,7 +1714,7 @@ export function QuizGenerationPanel({ module, courseId, targetQuizId, compact = 
   const publishDisabled = !quizId || questions.length === 0 || quiz?.status === "published" || publishQuiz.isPending;
 
   return (
-    <section className="mt-6 rounded-2xl border border-m3-secondary/10 bg-m3-surface-container-low overflow-hidden">
+    <section className="mt-6 rounded-xl border border-m3-secondary/10 bg-m3-surface-container-low overflow-hidden">
       <div className="px-5 py-4 border-b border-m3-outline-variant/10 flex flex-col sm:flex-row sm:items-center gap-3">
         <div className="flex items-center gap-2 flex-1">
           <div className="h-9 w-9 rounded-xl gradient-primary flex items-center justify-center shadow-ai-glow">
@@ -1937,7 +1937,7 @@ export function QuizGenerationPanel({ module, courseId, targetQuizId, compact = 
         <div className="space-y-4">
           {showReview && !quizId && !activeRunId && (
             <div className={cn(
-              "h-full rounded-2xl border border-dashed border-m3-outline-variant/30 bg-m3-surface/70 flex flex-col items-center justify-center text-center p-8",
+              "h-full rounded-xl border border-dashed border-m3-outline-variant/30 bg-m3-surface/70 flex flex-col items-center justify-center text-center p-8",
               compact ? "min-h-[160px]" : "min-h-[280px]",
             )}>
               <HelpCircle className="h-10 w-10 text-m3-outline-variant mb-3" />
@@ -1949,7 +1949,7 @@ export function QuizGenerationPanel({ module, courseId, targetQuizId, compact = 
           )}
 
           {generationInProgress && (
-            <div className="rounded-2xl bg-m3-surface p-6 border border-m3-secondary/10 text-center space-y-3">
+            <div className="rounded-xl bg-m3-surface p-6 border border-m3-secondary/10 text-center space-y-3">
               <Loader2 className="h-8 w-8 animate-spin text-m3-secondary mx-auto" />
               <p className="font-headline font-bold text-m3-on-surface">Building quiz draft</p>
               <p className="text-sm text-m3-on-surface-variant">
@@ -1960,7 +1960,7 @@ export function QuizGenerationPanel({ module, courseId, targetQuizId, compact = 
           )}
 
           {generationFailed && (
-            <div className="rounded-2xl bg-red-50 p-4 border border-red-100 text-red-700 text-sm space-y-2">
+            <div className="rounded-xl bg-red-50 p-4 border border-red-100 text-red-700 text-sm space-y-2">
               <div className="flex gap-2">
                 <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
                 <div className="space-y-1">
@@ -1994,11 +1994,11 @@ export function QuizGenerationPanel({ module, courseId, targetQuizId, compact = 
               {questionsLoading ? (
                 <div className="space-y-3">
                   {[1, 2, 3].map((item) => (
-                    <div key={item} className="h-32 rounded-2xl bg-m3-surface animate-pulse" />
+                    <div key={item} className="h-32 rounded-xl bg-m3-surface animate-pulse" />
                   ))}
                 </div>
               ) : questions.length === 0 ? (
-                <div className="rounded-2xl bg-m3-surface p-6 text-center text-sm text-m3-on-surface-variant">
+                <div className="rounded-xl bg-m3-surface p-6 text-center text-sm text-m3-on-surface-variant">
                   No questions have been created yet. Add one manually or generate from ready materials.
                 </div>
               ) : (
@@ -2106,10 +2106,10 @@ export function QuizAuthoringPanel({ quizId, module, courseId, onClose, withGene
   }
 
   return (
-    <section className="mt-6 rounded-2xl border border-violet-100 bg-m3-surface-container-low overflow-hidden">
+    <section className="mt-6 rounded-xl border border-blue-100 bg-m3-surface-container-low overflow-hidden">
       <div className="px-5 py-4 border-b border-m3-outline-variant/10 flex flex-col sm:flex-row sm:items-center gap-3">
         <div className="flex items-center gap-2 flex-1">
-          <div className="h-9 w-9 rounded-xl bg-violet-100 text-violet-700 flex items-center justify-center">
+          <div className="h-9 w-9 rounded-xl bg-blue-100 text-blue-800 flex items-center justify-center">
             <HelpCircle className="h-5 w-5" />
           </div>
           <div>
@@ -2190,7 +2190,7 @@ export function QuizAuthoringPanel({ quizId, module, courseId, onClose, withGene
             </div>
           </div>
 
-          <div className="rounded-2xl border border-m3-outline-variant/15 bg-m3-surface p-4 space-y-4">
+          <div className="rounded-xl border border-m3-outline-variant/15 bg-m3-surface p-4 space-y-4">
             <div>
               <h3 className="font-headline font-bold text-sm text-m3-on-surface">Adaptive Review</h3>
               <p className="text-xs text-m3-on-surface-variant mt-1">
@@ -2326,7 +2326,7 @@ function ModuleSettings({ module, courseId }: { module: CourseContentModule; cou
   return (
     <div className="space-y-5">
       {/* Stats */}
-      <div className="bg-m3-surface-container-low rounded-2xl p-5 space-y-4">
+      <div className="bg-m3-surface-container-low rounded-xl p-5 space-y-4">
         <h3 className="font-headline font-bold text-base text-m3-primary">Module Stats</h3>
         <div className="grid grid-cols-2 gap-3">
           {[
@@ -2344,7 +2344,7 @@ function ModuleSettings({ module, courseId }: { module: CourseContentModule; cou
       </div>
 
       {/* Settings form */}
-      <form onSubmit={handleSave} className="bg-m3-surface-container-low rounded-2xl p-5 space-y-4">
+      <form onSubmit={handleSave} className="bg-m3-surface-container-low rounded-xl p-5 space-y-4">
         <h3 className="font-headline font-bold text-base text-m3-primary">Settings</h3>
 
         <div className="space-y-1.5">
@@ -2577,7 +2577,7 @@ export default function ModuleManagePage() {
       <div className="grid grid-cols-12 gap-6 items-start">
         {/* Items list — 8 cols */}
         <div className="col-span-12 lg:col-span-8">
-          <div className="bg-m3-surface-container-low rounded-2xl overflow-hidden">
+          <div className="bg-m3-surface-container-low rounded-xl overflow-hidden">
             <div className="px-5 py-4 border-b border-m3-outline-variant/10 flex items-center gap-2">
               <h2 className="font-headline font-bold text-sm text-m3-on-surface flex-1">Curriculum Items</h2>
               <span className="text-xs text-m3-on-surface-variant">Drag to reorder</span>

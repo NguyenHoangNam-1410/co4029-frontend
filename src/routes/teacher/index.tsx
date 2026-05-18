@@ -62,7 +62,7 @@ export default function TeacherDashboard() {
         {isLoading ? (
           <div className="grid md:grid-cols-2 gap-4 mt-4">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-28 bg-m3-surface-container animate-pulse rounded-2xl" />
+              <div key={i} className="h-28 bg-m3-surface-container animate-pulse rounded-xl" />
             ))}
           </div>
         ) : courses.length === 0 ? (
@@ -86,7 +86,7 @@ export default function TeacherDashboard() {
                 params={{ courseId: course.id }}
                 className="group block"
               >
-                <div className="bg-card rounded-2xl p-5 shadow-editorial ghost-border hover:-translate-y-0.5 transition-all duration-200">
+                <div className="bg-card rounded-xl p-5 shadow-editorial ghost-border hover:-translate-y-0.5 transition-all duration-200">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <h3 className="font-headline font-semibold text-sm text-m3-on-surface truncate">

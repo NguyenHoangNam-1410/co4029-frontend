@@ -96,9 +96,9 @@ export default function LoginPage() {
             </p>
           </header>
 
-          <div className="space-y-5 rounded-3xl bg-white/70 p-5 shadow-[0_24px_80px_rgba(25,28,30,0.08)] ring-1 ring-m3-outline-variant/20 backdrop-blur">
+          <div className="space-y-5 rounded-xl bg-white/70 p-5 shadow-[0_24px_80px_rgba(25,28,30,0.08)] ring-1 ring-m3-outline-variant/20 backdrop-blur">
             <Button
-              className="w-full h-14 rounded-2xl bg-m3-surface-container-lowest text-m3-primary hover:bg-m3-surface-container-low border border-m3-outline-variant/20 font-bold shadow-sm active:scale-[0.99] transition-all flex items-center justify-center gap-3"
+              className="w-full h-14 rounded-xl bg-m3-surface-container-lowest text-m3-primary hover:bg-m3-surface-container-low border border-m3-outline-variant/20 font-bold shadow-sm active:scale-[0.99] transition-all flex items-center justify-center gap-3"
               disabled={isLoading}
               onClick={handleGoogleLogin}
               type="button"
@@ -123,7 +123,7 @@ export default function LoginPage() {
               </p>
             )}
 
-            <div className="flex items-start gap-3 rounded-2xl bg-m3-secondary-fixed/70 px-4 py-3">
+            <div className="flex items-start gap-3 rounded-xl bg-m3-secondary-fixed/70 px-4 py-3">
               <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-m3-secondary" />
               <p className="text-sm font-medium leading-relaxed text-m3-on-secondary-fixed">
                 aBridgeAI currently supports Google OAuth only. New approved users are
