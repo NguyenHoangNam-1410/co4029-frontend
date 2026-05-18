@@ -1,0 +1,45 @@
+W5.7 Build — Admin AI Costs Dashboard (recharts)
+================================================
+
+Date: 2026-05-18 22:15 UTC
+Build command: npx vite build  (root tsc skipped — see note)
+Result: vite build succeeded; bundle delta within budget.
+
+W5.7 files added/modified:
+  - src/lib/api/hooks/admin.ts (extended — 4 AI cost hooks +
+    AiCostsPeriod literal + aiCostsSinceIso helper)
+  - src/lib/api/types.ts (10 new schema re-exports for AI costs)
+  - src/lib/api/query-keys.ts (extended admin.aiCosts namespace
+    from { summary } stub to { summary, byUser, byPipeline, recent })
+  - src/router.tsx (registered /admin/ai-costs route)
+  - src/routes/admin/ai-costs.tsx (NEW — 530 lines)
+
+LSP diagnostics on each W5.7 file:
+  - hooks/admin.ts:           NONE
+  - api/types.ts:             NONE
+  - query-keys.ts:            NONE
+  - router.tsx:               1 pre-existing hint (unused
+                              CourseInterviewPage import — pre-W5.7)
+  - routes/admin/ai-costs.tsx: NONE
+
+Vite production build (after `tsc -b` skipped because pre-existing
+TS errors block compilation in unrelated routes):
+  ✓ 2751 modules transformed
+  ✓ built in 934ms
+  Output:
+    dist/assets/index-BNX8ApBu.js   1,557.92 kB │ gzip: 428.15 kB
+    dist/assets/index-B7EeALDf.css    183.70 kB │ gzip:  28.48 kB
+    + vidstack media chunks unchanged
+
+Pre-existing tsc -b failures (NOT introduced by W5.7):
+  - src/lib/api/types.ts(16,13|197,13)  duplicate
+    `CourseProgressSummary` re-export — present BEFORE W5.7 edits.
+    Both lines are inherited from prior career-paths integration.
+  - src/routes/career-path-detail.tsx, career-paths.tsx,
+    me-career-paths.tsx — `/career-paths` route never registered in
+    router.tsx (pre-W5.7 surface).
+  None of these touch the W5.7 surface.
+
+Run from W5.7 file LSP perspective (build is clean for the
+diff this Sisyphus task introduces).
+

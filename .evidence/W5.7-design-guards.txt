@@ -1,0 +1,28 @@
+W5.7 Design Guards — Admin AI Costs Dashboard
+=============================================
+
+Date: 2026-05-18 22:15 UTC
+Run from: workspace root (/home/co4029/co4029_projects)
+
+1. No-purple guard
+   Command: bash frontend-vite/scripts/check-no-purple.sh
+   Output:  OK: no purple/violet
+   Exit:    0
+
+2. Radius scale guard
+   Command: bash frontend-vite/scripts/check-radius.sh
+   Output:  OK: radius scale enforced
+   Exit:    0
+
+W5.7 surface uses only design tokens:
+  - var(--color-primary), var(--color-text-muted),
+    var(--color-border), var(--color-surface-muted)
+    (in recharts XAxis/YAxis/CartesianGrid/Tooltip/Bar)
+  - bg-surface-elev / bg-surface-muted / border-border /
+    text-text-strong / text-text-muted / text-danger
+    (Tailwind utility classes mapped to tokens via app.css)
+  - rounded-{lg,md,xl} only — no arbitrary radii
+  - bg-m3-primary for the active period button (matches existing
+    admin/processing.tsx filter button pattern)
+  - No hex literals introduced.
+  - No purple/violet anywhere.

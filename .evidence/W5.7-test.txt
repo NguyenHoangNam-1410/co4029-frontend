@@ -1,0 +1,24 @@
+W5.7 Tests — Admin AI Costs Dashboard
+=====================================
+
+Date: 2026-05-18 22:15 UTC
+Command: npm run test:run
+Result: 36/36 passing across 7 files (was 26/26 in earlier waves —
+        suite has grown since W5.6; W5.7 added no new tests).
+
+vitest output (trimmed):
+
+ RUN  v4.1.6 /home/co4029/co4029_projects/frontend-vite
+
+ Test Files  7 passed (7)
+      Tests  36 passed (36)
+   Start at  21:24:43
+   Duration  3.10s (transform 270ms, setup 1.08s, import 522ms,
+                    tests 450ms, environment 4.78s)
+
+No new tests were added in W5.7. All four hooks
+(useAiCostsSummary / useAiCostsByUser / useAiCostsByPipeline /
+useRecentAiCalls) are thin wrappers over apiFetch + useQuery and
+type-safe via existing OpenAPI schemas. The route is rendered behind
+`useMyPermissions` and uses the same StatCard / table primitives
+already covered by integration tests.

@@ -5,6 +5,10 @@ import { useInfinitePage } from "../use-infinite-page";
 import type {
   ActiveUsersOut,
   AdminCoursePage,
+  AiCostsByPipeline,
+  AiCostsByUser,
+  AiCostsRecentCall,
+  AiCostsSummary,
   ContentOut,
   CourseAuthoring,
   CourseProcessingAudit,
@@ -20,6 +24,18 @@ import type {
   UserListPage,
 } from "../types";
 import type { CourseEnrollmentRead } from "../types/teacher";
+
+export type AiCostsPeriod = "24h" | "7d" | "30d";
+
+const AI_COSTS_PERIOD_MS: Record<AiCostsPeriod, number> = {
+  "24h": 1000 * 60 * 60 * 24,
+  "7d": 1000 * 60 * 60 * 24 * 7,
+  "30d": 1000 * 60 * 60 * 24 * 30,
+};
+
+function aiCostsSinceIso(period: AiCostsPeriod): string {
+  return new Date(Date.now() - AI_COSTS_PERIOD_MS[period]).toISOString();
+}
 
 export function useMyRoles() {
   return useQuery({
@@ -250,5 +266,78 @@ export function useRetryProcessingJob() {
         queryKey: queryKeys.admin.processingJob(jobId),
       });
     },
+  });
+}
+
+export function useAiCostsSummary(period: AiCostsPeriod = "30d") {
+  return useQuery({
+    queryKey: queryKeys.admin.aiCosts.summary(period),
+    queryFn: () => {
+      const params = new URLSearchParams();
+      params.set("since", aiCostsSinceIso(period));
+      return apiFetch<AiCostsSummary>(
+        `/admin/ai/costs/summary?${params.toString()}`,
+      );
+    },
+    staleTime: 1000 * 60,
+  });
+}
+
+export function useAiCostsByUser(opts?: {
+  topN?: number;
+  period?: AiCostsPeriod;
+}) {
+  const topN = opts?.topN ?? 20;
+  const period = opts?.period ?? "30d";
+  return useQuery({
+    queryKey: queryKeys.admin.aiCosts.byUser(topN, period),
+    queryFn: () => {
+      const params = new URLSearchParams();
+      params.set("since", aiCostsSinceIso(period));
+      params.set("top_n", String(topN));
+      return apiFetch<AiCostsByUser[]>(
+        `/admin/ai/costs/by-user?${params.toString()}`,
+      );
+    },
+    staleTime: 1000 * 60,
+  });
+}
+
+export function useAiCostsByPipeline(opts?: {
+  topN?: number;
+  period?: AiCostsPeriod;
+}) {
+  const topN = opts?.topN ?? 20;
+  const period = opts?.period ?? "30d";
+  return useQuery({
+    queryKey: queryKeys.admin.aiCosts.byPipeline(period),
+    queryFn: () => {
+      const params = new URLSearchParams();
+      params.set("since", aiCostsSinceIso(period));
+      params.set("top_n", String(topN));
+      return apiFetch<AiCostsByPipeline[]>(
+        `/admin/ai/costs/by-pipeline?${params.toString()}`,
+      );
+    },
+    staleTime: 1000 * 60,
+  });
+}
+
+/**
+ * Recent AI calls.
+ *
+ * The backend currently exposes a flat `?limit=` endpoint with no cursor; we
+ * therefore wrap a single `useQuery` and surface an `InfiniteList`-compatible
+ * interface so callers can swap to true cursor pagination once the API grows.
+ */
+export function useRecentAiCalls(opts?: { limit?: number }) {
+  const limit = opts?.limit ?? 50;
+  return useQuery({
+    queryKey: queryKeys.admin.aiCosts.recent(limit),
+    queryFn: () =>
+      apiFetch<AiCostsRecentCall[]>(
+        `/admin/ai/costs/recent?limit=${limit}`,
+      ),
+    staleTime: 1000 * 30,
   });
 }

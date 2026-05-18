@@ -1,0 +1,33 @@
+W5.7 Bundle Budget — Admin AI Costs Dashboard (recharts)
+========================================================
+
+Date: 2026-05-18 22:15 UTC
+Baseline: bundle-baseline.json (W0.11 baseline)
+  total_gzip_kb : 377.59
+  budget_pct    : 30  (i.e. max +30%, or 490.87 kB)
+
+W5.7 measurement
+----------------
+Command:    npx vite build
+Result:     ✓ built in 934ms
+Total gzip: 476.85 kB (sum of all .js gzip values reported by vite)
+
+Delta vs baseline:
+  current  = 476.85 kB
+  baseline = 377.59 kB
+  delta    = +99.26 kB  (+26.29%)
+  budget   = +30%       (max 490.87 kB)
+  verdict  = WITHIN BUDGET (26.29% <= 30%)
+
+Composition note:
+  recharts (pre-installed by Atlas) + d3-shape/scale tree-shake into
+  the main chunk for this route. Of the +99.26 kB delta versus the
+  W0.11 baseline, the W5.7 contribution is the import of
+  { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip,
+    XAxis, YAxis } from "recharts" plus the new ai-costs.tsx route
+  (~10 kB raw / ~3 kB gzipped). The bulk of the delta is recharts'
+  shared core which is now active for the first time. Subsequent
+  charts on other admin surfaces will reuse the same code-split,
+  so the marginal cost of new charts is near-zero.
+
+Within budget — no baseline refresh required.

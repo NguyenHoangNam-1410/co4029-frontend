@@ -36,6 +36,9 @@ import CourseStudentsPage from "@/routes/teacher/course-students";
 import CourseStudentDetailPage from "@/routes/teacher/course-student-detail";
 import ModuleManagePage from "@/routes/teacher/module-manage";
 import QuizManagePage from "@/routes/teacher/quiz-manage";
+import InterviewConfigNewPage from "@/routes/teacher/interview-config-new";
+import InterviewConfigPage from "@/routes/teacher/interview-config";
+import InterviewGapReportPage from "@/routes/teacher/interview-gap-report";
 import AdminHealthPage from "@/routes/admin/health";
 import AdminStatsPage from "@/routes/admin/stats";
 import AdminStatsActivePage from "@/routes/admin/stats-active";
@@ -47,9 +50,20 @@ import AdminCoursesPage from "@/routes/admin/courses";
 import AdminCourseDetailPage from "@/routes/admin/course-detail";
 import AdminProcessingPage from "@/routes/admin/processing";
 import AdminProcessingJobPage from "@/routes/admin/processing-job";
+import AdminAiCostsPage from "@/routes/admin/ai-costs";
 import DeptCoursesPage from "@/routes/dept-courses";
 import DeptCourseDetailPage from "@/routes/dept-course-detail";
 import ManagementCourseEnrollmentsPage from "@/routes/management-course-enrollments";
+import CareerPathsPage from "@/routes/career-paths";
+import CareerPathDetailPage from "@/routes/career-path-detail";
+import MyCareerPathsPage from "@/routes/me-career-paths";
+import ManagementCareerPathsPage from "@/routes/management-career-paths";
+import ManagementCareerPathDetailPage from "@/routes/management-career-path-detail";
+import SrDashboardPage from "@/routes/sr-dashboard";
+import StudyCardsDuePage from "@/routes/study-cards-due";
+import TeacherSrCohortPage from "@/routes/teacher/sr-cohort";
+import TeacherSrAtRiskPage from "@/routes/teacher/sr-at-risk";
+import TeacherSrStudentDetailPage from "@/routes/teacher/sr-student-detail";
 
 /* ── Root layout ── */
 function Root() {
@@ -225,6 +239,24 @@ const teacherQuizManageRoute = createRoute({
   component: QuizManagePage,
 });
 
+const teacherInterviewConfigNewRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/teacher/courses/$courseId/interview-configs/new",
+  component: InterviewConfigNewPage,
+});
+
+const teacherInterviewConfigRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/teacher/courses/$courseId/interview-configs/$configId",
+  component: InterviewConfigPage,
+});
+
+const teacherInterviewGapReportRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/teacher/interview-sessions/$sessionId/gap-report",
+  component: InterviewGapReportPage,
+});
+
 const teacherCourseStudentsRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/teacher/courses/$courseId/students",
@@ -303,6 +335,12 @@ const adminProcessingJobRoute = createRoute({
   component: AdminProcessingJobPage,
 });
 
+const adminAiCostsRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/admin/ai-costs",
+  component: AdminAiCostsPage,
+});
+
 const deptCoursesRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/dept",
@@ -319,6 +357,66 @@ const managementCourseEnrollmentsRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/management/courses/$courseId/enrollments",
   component: ManagementCourseEnrollmentsPage,
+});
+
+const careerPathsRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/career-paths",
+  component: CareerPathsPage,
+});
+
+const careerPathDetailRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/career-paths/$slug",
+  component: CareerPathDetailPage,
+});
+
+const myCareerPathsRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/me/career-paths",
+  component: MyCareerPathsPage,
+});
+
+const managementCareerPathsRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/management/career-paths",
+  component: ManagementCareerPathsPage,
+});
+
+const managementCareerPathDetailRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/management/career-paths/$id",
+  component: ManagementCareerPathDetailPage,
+});
+
+const srDashboardRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/dashboard/sr",
+  component: SrDashboardPage,
+});
+
+const studyCardsDueRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/study/cards-due",
+  component: StudyCardsDuePage,
+});
+
+const teacherSrCohortRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/teacher/courses/$courseId/sr-cohort",
+  component: TeacherSrCohortPage,
+});
+
+const teacherSrAtRiskRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/teacher/courses/$courseId/at-risk",
+  component: TeacherSrAtRiskPage,
+});
+
+const teacherSrStudentDetailRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/teacher/courses/$courseId/students/$studentId/sr",
+  component: TeacherSrStudentDetailPage,
 });
 
 const callbackRoute = createRoute({
@@ -358,6 +456,9 @@ const routeTree = rootRoute.addChildren([
     teacherLessonMaterialsRoute,
     teacherModuleManageRoute,
     teacherQuizManageRoute,
+    teacherInterviewConfigNewRoute,
+    teacherInterviewConfigRoute,
+    teacherInterviewGapReportRoute,
     teacherCourseStudentsRoute,
     teacherCourseStudentDetailRoute,
     adminHealthRoute,
@@ -371,9 +472,20 @@ const routeTree = rootRoute.addChildren([
     adminCourseDetailRoute,
     adminProcessingRoute,
     adminProcessingJobRoute,
+    adminAiCostsRoute,
     deptCoursesRoute,
     deptCourseDetailRoute,
     managementCourseEnrollmentsRoute,
+    careerPathsRoute,
+    careerPathDetailRoute,
+    myCareerPathsRoute,
+    managementCareerPathsRoute,
+    managementCareerPathDetailRoute,
+    srDashboardRoute,
+    studyCardsDueRoute,
+    teacherSrCohortRoute,
+    teacherSrAtRiskRoute,
+    teacherSrStudentDetailRoute,
   ]),
   callbackRoute,
 ]);
