@@ -1,0 +1,16 @@
+
+> abridgeai-frontend@0.1.0 test:e2e
+> playwright test --grep wave-2-smoke
+
+
+Running 6 tests using 1 worker
+
+  ✓  1 [chromium] › tests/e2e/wave-2-smoke.spec.ts:65:3 › wave-2-smoke › course catalog renders + first page loads (1.7s)
+  ✓  2 [chromium] › tests/e2e/wave-2-smoke.spec.ts:81:3 › wave-2-smoke › course detail shows instructor card or fallback (1.5s)
+  ✓  3 [chromium] › tests/e2e/wave-2-smoke.spec.ts:94:3 › wave-2-smoke › course content excludes draft modules (1.4s)
+  ✓  4 [chromium] › tests/e2e/wave-2-smoke.spec.ts:105:3 › wave-2-smoke › lesson viewer route loads without crash (1.2s)
+  -  5 [chromium] › tests/e2e/wave-2-smoke.spec.ts:131:3 › wave-2-smoke › material player renders when material is seeded
+  ✓  6 [chromium] › tests/e2e/wave-2-smoke.spec.ts:146:3 › wave-2-smoke › notifications inbox renders header + empty state or items (1.2s)
+
+  1 skipped
+  5 passed (9.4s)
