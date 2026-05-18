@@ -14,7 +14,7 @@ if [ ! -f "$BASELINE_FILE" ]; then
 fi
 
 echo "Building project..."
-BUILD_OUTPUT=$(bun run build 2>&1)
+BUILD_OUTPUT=$(npm run build 2>&1)
 
 TOTAL_GZIP=$(echo "$BUILD_OUTPUT" | grep -E '\.js\s' | grep -oP 'gzip:\s+\K[\d,]+\.?\d*' | tr -d ',' | paste -sd+ | bc)
 

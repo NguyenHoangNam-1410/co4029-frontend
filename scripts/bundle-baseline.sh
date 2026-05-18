@@ -11,7 +11,7 @@ BASELINE_FILE="$PROJECT_DIR/bundle-baseline.json"
 cd "$PROJECT_DIR"
 
 echo "Building project..."
-BUILD_OUTPUT=$(bun run build 2>&1)
+BUILD_OUTPUT=$(npm run build 2>&1)
 
 echo "$BUILD_OUTPUT"
 
@@ -34,7 +34,7 @@ cat > "$BASELINE_FILE" <<EOF
   "main_gzip_kb": $MAIN_GZIP,
   "total_gzip_kb": $TOTAL_GZIP,
   "budget_pct": 30,
-  "build_command": "bun run build"
+  "build_command": "npm run build"
 }
 EOF
 

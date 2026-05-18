@@ -1,0 +1,10 @@
+
+> abridgeai-frontend@0.1.0 codegen:check
+> npm run codegen:api && git diff --exit-code src/lib/api/openapi-types.d.ts
+
+
+> abridgeai-frontend@0.1.0 codegen:api
+> openapi-typescript ./openapi-snapshot.json -o ./src/lib/api/openapi-types.d.ts --root-types
+
+✨ openapi-typescript 7.13.0
+🚀 ./openapi-snapshot.json → ./src/lib/api/openapi-types.d.ts [335.4ms]
