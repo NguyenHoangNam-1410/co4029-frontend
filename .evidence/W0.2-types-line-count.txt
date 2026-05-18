@@ -1,0 +1,4 @@
+13508 src/lib/api/openapi-types.d.ts
+components[ refs in types.ts: 1
+Schemas[ refs in types.ts (Schemas = components["schemas"]): 36
+total exported types in types.ts: 38
