@@ -1,0 +1,20 @@
+=== T0 Audit Report Evidence References ===
+
+5:- **Yes, the new backend has embedding.** `EmbeddingClient` (`backend-new/abridgeai/ai/llm/embeddings.py:31`) wraps `POST /embeddings` with dimension validation, audit rows, and cost tracking. The `document_chunks` table stores `vector(1536)` with an HNSW index (`migrations/versions/0001_baseline_schema.py:619,1159`).
+6:- **The pipeline is not 5-stage but 9-state.** Processing status follows a 9-state machine defined at `backend-new/abridgeai/features/materials/schemas/status.py:22-32`: `pending` -> `extracting` -> `chunking` -> `embedding` -> `enriching` -> `building_kg` -> `ready` (or `failed` / `cancelled`).
+7:- **Two legacy components are not yet ported:** `build_lesson_outline` and `allocate_question_budget` (legacy: `backend/app/ai/haystack/components/outline.py:86,345`). The coverage pipeline explicitly raises `ValueError` when outlines are missing (`backend-new/abridgeai/features/quizzes/ai/pipelines/coverage.py:102-105`).
+50:**Jinja2 prompt system vs f-strings.** The legacy backend built all LLM prompts via Python f-strings inlined in `prompts/quiz.py`, `prompts/interview.py`, etc. The new backend uses a caller-relative Jinja2 loader (`ai/prompts/loader.py:29`) with `StrictUndefined` so missing variables fail loudly. There are 16 production `.j2` template files (plus 4 eval judge templates and 2 test fixtures, totalling 22 `.j2` files in the tree).
+52:**15 LLM roles vs 7.** Legacy defined 7 roles (`backend/app/integrations/llm/roles.py:22-34`): EXTRACTION, ENRICHMENT, IDEATION, GENERATION, VALIDATION, EMBEDDING, CHUNKING_ENRICHMENT. The new backend adds 8 more (`backend-new/abridgeai/ai/llm/roles.py:29-44`): KG_EXTRACTION, STT, VISION, INTERVIEW_GENERATION, INTERVIEW_VALIDATION, INTERVIEW_FOLLOWUP, INTERVIEW_EVALUATION, GAP_REPORT_GENERATION. This enables per-role model selection and cost attribution for every pipeline stage.
+54:**Per-MIME extractor registry.** Legacy used a single `extractors.py` with conditional branches. The new backend has 10 dedicated extractor modules (`pdf.py`, `docx.py`, `pptx.py`, `html.py`, `audio.py`, `video.py`, `image.py`, `code.py`, `text.py`, `_local_mock.py`) registered via `@register_extractor("mime/type")` decorator (`ai/extraction/registry.py:29`). Adding a new format requires one file, zero changes to existing code.
+58:**Robust JSON parsing.** `LLMGateway._parse_llm_json` (`gateway.py:41-85`) handles fenced code blocks, trailing junk, and concatenated objects. Legacy relied on strict `json.loads` and crashed on non-compliant providers.
+60:**HTTP 429 retry.** The new `OpenAICompatibleClient` (`client.py:42-44`) retries rate-limited responses up to 4 attempts with exponential backoff and `Retry-After` header support. Legacy had no inline retry.
+66:**Evidence:** `backend/app/ai/haystack/components/outline.py:86` defines `build_lesson_outline` (walks chunks, groups into `OutlineSection` records). Line 345 defines `allocate_question_budget` (char-weighted distribution with min/max clamping).
+70:> `backend-new/abridgeai/features/quizzes/ai/pipelines/coverage.py:33-38`
+73:The pipeline raises `ValueError` at runtime if `outlines` is not pre-supplied (`coverage.py:102-105`).
+77:**Evidence:** `backend-new/abridgeai/features/quizzes/ai/pipelines/coverage.py:74-76` comments:
+81:And `coverage.py:246-248`:
+85:The fallback is a module constant `_DEFAULT_PARALLELISM = 4` (`coverage.py:77`). Operators cannot tune this without a code change.
+89:**Evidence:** `backend-new/abridgeai/ai/retrieval/pgvector.py:11-20`:
+98:- `backend-new/abridgeai/features/quizzes/ai/pipelines/full.py:9`
+99:- `backend-new/abridgeai/features/quizzes/ai/pipelines/coverage.py:29`
+100:- `backend-new/abridgeai/features/interviews/ai/pipelines/generation.py:10`

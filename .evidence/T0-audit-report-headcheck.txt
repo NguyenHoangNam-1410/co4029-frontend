@@ -1,0 +1,18 @@
+=== T0 Audit Report Head Check ===
+
+Word count:
+1457 /home/co4029/co4029_projects/docs/ai-parity-report.md
+
+embedding mentions (>=5):
+6
+
+9-state mentions (>=1):
+1
+
+build_lesson_outline/allocate_question_budget mentions (>=1):
+9
+
+file:line references (>=6):
+18
+
+ALL CHECKS PASS
