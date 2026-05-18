@@ -1,0 +1,25 @@
+W4.12 self-enroll / redeem-code grep audit
+==========================================
+Date: 2026-05-18
+Command (per spec):
+  grep -rn "POST.*\/me\/enrollments\|invitation-codes\/redeem\|useSelfEnroll\|useRedeemInvitationCode" \
+    frontend-vite/src --include="*.ts" --include="*.tsx"
+Result: 0 matches (exit 1 from grep == no matches)
+
+Extended audit (broader patterns):
+  grep -rn "self_enroll\|self-enroll\|redeem-code\|RedeemCode\|redeem_code\|EnrollInCourse" \
+    frontend-vite/src --include="*.ts" --include="*.tsx"
+Result: 0 matches
+
+Notes:
+- The Wave 0/1 work already removed self-enroll + redeem-code UI from frontend-vite
+  before W4.12 ran; this audit confirms zero residual references.
+- `placeholder.tsx` had `InterviewPage` and `QuizPage` placeholders;
+  removed `InterviewPage` since the live route now renders `course-interview.tsx`,
+  and removed `QuizPage` (already unused — router was using `CourseQuizPage`).
+- `enrollments.ts` is retained — exposes only HOD/Manager/Admin roster ops
+  (bulk enroll, CSV import, drop, invitation-code CRUD for teachers), NOT the
+  removed learner-facing self-enroll or redeem-code endpoints.
+- The `enrollment` deep-link target in `notifications/deep-link.ts`
+  (`/me/enrollments`) is a teacher/admin-side route, not a learner self-enroll
+  flow; it is left untouched (no UI exists for it on the learner shell).

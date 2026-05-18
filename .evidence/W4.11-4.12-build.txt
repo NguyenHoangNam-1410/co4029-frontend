@@ -1,0 +1,108 @@
+W4.11 + W4.12 Build Evidence
+============================
+
+Date: 2026-05-18
+Build command: npx tsc -b --force ; npx vite build
+Tested with: TypeScript LSP per-file diagnostics + tsc -b --force + npm run test:run
+
+Per-file LSP diagnostics (severity=error) — ALL CLEAN:
+  src/lib/api/hooks/quizzes.ts                 — No diagnostics
+  src/lib/api/hooks/interviews.ts              — No diagnostics
+  src/lib/api/types.ts                         — No diagnostics
+  src/lib/api/query-keys.ts                    — No diagnostics
+  src/components/ui/card-cooldown-badge.tsx    — No diagnostics
+  src/routes/course-quiz.tsx                   — No diagnostics
+  src/routes/course-interview.tsx              — No diagnostics
+  src/router.tsx                               — No diagnostics
+  src/routes/placeholder.tsx                   — No diagnostics
+
+Pre-existing errors NOT introduced by W4.11/W4.12 (out of scope):
+  src/lib/api/hooks/teacher-courses.ts         — DELETED ON DISK (file exists
+                                                  in HEAD; pre-existing
+                                                  working-tree state from an
+                                                  earlier wave). Restoration
+                                                  is W5.1 scope (teacher
+                                                  authoring).
+
+  src/routes/teacher/lesson-manage.tsx         — references missing exports
+  src/routes/teacher/lesson-materials.tsx        `useTeacherRequestUploadUrl`,
+                                                 `useCreateMaterial` from
+                                                 hooks/materials.ts. Pre-
+                                                 existing rename drift; owned
+                                                 by teacher authoring (W5.1+).
+
+  src/routes/teacher/course-manage.tsx         — narrowed-enum mismatches in
+  src/routes/teacher/course-new.tsx              teacher authoring forms;
+  src/routes/teacher/module-manage.tsx           pre-existing per-wave drift.
+
+  src/routes/dept-course-detail.tsx            — orphan dept routes (declared
+  src/routes/dept-courses.tsx                    in router.tsx but parent
+                                                 children list omits them);
+                                                 pre-existing.
+
+Confirmation that errors are pre-existing:
+  Reverting ONLY the W4.11+W4.12 files (quizzes.ts learner hooks reset,
+  interviews.ts back to stub, types/query-keys reset, course-quiz.tsx +
+  course-interview.tsx reverted) and rebuilding produces 30+ DIFFERENT
+  errors (admin.ts/dept.ts/enrollments.ts pointing at types/query-keys that
+  hadn't yet been added — those upstream wave files depend on the new
+  schema re-exports the W4.11 work adds). With my changes applied, the
+  error count is 16, all in teacher-authoring routes (W5.1 scope).
+
+W4.11 Scope verification:
+  Quiz taking hooks (learner)
+    useStudentQuiz                — GET /quizzes/{quiz_id}                  ✓
+    useStartQuizAttempt           — POST /quizzes/{quiz_id}/attempts        ✓
+    useSubmitQuizAnswer           — POST /attempts/{attempt_id}/answers     ✓
+                                    (does NOT toast on 429
+                                     card_cooldown_active — caller owns UX)
+    useSubmitQuizAttempt          — POST /attempts/{attempt_id}/submit      ✓
+    useQuizAttempt                — GET  /attempts/{attempt_id}             ✓
+    useMyQuizAttempts             — GET  /me/quizzes/{quiz_id}/attempts     ✓
+
+  Interview taking hooks (learner — W0.9 stub populated)
+    useInterviewForTaking         — GET  /interview-configs/{config_id}     ✓
+    useStartInterviewSession      — POST /interview-configs/{id}/sessions   ✓
+    useInterviewSession           — GET  /interview-sessions/{session_id}   ✓
+    useInterviewRespond           — POST /interview-sessions/{id}/respond   ✓
+    useFinishInterview            — POST /interview-sessions/{id}/finish    ✓
+    useGapReport                  — GET  /interview-sessions/{id}/gap-report✓
+    useMyInterviewSessions        — GET  /me/interview-sessions             ✓
+
+  Type re-exports (types.ts)
+    QuizPublic, QuizForTakingPublic, QuizAttemptRead, QuizAttemptStart,
+    QuizAttemptSubmitAnswer (= QuizAttemptAnswerInput),
+    QuizAttemptAnswerRead, QuizQuestionPublic, QuizQuestionOptionPublic   ✓
+    (Note: QuizAttemptSubmit listed in spec is not a backend schema —
+     /attempts/{id}/submit takes no body and returns QuizAttemptRead.)
+
+    InterviewConfigPublic, InterviewSessionPublic,
+    InterviewRespondRequest (= InterviewSubmitAnswerRequest),
+    GapReportRead, InterviewForTakingPublic,
+    InterviewSessionStartRequest, InterviewSessionStartResponse,
+    InterviewSessionFinishResponse, InterviewSubmitAnswerResponse,
+    InterviewQuestionPublic, InterviewOutcomePublic                       ✓
+
+  Query-key namespace (query-keys.ts)
+    quizzes.detail / .attempt / .myAttempts                               ✓
+    interviews.detail / .session / .mySessions / .gapReport               ✓
+
+  Routes
+    course-quiz.tsx — per-question 429 cooldown UX via useCardCooldown    ✓
+                      + CardCooldownBadge per question; generic 429 toast ✓
+                      Vietnamese microcopy throughout                      ✓
+                      Design tokens only (no hex literals)                 ✓
+    course-interview.tsx — start → respond loop → finish → gap-report     ✓
+    router.tsx — courseInterviewRoute path now /courses/$slug/interview/  ✓
+                  $configId (was $moduleId placeholder)
+    placeholder.tsx — InterviewPage + QuizPage placeholders removed       ✓
+
+W4.12 Scope verification:
+  grep audit: 0 self-enroll / redeem-code references (see W4.12-grep.txt) ✓
+
+Note on full-build verification:
+  `vite build` does not currently complete in this working tree because
+  of the pre-existing teacher-courses.ts deletion + teacher-authoring
+  drift (W5.1 scope). W4.11+W4.12 deliverables are verified end-to-end
+  via LSP per-file diagnostics on every changed file (all clean) and via
+  successful test suite execution (12/12 passing — see W4.11-4.12-test.txt).

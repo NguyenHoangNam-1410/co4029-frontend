@@ -1,6 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiDelete, apiFetch, apiPatch, apiPost } from "../client";
-import type { QuizAttemptRead, QuizAttemptResult } from "../types/student";
+import { queryKeys } from "../query-keys";
+import type {
+  QuizAttemptRead,
+  QuizAttemptStart,
+  QuizAttemptSubmitAnswer,
+  QuizAttemptAnswerRead,
+  QuizForTakingPublic,
+  QuizPublic,
+} from "../types";
 import type {
   GenerationRun,
   QuizCreatePayload,
@@ -13,72 +21,77 @@ import type {
 
 export function useStudentQuiz(quizId: string | null | undefined) {
   return useQuery({
-    queryKey: ["student", "quizzes", quizId],
-    queryFn: () => apiFetch<QuizRead>(`/quizzes/${quizId}`),
+    queryKey: queryKeys.quizzes.detail(quizId ?? ""),
+    queryFn: () => apiFetch<QuizPublic>(`/quizzes/${quizId}`),
     enabled: !!quizId,
   });
 }
 
-export function useStudentQuizQuestions(quizId: string | null | undefined) {
+export function useStartQuizAttempt(quizId: string | null | undefined) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body?: Partial<QuizAttemptStart>) =>
+      apiPost<QuizForTakingPublic>(`/quizzes/${quizId}/attempts`, {
+        quiz_id: quizId ?? "",
+        ...body,
+      }),
+    onSuccess: () => {
+      if (quizId) {
+        void qc.invalidateQueries({
+          queryKey: queryKeys.quizzes.myAttempts(quizId),
+        });
+      }
+    },
+  });
+}
+
+/**
+ * POST /attempts/{attempt_id}/answers — record one answer.
+ *
+ * The hook does NOT toast on 429 `card_cooldown_active`; the caller is
+ * expected to inspect `ApiError.code` and surface a per-question cooldown
+ * UI (see `useCardCooldown`).
+ */
+export function useSubmitQuizAnswer(attemptId: string | null | undefined) {
+  return useMutation({
+    mutationFn: (payload: QuizAttemptSubmitAnswer) =>
+      apiPost<QuizAttemptAnswerRead>(
+        `/attempts/${attemptId}/answers`,
+        payload,
+      ),
+  });
+}
+
+export function useSubmitQuizAttempt(attemptId: string | null | undefined) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () =>
+      apiPost<QuizAttemptRead>(`/attempts/${attemptId}/submit`),
+    onSuccess: (attempt) => {
+      void qc.invalidateQueries({
+        queryKey: queryKeys.quizzes.attempt(attempt.id),
+      });
+      void qc.invalidateQueries({
+        queryKey: queryKeys.quizzes.myAttempts(attempt.quiz_id),
+      });
+    },
+  });
+}
+
+export function useQuizAttempt(attemptId: string | null | undefined) {
   return useQuery({
-    queryKey: ["student", "quizzes", quizId, "questions"],
-    queryFn: () => apiFetch<QuizQuestionRead[]>(`/quizzes/${quizId}/questions`),
-    enabled: !!quizId,
+    queryKey: queryKeys.quizzes.attempt(attemptId ?? ""),
+    queryFn: () => apiFetch<QuizAttemptRead>(`/attempts/${attemptId}`),
+    enabled: !!attemptId,
   });
 }
 
 export function useMyQuizAttempts(quizId: string | null | undefined) {
   return useQuery({
-    queryKey: ["student", "quizzes", quizId, "attempts", "me"],
-    queryFn: () => apiFetch<QuizAttemptRead[]>(`/quizzes/${quizId}/attempts/me`),
+    queryKey: queryKeys.quizzes.myAttempts(quizId ?? ""),
+    queryFn: () =>
+      apiFetch<QuizAttemptRead[]>(`/me/quizzes/${quizId}/attempts`),
     enabled: !!quizId,
-  });
-}
-
-export function useQuizAttemptResult(attemptId: string | null | undefined) {
-  return useQuery({
-    queryKey: ["student", "quiz-attempts", attemptId, "result"],
-    queryFn: () => apiFetch<QuizAttemptResult>(`/quiz-attempts/${attemptId}/result`),
-    enabled: !!attemptId,
-  });
-}
-
-export function useCreateQuizAttempt(quizId: string | null | undefined) {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: () => apiPost<QuizAttemptRead>(`/quizzes/${quizId}/attempts`, {}),
-    onSuccess: (attempt) => {
-      qc.invalidateQueries({ queryKey: ["student", "quizzes", attempt.quiz_id, "attempts", "me"] });
-    },
-  });
-}
-
-export function useAnswerQuizAttempt() {
-  return useMutation({
-    mutationFn: ({
-      attemptId,
-      payload,
-    }: {
-      attemptId: string;
-      payload: {
-        question_id: string;
-        selected_option_id?: string | null;
-        answer_text?: string | null;
-        hint_used?: boolean;
-        response_time_ms?: number | null;
-      };
-    }) => apiPost(`/quiz-attempts/${attemptId}/answers`, payload),
-  });
-}
-
-export function useSubmitQuizAttempt() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (attemptId: string) => apiPost<QuizAttemptRead>(`/quiz-attempts/${attemptId}/submit`),
-    onSuccess: (attempt) => {
-      qc.invalidateQueries({ queryKey: ["student", "quizzes", attempt.quiz_id, "attempts", "me"] });
-      qc.invalidateQueries({ queryKey: ["student", "quiz-attempts", attempt.id, "result"] });
-    },
   });
 }
 
