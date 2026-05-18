@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import {
   useTeacherCourseById,
   useTeacherCourseContent,
@@ -53,7 +54,7 @@ const LESSON_TYPE_CONFIG: Record<
 };
 
 const QUIZ_ITEM_CONFIG = {
-  label: "Quiz",
+  label: "Bài kiểm tra",
   icon: HelpCircle,
   badge: "bg-blue-50 text-blue-800",
 };
@@ -95,7 +96,7 @@ function ItemRow({
   const label = quiz
     ? QUIZ_ITEM_CONFIG.label
     : item.item_type === "interview"
-      ? "Interview"
+      ? "Phỏng vấn"
       : (cfg?.label ?? item.item_type);
   const title = lesson?.title ?? quiz?.title ?? label;
   const status = lesson?.status ?? quiz?.status;
@@ -513,26 +514,16 @@ export default function ModuleManagePage() {
 
   return (
     <div className="space-y-6 pb-12">
-      <div className="flex items-center gap-1.5 text-xs text-m3-on-surface-variant">
-        <Link
-          to="/teacher/courses"
-          className="hover:text-m3-primary transition-colors"
-        >
-          My Courses
-        </Link>
-        <ArrowRight className="h-3 w-3" />
-        <Link
-          to="/teacher/courses/$courseId"
-          params={{ courseId }}
-          className="hover:text-m3-primary transition-colors truncate max-w-[160px]"
-        >
-          {course?.title ?? "…"}
-        </Link>
-        <ArrowRight className="h-3 w-3" />
-        <span className="text-m3-on-surface font-medium truncate max-w-[180px]">
-          {module.title}
-        </span>
-      </div>
+      <Breadcrumbs
+        items={[
+          { label: "Giảng dạy", to: "/teacher/courses" },
+          {
+            label: course?.title ?? "Khóa học",
+            to: "/teacher/courses/$courseId",
+          },
+          { label: module.title },
+        ]}
+      />
 
       <div className="flex items-start gap-3">
         <Link to="/teacher/courses/$courseId" params={{ courseId }}>

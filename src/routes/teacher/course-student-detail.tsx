@@ -115,7 +115,7 @@ export default function CourseStudentDetailPage() {
 
       {/* ── Breadcrumb ── */}
       <div className="flex items-center gap-1.5 text-xs text-m3-on-surface-variant pt-4 pb-6">
-        <Link to="/teacher/courses" className="hover:text-m3-primary transition-colors">My Courses</Link>
+        <Link to="/teacher/courses" className="hover:text-m3-primary transition-colors">Khóa học của tôi</Link>
         <ArrowRight className="h-3 w-3" />
         <Link to="/teacher/courses/$courseId" params={{ courseId }} className="hover:text-m3-primary transition-colors truncate max-w-[140px]">
           {course?.title ?? "…"}

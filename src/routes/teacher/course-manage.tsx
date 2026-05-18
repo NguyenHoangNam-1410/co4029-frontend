@@ -27,8 +27,8 @@ const LESSON_TYPE_CONFIG: Record<string, { label: string; icon: React.ComponentT
   reading:  { label: "Reading",  icon: BookOpen,    badge: "bg-emerald-50 text-emerald-700" },
 };
 
-const QUIZ_ITEM_CONFIG = { label: "Quiz", icon: HelpCircle, badge: "bg-blue-50 text-blue-800" };
-const INTERVIEW_ITEM_CONFIG = { label: "Interview", icon: Mic, badge: "bg-slate-50 text-slate-600" };
+const QUIZ_ITEM_CONFIG = { label: "Bài kiểm tra", icon: HelpCircle, badge: "bg-blue-50 text-blue-800" };
+const INTERVIEW_ITEM_CONFIG = { label: "Phỏng vấn", icon: Mic, badge: "bg-slate-50 text-slate-600" };
 
 const ADD_PILL_CLS =
   "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-m3-on-surface-variant " +
@@ -297,7 +297,7 @@ function ModuleItemRow({
   const Icon = cfg?.icon ?? BookOpen;
   const title = lesson?.title ?? quiz?.title ?? interview?.title ?? "Untitled";
   const status = lesson?.status ?? quiz?.status ?? interview?.status;
-  const label = item.item_type === "lesson" ? (cfg?.label ?? "Lesson") : cfg?.label ?? item.item_type;
+  const label = item.item_type === "lesson" ? (cfg?.label ?? "Bài học") : (cfg?.label ?? item.item_type);
 
   return (
     <div
@@ -624,7 +624,7 @@ export default function CourseManagePage() {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 text-xs text-m3-on-surface-variant mb-0.5">
             <Link to="/teacher/courses" className="hover:text-m3-primary transition-colors">
-              My Courses
+              Khóa học của tôi
             </Link>
             <ArrowRight className="h-3 w-3" />
             <span className="truncate">{course?.title ?? "…"}</span>

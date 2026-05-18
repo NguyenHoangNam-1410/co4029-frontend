@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
+import { useUnsavedChangesWarning } from "@/lib/use-unsaved-changes-warning";
 import { useMyPermissions } from "@/lib/api/hooks/auth";
 import {
   useAddCareerPathCourse,
@@ -110,17 +112,14 @@ export default function ManagementCareerPathDetailPage() {
 
   return (
     <div className="max-w-[1200px] mx-auto pb-16 space-y-6 px-4 sm:px-6 lg:px-8">
-      <div className="flex items-center gap-1.5 text-xs text-m3-on-surface-variant pt-4">
-        <Link
-          to="/management/career-paths"
-          className="hover:text-m3-primary transition-colors"
-        >
-          Quản lý lộ trình
-        </Link>
-        <ChevronRight className="h-3 w-3" />
-        <span className="text-m3-on-surface font-medium truncate">
-          {data.name}
-        </span>
+      <div className="pt-4">
+        <Breadcrumbs
+          items={[
+            { label: "Quản lý", to: "/management/career-paths" },
+            { label: "Lộ trình nghề nghiệp", to: "/management/career-paths" },
+            { label: data.name },
+          ]}
+        />
       </div>
 
       <div className="flex items-center gap-3">
@@ -331,6 +330,8 @@ function EditForm({
     name !== initialName ||
     description !== initialDescription ||
     orgUnitId !== initialOrgUnitId;
+
+  useUnsavedChangesWarning(dirty);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

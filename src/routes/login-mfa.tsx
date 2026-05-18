@@ -124,7 +124,7 @@ export default function LoginMfaPage() {
             }}
             className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
               mode === "totp"
-                ? "bg-white text-m3-primary shadow-sm"
+                ? "bg-surface-elev text-m3-primary shadow-sm"
                 : "text-m3-on-surface-variant hover:text-m3-on-surface"
             }`}
           >
@@ -140,7 +140,7 @@ export default function LoginMfaPage() {
             }}
             className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
               mode === "recovery"
-                ? "bg-white text-m3-primary shadow-sm"
+                ? "bg-surface-elev text-m3-primary shadow-sm"
                 : "text-m3-on-surface-variant hover:text-m3-on-surface"
             }`}
           >

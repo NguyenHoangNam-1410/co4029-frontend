@@ -129,7 +129,7 @@ export default function CourseStudentsPage() {
 
       {/* ── Breadcrumb ── */}
       <div className="flex items-center gap-1.5 text-xs text-m3-on-surface-variant pt-4 pb-6">
-        <Link to="/teacher/courses" className="hover:text-m3-primary transition-colors">My Courses</Link>
+        <Link to="/teacher/courses" className="hover:text-m3-primary transition-colors">Khóa học của tôi</Link>
         <ArrowRight className="h-3 w-3" />
         <Link to="/teacher/courses/$courseId" params={{ courseId }} className="hover:text-m3-primary transition-colors truncate max-w-[200px]">
           {course?.title ?? "…"}
@@ -198,7 +198,7 @@ export default function CourseStudentsPage() {
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-m3-on-surface-variant/60" />
               <input
                 type="text"
-                placeholder="Search by name or email…"
+                placeholder="Tìm theo tên hoặc email…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-m3-surface-container-low border border-m3-outline-variant/20 text-sm text-m3-on-surface placeholder:text-m3-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-m3-primary/20 transition-all"

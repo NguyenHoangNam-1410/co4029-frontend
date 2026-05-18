@@ -135,7 +135,7 @@ export default function TeacherCoursesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-headline font-bold text-m3-on-surface">My Courses</h1>
+          <h1 className="text-2xl font-headline font-bold text-m3-on-surface">Khóa học của tôi</h1>
           <p className="text-sm text-m3-on-surface-variant mt-1">
             {courses.length} course{courses.length !== 1 ? "s" : ""}
             {published > 0 && ` · ${published} published`}
@@ -155,7 +155,7 @@ export default function TeacherCoursesPage() {
         <div className="relative flex-1 min-w-48">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-m3-on-surface-variant" />
           <Input
-            placeholder="Search courses..."
+            placeholder="Tìm khóa học..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9 h-9 text-sm"

@@ -9,6 +9,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { AIInsightChip } from "@/components/ui/ai-insight-chip";
 import { SectionHeader } from "@/components/ui/section-header";
 import { StatCard } from "@/components/ui/stat-card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
 import { getAuthDisplayName, getAuthUserInitials } from "@/lib/auth";
 import type { Course } from "@/lib/api/types";
 import {
@@ -34,9 +36,7 @@ function CourseProgressCard({ course }: { course: Course }) {
             Đã ghi danh
           </Badge>
         </div>
-      </div>
-
-      <div className="space-y-2 flex-1">
+      </div>      <div className="space-y-2 flex-1">
         <h3 className="font-headline font-semibold text-m3-on-surface text-base leading-snug">
           {course.title}
         </h3>
@@ -61,22 +61,20 @@ function CourseProgressCard({ course }: { course: Course }) {
 
 function EmptyCourses() {
   return (
-    <div className="col-span-full rounded-xl border-2 border-dashed border-m3-outline-variant flex flex-col items-center justify-center gap-4 py-16 px-8 text-center">
-      <div className="w-14 h-14 rounded-xl bg-m3-primary-fixed flex items-center justify-center">
-        <BookOpen className="h-7 w-7 text-m3-primary" />
-      </div>
-      <div>
-        <h3 className="font-headline font-bold text-m3-on-surface text-lg">No courses yet</h3>
-        <p className="text-sm text-m3-on-surface-variant mt-1">
-          Browse the course library and enrol to get started.
-        </p>
-      </div>
-      <Link to="/courses">
-        <Button className="gradient-primary text-white border-0 gap-2 font-semibold">
-          Browse Courses
-          <ArrowRight className="h-4 w-4" />
-        </Button>
-      </Link>
+    <div className="col-span-full">
+      <EmptyState
+        icon={BookOpen}
+        title="Bạn chưa được đăng ký khóa học nào"
+        description="Liên hệ giảng viên hoặc bộ phận đào tạo để được đăng ký khóa học phù hợp với lộ trình của bạn."
+        cta={
+          <Link to="/courses">
+            <Button variant="default" className="gap-2 font-semibold">
+              Khám phá khóa học
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </Link>
+        }
+      />
     </div>
   );
 }
@@ -154,45 +152,45 @@ export default function DashboardPage() {
                   {initials}
                 </AvatarFallback>
               </Avatar>
-              <AIInsightChip pulse={false} className="ai-pulse">Active Session</AIInsightChip>
+              <AIInsightChip pulse={false} className="ai-pulse">Phiên đang hoạt động</AIInsightChip>
             </div>
             <h1 className="font-headline font-bold text-4xl text-m3-primary leading-tight">
-              Welcome back, {firstName}.
+              Chào mừng trở lại, {firstName}.
             </h1>
             <p className="text-m3-on-surface-variant text-base">
               {enrolledCount > 0
-                ? `You have ${enrolledCount} course${enrolledCount === 1 ? "" : "s"} in progress.`
-                : "Explore the course library to start learning."}
+                ? `Bạn đang theo học ${enrolledCount} khóa học.`
+                : "Khám phá thư viện khóa học để bắt đầu hành trình học tập."}
             </p>
           </div>
         </header>
 
         <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <StatCard
-            label="Enrolled"
+            label="Đã đăng ký"
             value={coursesLoading ? "—" : enrolledCount}
-            sublabel="Active courses"
+            sublabel="Khóa học đang theo"
             icon={BookOpen}
             variant="primary"
           />
           <StatCard
-            label="Notifications"
+            label="Thông báo"
             value={notificationsLoading ? "—" : unreadCount}
-            sublabel="Unread"
+            sublabel="Chưa đọc"
             icon={Bell}
             variant="surface"
           />
           <StatCard
-            label="Quizzes"
+            label="Bài kiểm tra"
             value="—"
-            sublabel="Awaiting review"
+            sublabel="Đang chờ chấm"
             icon={FileText}
             variant="surface"
           />
           <StatCard
-            label="Interviews"
+            label="Phỏng vấn"
             value="—"
-            sublabel="Scheduled"
+            sublabel="Đã lên lịch"
             icon={Mic}
             variant="surface"
           />
@@ -200,7 +198,7 @@ export default function DashboardPage() {
 
         <section className="space-y-5">
           <div className="flex items-center justify-between">
-            <SectionHeader title="My Courses" subtitle="Pick up where you left off" />
+            <SectionHeader title="Khóa học của bạn" subtitle="Tiếp tục từ nơi bạn đã dừng" />
             <div className="flex items-center gap-2 shrink-0">
               {enrolledCount > 8 && (
                 <Link
@@ -217,7 +215,7 @@ export default function DashboardPage() {
                     size="icon"
                     onClick={() => scrollCarousel("left")}
                     className="rounded-xl border-m3-outline-variant hover:bg-m3-surface-container-low"
-                    aria-label="Scroll left"
+                    aria-label="Cuộn trái"
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
@@ -226,7 +224,7 @@ export default function DashboardPage() {
                     size="icon"
                     onClick={() => scrollCarousel("right")}
                     className="rounded-xl border-m3-outline-variant hover:bg-m3-surface-container-low"
-                    aria-label="Scroll right"
+                    aria-label="Cuộn phải"
                   >
                     <ChevronRight className="h-4 w-4" />
                   </Button>
@@ -238,7 +236,7 @@ export default function DashboardPage() {
           {coursesLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="bg-m3-surface-container-lowest rounded-xl ghost-border p-6 h-72 animate-pulse" />
+                <Skeleton key={i} className="h-72 rounded-xl" />
               ))}
             </div>
           ) : enrolledCount === 0 ? (
@@ -268,8 +266,8 @@ export default function DashboardPage() {
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <SectionHeader
-              title="Notifications"
-              subtitle={unreadCount > 0 ? `${unreadCount} unread` : "All caught up"}
+              title="Thông báo"
+              subtitle={unreadCount > 0 ? `${unreadCount} chưa đọc` : "Bạn đã xem hết"}
             />
           </div>
 
@@ -277,19 +275,15 @@ export default function DashboardPage() {
             {notificationsLoading ? (
               <div className="p-6 space-y-3">
                 {[1, 2].map((i) => (
-                  <div key={i} className="h-14 rounded-xl bg-m3-surface-container animate-pulse" />
+                  <Skeleton key={i} className="h-14 rounded-xl" />
                 ))}
               </div>
             ) : notifications.length === 0 ? (
-              <div className="p-10 text-center space-y-3">
-                <div className="w-12 h-12 rounded-xl bg-m3-primary-fixed flex items-center justify-center mx-auto">
-                  <Bell className="h-6 w-6 text-m3-primary" />
-                </div>
-                <p className="text-sm font-semibold text-m3-on-surface">No notifications yet</p>
-                <p className="text-xs text-m3-on-surface-variant">
-                  You&apos;ll see alerts here when quizzes, interviews, or course updates are ready.
-                </p>
-              </div>
+              <EmptyState
+                icon={Bell}
+                title="Chưa có thông báo nào"
+                description="Khi có bài kiểm tra, phỏng vấn hoặc cập nhật khóa học, thông báo sẽ xuất hiện ở đây."
+              />
             ) : (
               <div className="p-3 space-y-1 max-h-72 overflow-y-auto">
                 {notifications.slice(0, 8).map((n) => (
@@ -304,29 +298,28 @@ export default function DashboardPage() {
           <div className="pointer-events-none absolute -bottom-10 -right-10 w-48 h-48 rounded-full opacity-20 blur-2xl" style={{ background: "#1d4ed8" }} />
 
           <AIInsightChip className="self-start bg-white/15 text-white border-0">
-            AI Powered
+            Hỗ trợ bởi AI
           </AIInsightChip>
 
           <div className="space-y-2">
             <h3 className="font-headline font-bold text-2xl text-white leading-snug">
-              Ready for your next challenge?
+              Sẵn sàng cho thử thách kế tiếp?
             </h3>
             <p className="text-white/70 text-sm leading-relaxed max-w-lg">
-              Complete your enrolled courses, take AI-generated quizzes, and practise real-world
-              interview scenarios — all tracked and personalised to your learning path.
+              Hoàn thành các khóa học đã đăng ký, làm bài kiểm tra do AI tạo và luyện tập các kịch bản phỏng vấn thực tế — tất cả đều được theo dõi và cá nhân hóa theo lộ trình học của bạn.
             </p>
           </div>
 
           <div className="flex flex-wrap gap-3">
             <Link to="/courses">
               <Button className="bg-white text-m3-primary hover:bg-white/90 rounded-xl font-semibold gap-2 transition-colors">
-                Browse Courses
+                Khám phá khóa học
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
-            <Link to="/progress">
+            <Link to="/dashboard/sr">
               <Button variant="outline" className="bg-white/10 border-white/25 text-white hover:bg-white/20 rounded-xl font-semibold">
-                View Progress
+                Xem tiến độ
               </Button>
             </Link>
           </div>
@@ -341,7 +334,7 @@ export default function DashboardPage() {
           }`}
         >
           <div className="bg-m3-on-surface text-white text-xs font-medium px-3 py-1.5 rounded-lg shadow-editorial whitespace-nowrap">
-            Ask AI Coach
+            Hỏi trợ lý AI
           </div>
         </div>
 
@@ -350,8 +343,8 @@ export default function DashboardPage() {
           onMouseLeave={() => setFabHovered(false)}
           onFocus={() => setFabHovered(true)}
           onBlur={() => setFabHovered(false)}
-          className="gradient-primary text-white w-14 h-14 rounded-xl flex items-center justify-center shadow-ai-glow hover:opacity-90 active:scale-95 transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-m3-secondary"
-          aria-label="Ask AI Coach"
+          className="cursor-pointer gradient-primary text-white w-14 h-14 rounded-xl flex items-center justify-center shadow-ai-glow hover:opacity-90 active:scale-95 transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-m3-secondary"
+          aria-label="Hỏi trợ lý AI"
         >
           <Bot className="h-6 w-6" />
         </button>

@@ -14,6 +14,7 @@ import {
 import { useAtRiskStudents } from "@/lib/api/hooks/spaced-repetition";
 import { useCourse } from "@/lib/api/hooks/courses";
 import { SectionHeader } from "@/components/ui/section-header";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import type { AtRiskStudent } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
 
@@ -137,26 +138,13 @@ export default function TeacherSrAtRiskPage() {
   return (
     <div className="min-h-screen bg-m3-surface pb-12">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        <div className="flex items-center gap-1.5 text-xs text-m3-on-surface-variant">
-          <Link
-            to="/teacher/courses"
-            className="hover:text-m3-primary transition-colors"
-          >
-            Khóa học
-          </Link>
-          <ArrowRight className="h-3 w-3" />
-          <Link
-            to="/teacher/courses/$courseId"
-            params={{ courseId }}
-            className="hover:text-m3-primary transition-colors truncate max-w-[200px]"
-          >
-            {course?.title ?? "..."}
-          </Link>
-          <ArrowRight className="h-3 w-3" />
-          <span className="text-m3-on-surface font-medium">
-            Sinh viên cần hỗ trợ
-          </span>
-        </div>
+        <Breadcrumbs
+          items={[
+            { label: "Giảng dạy", to: "/teacher/courses" },
+            { label: course?.title ?? "Khóa học", to: "/teacher/courses/$courseId" },
+            { label: "Sinh viên cần hỗ trợ" },
+          ]}
+        />
 
         <div className="flex items-center gap-3">
           <Link

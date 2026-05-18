@@ -16,6 +16,7 @@ import {
 } from "@/lib/api/hooks/admin";
 import { useMyPermissions } from "@/lib/api/hooks/auth";
 import { StatCard } from "@/components/ui/stat-card";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import type { ProcessingJobRow } from "@/lib/api/types";
 
 const JOB_STATUS_COLOR: Record<string, string> = {
@@ -155,6 +156,13 @@ export default function AdminCourseDetailPage() {
 
   return (
     <div className="space-y-6 pb-12">
+      <Breadcrumbs
+        items={[
+          { label: "Quản trị", to: "/admin/stats" },
+          { label: "Khóa học", to: "/admin/courses" },
+          { label: "Audit AI" },
+        ]}
+      />
       <Link
         to="/admin/courses"
         className="inline-flex items-center gap-2 text-sm text-text-muted hover:text-text-strong"

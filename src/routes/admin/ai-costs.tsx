@@ -24,6 +24,7 @@ import {
   type AiCostsPeriod,
 } from "@/lib/api/hooks/admin";
 import { useMyPermissions } from "@/lib/api/hooks/auth";
+import { useReducedMotion } from "@/lib/use-reduced-motion";
 import { StatCard } from "@/components/ui/stat-card";
 import type {
   AiCostsByPipeline as AiCostsByPipelineRow,
@@ -129,6 +130,7 @@ function PeriodSelector({
 }
 
 function RoleBarChart({ data }: { data: AiCostsRoleBreakdown[] }) {
+  const reducedMotion = useReducedMotion();
   if (data.length === 0) {
     return (
       <div className="bg-surface-elev border border-border rounded-lg p-8 text-center">
@@ -159,7 +161,7 @@ function RoleBarChart({ data }: { data: AiCostsRoleBreakdown[] }) {
             width={80}
           />
           <Tooltip content={<ChartTooltipUsd />} cursor={{ fill: "var(--color-surface-muted)" }} />
-          <Bar dataKey="usd" fill="var(--color-primary)" radius={[6, 6, 0, 0]} />
+          <Bar dataKey="usd" fill="var(--color-primary)" radius={[6, 6, 0, 0]} isAnimationActive={!reducedMotion} />
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -167,6 +169,7 @@ function RoleBarChart({ data }: { data: AiCostsRoleBreakdown[] }) {
 }
 
 function StageBarChart({ data }: { data: AiCostsStageBreakdown[] }) {
+  const reducedMotion = useReducedMotion();
   if (data.length === 0) {
     return (
       <div className="bg-surface-elev border border-border rounded-lg p-8 text-center">
@@ -197,7 +200,7 @@ function StageBarChart({ data }: { data: AiCostsStageBreakdown[] }) {
             width={80}
           />
           <Tooltip content={<ChartTooltipUsd />} cursor={{ fill: "var(--color-surface-muted)" }} />
-          <Bar dataKey="usd" fill="var(--color-primary)" radius={[6, 6, 0, 0]} />
+          <Bar dataKey="usd" fill="var(--color-primary)" radius={[6, 6, 0, 0]} isAnimationActive={!reducedMotion} />
         </BarChart>
       </ResponsiveContainer>
     </div>

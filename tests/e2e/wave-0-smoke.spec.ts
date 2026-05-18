@@ -14,7 +14,7 @@ test.describe("wave-0-smoke", () => {
 
     await expect(page).toHaveURL(/\/dashboard/);
     await expect(
-      page.getByRole("heading", { level: 1, name: /welcome back/i }),
+      page.getByRole("heading", { level: 1, name: /chào mừng trở lại/i }),
     ).toBeVisible();
   });
 });

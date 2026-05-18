@@ -461,7 +461,7 @@ export default function CourseInterviewPage() {
                   className={cn(
                     "rounded-xl px-5 py-4 max-w-[80%] shadow-sm",
                     turn.role === "ai"
-                      ? "bg-white border border-m3-outline-variant/20"
+                      ? "bg-surface-elev border border-m3-outline-variant/20"
                       : "bg-m3-primary text-white",
                   )}
                 >
@@ -498,7 +498,7 @@ export default function CourseInterviewPage() {
               rows={5}
               disabled={respond.isPending}
               placeholder="Nhập câu trả lời..."
-              className="w-full rounded-xl border border-m3-outline-variant/30 bg-white px-4 py-3 text-sm text-m3-on-surface resize-none focus:outline-none focus:border-m3-primary focus:ring-2 focus:ring-m3-primary/20"
+              className="w-full rounded-xl border border-m3-outline-variant/30 bg-surface-elev px-4 py-3 text-sm text-m3-on-surface resize-none focus:outline-none focus:border-m3-primary focus:ring-2 focus:ring-m3-primary/20"
             />
             <div className="flex items-center justify-between mt-3 flex-wrap gap-3">
               <span className="text-xs text-m3-outline">

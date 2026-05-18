@@ -77,7 +77,7 @@ function buildFlatItems(
             ? "Module Quiz"
             : item.item_type === "interview"
               ? "AI Mock Interview"
-              : item.target?.title ?? "Lesson",
+              : item.target?.title ?? "Bài học",
       }));
   });
 }

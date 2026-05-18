@@ -89,10 +89,10 @@ export default function LoginPage() {
 
           <header>
             <h2 className="font-headline text-4xl font-extrabold text-m3-on-surface tracking-tight mb-2">
-              Welcome Back
+              Chào mừng trở lại
             </h2>
             <p className="text-m3-on-surface-variant font-medium">
-              Continue your learning journey with your Google account.
+              Tiếp tục hành trình học tập với tài khoản Google của bạn.
             </p>
           </header>
 

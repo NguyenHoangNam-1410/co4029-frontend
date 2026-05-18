@@ -17,6 +17,8 @@ import { useCourseSrOverview } from "@/lib/api/hooks/spaced-repetition";
 import { Button } from "@/components/ui/button";
 import { SectionHeader } from "@/components/ui/section-header";
 import { StatCard } from "@/components/ui/stat-card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
 import type { Course, LessonOverviewItem } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
 
@@ -92,10 +94,7 @@ function CourseSrCard({ course }: { course: Course }) {
           {isLoading && (
             <div className="space-y-2">
               {[0, 1, 2].map((i) => (
-                <div
-                  key={i}
-                  className="h-12 rounded-xl bg-m3-surface-container-high animate-pulse"
-                />
+                <Skeleton key={i} className="h-12 rounded-xl" />
               ))}
             </div>
           )}
@@ -167,9 +166,9 @@ export default function SrDashboardPage() {
     <div className="min-h-screen bg-m3-surface pb-12">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
         <header className="space-y-2">
-          <div className="flex items-center gap-2 text-m3-secondary text-xs font-bold uppercase tracking-widest">
+          <div className="flex items-center gap-2 text-m3-primary text-xs font-bold uppercase tracking-widest">
             <Sparkles className="h-3.5 w-3.5" />
-            <span>Spaced Repetition</span>
+            <span>Học lặp lại</span>
           </div>
           <h1 className="font-heading font-bold text-3xl sm:text-4xl text-m3-primary leading-tight">
             Bảng điều khiển ôn tập
@@ -222,32 +221,23 @@ export default function SrDashboardPage() {
           {coursesLoading ? (
             <div className="space-y-3">
               {[0, 1, 2].map((i) => (
-                <div
-                  key={i}
-                  className="h-20 rounded-xl bg-m3-surface-container-low animate-pulse"
-                />
+                <Skeleton key={i} className="h-20 rounded-xl" />
               ))}
             </div>
           ) : courses.length === 0 ? (
-            <div className="rounded-xl border-2 border-dashed border-m3-outline-variant flex flex-col items-center justify-center gap-4 py-16 px-8 text-center">
-              <div className="w-14 h-14 rounded-xl bg-m3-primary-fixed flex items-center justify-center">
-                <Inbox className="h-7 w-7 text-m3-primary" />
-              </div>
-              <div>
-                <h3 className="font-heading font-bold text-m3-on-surface text-lg">
-                  Chưa có thẻ nào cần ôn tập hôm nay
-                </h3>
-                <p className="text-sm text-m3-on-surface-variant mt-1">
-                  Hãy ghi danh khóa học để bắt đầu lộ trình ôn tập.
-                </p>
-              </div>
-              <Link to="/courses">
-                <Button className="gradient-primary text-white border-0 gap-2 font-semibold cursor-pointer">
-                  Khám phá khóa học
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
-            </div>
+            <EmptyState
+              icon={Inbox}
+              title="Bạn chưa được đăng ký khóa học nào"
+              description="Liên hệ giảng viên để được đăng ký khóa học và bắt đầu lộ trình ôn tập."
+              cta={
+                <Link to="/courses">
+                  <Button variant="default" className="gap-2 font-semibold cursor-pointer">
+                    Khám phá khóa học
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+              }
+            />
           ) : (
             <div className="space-y-3">
               {courses.map((course) => (

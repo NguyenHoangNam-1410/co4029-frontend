@@ -8,6 +8,7 @@ import {
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import {
   useTeacherLessonMaterials,
   useTeacherProcessingSummary,
@@ -827,23 +828,17 @@ export default function LessonMaterialsPage() {
   return (
     <div className="space-y-8 pb-16 max-w-[1400px]">
 
-      <div className="flex items-center gap-1.5 text-xs text-m3-on-surface-variant">
-        <Link to="/teacher/courses" className="hover:text-m3-primary transition-colors">
-          Khoá học của tôi
-        </Link>
-        <ArrowRight className="h-3 w-3" />
-        <Link
-          to="/teacher/courses/$courseId"
-          params={{ courseId }}
-          className="hover:text-m3-primary transition-colors truncate max-w-[160px]"
-        >
-          {course?.title ?? "…"}
-        </Link>
-        <ArrowRight className="h-3 w-3" />
-        <span className="truncate max-w-[180px] text-m3-on-surface font-medium">
-          {lesson?.title ?? "Bài học"}
-        </span>
-      </div>
+      <Breadcrumbs
+        items={[
+          { label: "Giảng dạy", to: "/teacher/courses" },
+          {
+            label: course?.title ?? "Khóa học",
+            to: "/teacher/courses/$courseId",
+          },
+          { label: lesson?.title ?? "Bài học" },
+          { label: "Tài liệu" },
+        ]}
+      />
 
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
         <div className="space-y-2">

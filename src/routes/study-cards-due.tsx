@@ -10,6 +10,8 @@ import {
 import { useCardsDue } from "@/lib/api/hooks/spaced-repetition";
 import { InfiniteList } from "@/components/ui/InfiniteList";
 import { SectionHeader } from "@/components/ui/section-header";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Button } from "@/components/ui/button";
 import type { CardDue } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
 
@@ -128,25 +130,18 @@ export default function StudyCardsDuePage() {
           keyOf={(card) => card.question_id}
           renderItem={(card) => <CardDueRow card={card} />}
           empty={
-            <div className="rounded-xl border-2 border-dashed border-m3-outline-variant flex flex-col items-center justify-center gap-4 py-16 px-8 text-center">
-              <div className="w-14 h-14 rounded-xl bg-m3-primary-fixed flex items-center justify-center">
-                <Inbox className="h-7 w-7 text-m3-primary" />
-              </div>
-              <div>
-                <h3 className="font-heading font-bold text-m3-on-surface text-lg">
-                  Chưa có thẻ nào cần ôn tập hôm nay
-                </h3>
-                <p className="text-sm text-m3-on-surface-variant mt-1">
-                  Hãy quay lại sau khi đã hoàn thành bài học mới.
-                </p>
-              </div>
-              <Link
-                to="/dashboard/sr"
-                className="inline-flex items-center gap-2 gradient-primary text-white rounded-xl font-semibold px-4 py-2 text-sm shadow-glass hover:opacity-90 transition-opacity cursor-pointer"
-              >
-                Quay lại bảng điều khiển
-              </Link>
-            </div>
+            <EmptyState
+              icon={Inbox}
+              title="Bạn đã hoàn thành tốt!"
+              description="Không còn thẻ nào cần ôn tập hôm nay. Hãy quay lại sau khi học bài mới."
+              cta={
+                <Link to="/dashboard/sr">
+                  <Button variant="default" className="cursor-pointer">
+                    Quay lại bảng điều khiển
+                  </Button>
+                </Link>
+              }
+            />
           }
         />
       </div>

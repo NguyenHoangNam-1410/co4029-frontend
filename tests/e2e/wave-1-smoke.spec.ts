@@ -48,7 +48,7 @@ test.describe("wave-1-smoke", () => {
     await page.goto("/dashboard");
 
     await expect(
-      page.getByRole("heading", { level: 1, name: /Welcome back, E2E/i }),
+      page.getByRole("heading", { level: 1, name: /Chào mừng trở lại, E2E/i }),
     ).toBeVisible({ timeout: 10_000 });
 
     await expect(

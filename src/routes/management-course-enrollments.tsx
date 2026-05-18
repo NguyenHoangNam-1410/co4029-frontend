@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { useMyPermissions } from "@/lib/api/hooks/auth";
 import {
   useBulkEnroll,
@@ -128,23 +129,14 @@ export default function ManagementCourseEnrollmentsPage() {
 
   return (
     <div className="max-w-[1200px] mx-auto pb-16 space-y-6">
-      <div className="flex items-center gap-1.5 text-xs text-m3-on-surface-variant pt-4">
-        <Link
-          to="/teacher/courses"
-          className="hover:text-m3-primary transition-colors"
-        >
-          Khoá học
-        </Link>
-        <ArrowRight className="h-3 w-3" />
-        <Link
-          to="/teacher/courses/$courseId"
-          params={{ courseId }}
-          className="hover:text-m3-primary transition-colors truncate max-w-[260px]"
-        >
-          {course?.title ?? "…"}
-        </Link>
-        <ArrowRight className="h-3 w-3" />
-        <span className="text-m3-on-surface font-medium">Quản lý đăng ký</span>
+      <div className="pt-4">
+        <Breadcrumbs
+          items={[
+            { label: "Giảng dạy", to: "/teacher/courses" },
+            { label: course?.title ?? "Khóa học", to: "/teacher/courses/$courseId" },
+            { label: "Quản lý đăng ký" },
+          ]}
+        />
       </div>
 
       <div className="flex items-center gap-3">

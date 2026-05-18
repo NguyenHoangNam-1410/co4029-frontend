@@ -1,0 +1,16 @@
+# W5.13 mobile viewport spot checks (375px)
+
+Routes audited for mobile (max-w-* / px-*) responsiveness:
+- /dashboard           — max-w-6xl px-4 sm:px-6 lg:px-8 (responsive)
+- /courses             — max-w-6xl px-4 sm:px-6 lg:px-8 (responsive)
+- /notifications       — max-w-3xl px-4 sm:px-6 lg:px-8 (responsive)
+- /study/cards-due     — max-w-3xl px-4 sm:px-6 lg:px-8 (responsive)
+- /dashboard/sr        — max-w-6xl px-4 sm:px-6 lg:px-8 (responsive)
+
+Desktop-first routes (admin/teacher/dept/management) now show DesktopOnlyBanner when window.innerWidth < 1024.
+Banner: src/components/ui/desktop-only-banner.tsx
+Wired in: src/routes/authenticated-layout.tsx
+
+Existing breakpoint conventions verified:
+18
+routes use named max-width tokens (sample above).

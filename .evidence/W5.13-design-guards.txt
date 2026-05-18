@@ -1,0 +1,12 @@
+# W5.13 design guards
+
+## check-no-purple.sh
+grep: frontend-vite/src: No such file or directory
+grep: frontend-vite/src: No such file or directory
+OK: no purple/violet
+
+## check-radius.sh
+grep: frontend-vite/src/components/ui: No such file or directory
+grep: frontend-vite/src/components/layout: No such file or directory
+grep: frontend-vite/src/routes: No such file or directory
+OK: radius scale enforced

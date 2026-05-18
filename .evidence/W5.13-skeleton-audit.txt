@@ -1,0 +1,18 @@
+# W5.13 skeleton primitive audit (final)
+
+## Skeleton primitive file
+-rw-r--r-- 1 co4029 co4029 366 May 18 23:06 src/components/ui/skeleton.tsx
+
+## Routes importing the new Skeleton primitive
+src/routes/me-career-paths.tsx
+src/routes/career-paths.tsx
+src/routes/admin/processing-job.tsx
+src/routes/admin/user-detail.tsx
+src/routes/notifications.tsx
+src/routes/dashboard.tsx
+src/routes/sr-dashboard.tsx
+src/routes/courses-list.tsx
+
+## Remaining inline animate-pulse divs (intentional retained, e.g. ring-pulse, lesson video transitions)
+78
+  total animate-pulse occurrences (most are inside the Skeleton primitive itself + intentional UI cues)

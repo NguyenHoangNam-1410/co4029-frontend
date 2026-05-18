@@ -16,15 +16,17 @@ import { InfiniteList } from "@/components/ui/InfiniteList";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SectionHeader } from "@/components/ui/section-header";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
 import type { Notification } from "@/lib/api/types";
 import { Check, CheckCheck, Eye, EyeOff, Mail, Trash2 } from "lucide-react";
 
 const CATEGORY_LABEL: Record<string, string> = {
-  spaced_repetition: "Spaced Repetition",
-  lesson_unlock: "Lesson Unlocked",
-  interview_result: "Interview Result",
-  course_announcement: "Course Announcement",
-  system: "System",
+  spaced_repetition: "Học lặp lại",
+  lesson_unlock: "Mở khóa bài học",
+  interview_result: "Kết quả phỏng vấn",
+  course_announcement: "Thông báo khóa học",
+  system: "Hệ thống",
 };
 
 const SNIPPET_LIMIT = 200;
@@ -234,8 +236,8 @@ export default function NotificationsPage() {
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <SectionHeader
-            title="Notifications"
-            subtitle="Course updates, quiz reminders, interview results."
+            title="Thông báo"
+            subtitle="Cập nhật khóa học, nhắc bài kiểm tra, kết quả phỏng vấn."
           />
           <Button
             type="button"
@@ -243,7 +245,7 @@ export default function NotificationsPage() {
             size="sm"
             onClick={handleMarkAllRead}
             disabled={unreadCount === 0 || markAllRead.isPending}
-            className="gap-2"
+            className="gap-2 cursor-pointer"
           >
             <CheckCheck className="h-4 w-4" />
             Đánh dấu tất cả đã đọc
@@ -254,10 +256,7 @@ export default function NotificationsPage() {
           {isLoading ? (
             <div className="p-6 space-y-3">
               {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="h-16 rounded-xl bg-m3-surface-container animate-pulse"
-                />
+                <Skeleton key={i} className="h-16 rounded-xl" />
               ))}
             </div>
           ) : (
@@ -285,18 +284,11 @@ export default function NotificationsPage() {
                 />
               )}
               empty={
-                <div className="p-12 text-center space-y-3">
-                  <div className="w-14 h-14 rounded-xl bg-m3-primary-fixed flex items-center justify-center mx-auto">
-                    <Mail className="h-7 w-7 text-m3-primary" />
-                  </div>
-                  <p className="text-base font-semibold text-m3-on-surface">
-                    Chưa có thông báo nào
-                  </p>
-                  <p className="text-sm text-m3-on-surface-variant">
-                    Khi có cập nhật khoá học, bài kiểm tra hoặc kết quả phỏng
-                    vấn, bạn sẽ thấy ở đây.
-                  </p>
-                </div>
+                <EmptyState
+                  icon={Mail}
+                  title="Chưa có thông báo nào"
+                  description="Khi có cập nhật khóa học, bài kiểm tra hoặc kết quả phỏng vấn, bạn sẽ thấy ở đây."
+                />
               }
             />
           )}

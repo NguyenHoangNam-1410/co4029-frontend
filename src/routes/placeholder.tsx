@@ -28,11 +28,11 @@ export function ProgressPage() {
 }
 
 export function SettingsPage() {
-  return <ComingSoonPage title="Settings" />;
+  return <ComingSoonPage title="Cài đặt" />;
 }
 
 export function QuizPage() {
-  return <ComingSoonPage title="Quiz" />;
+  return <ComingSoonPage title="Bài kiểm tra" />;
 }
 
 export function InterviewPage() {

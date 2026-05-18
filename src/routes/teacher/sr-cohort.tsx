@@ -28,6 +28,7 @@ import { useCourse, useCourseModules } from "@/lib/api/hooks/courses";
 import { apiFetch } from "@/lib/api/client";
 import { queryKeys } from "@/lib/api/query-keys";
 import { SectionHeader } from "@/components/ui/section-header";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import type { LessonPublic, ModulePublic } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
 
@@ -174,26 +175,13 @@ export default function TeacherSrCohortPage() {
   return (
     <div className="min-h-screen bg-m3-surface pb-12">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        <div className="flex items-center gap-1.5 text-xs text-m3-on-surface-variant">
-          <Link
-            to="/teacher/courses"
-            className="hover:text-m3-primary transition-colors"
-          >
-            Khóa học
-          </Link>
-          <ArrowRight className="h-3 w-3" />
-          <Link
-            to="/teacher/courses/$courseId"
-            params={{ courseId }}
-            className="hover:text-m3-primary transition-colors truncate max-w-[200px]"
-          >
-            {course?.title ?? "..."}
-          </Link>
-          <ArrowRight className="h-3 w-3" />
-          <span className="text-m3-on-surface font-medium">
-            Tổng quan lớp
-          </span>
-        </div>
+        <Breadcrumbs
+          items={[
+            { label: "Giảng dạy", to: "/teacher/courses" },
+            { label: course?.title ?? "Khóa học", to: "/teacher/courses/$courseId" },
+            { label: "Tổng quan lớp" },
+          ]}
+        />
 
         <div className="flex items-center gap-3">
           <Link

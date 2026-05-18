@@ -772,7 +772,7 @@ export default function CourseQuizPage() {
             </GlassCard>
 
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-white rounded-xl p-4 shadow-sm">
+              <div className="bg-surface-elev rounded-xl p-4 shadow-sm">
                 <span className="block text-[10px] text-m3-outline uppercase font-bold mb-1 tracking-wider">
                   Đã trả lời
                 </span>
@@ -783,13 +783,13 @@ export default function CourseQuizPage() {
                   </span>
                 </span>
               </div>
-              <div className="bg-white rounded-xl p-4 shadow-sm">
+              <div className="bg-surface-elev rounded-xl p-4 shadow-sm">
                 <span className="block text-[10px] text-m3-outline uppercase font-bold mb-1 tracking-wider">
                   Đánh dấu
                 </span>
                 <span className="text-xl font-black font-headline text-amber-500">{flaggedCount}</span>
               </div>
-              <div className="bg-white rounded-xl p-4 shadow-sm col-span-2">
+              <div className="bg-surface-elev rounded-xl p-4 shadow-sm col-span-2">
                 <span className="block text-[10px] text-m3-outline uppercase font-bold mb-1 tracking-wider">
                   Điểm đạt
                 </span>
@@ -830,7 +830,7 @@ export default function CourseQuizPage() {
                   className={cn(
                     "w-10 h-10 rounded-xl font-bold text-sm transition-all duration-150 hover:scale-110 relative cursor-pointer",
                     state === "completed" && "bg-m3-primary text-white shadow-md",
-                    state === "active" && "bg-white text-m3-primary ring-2 ring-m3-primary shadow-md",
+                    state === "active" && "bg-surface-elev text-m3-primary ring-2 ring-m3-primary shadow-md",
                     state === "flagged" && "bg-amber-100 text-amber-700 ring-2 ring-amber-400",
                     state === "pending" && "bg-m3-surface-container-high text-m3-outline hover:bg-m3-surface-container-highest",
                   )}

@@ -1,8 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import { BookOpen, GraduationCap, Sparkles } from "lucide-react";
+import { AlertCircle, BookOpen, GraduationCap, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { SectionHeader } from "@/components/ui/section-header";
 import { AIInsightChip } from "@/components/ui/ai-insight-chip";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Button } from "@/components/ui/button";
 import {
   useCareerPaths,
   useMyCareerEnrollments,
@@ -79,10 +82,10 @@ function PathCard({
 function SkeletonCard() {
   return (
     <div className="rounded-xl ghost-border overflow-hidden">
-      <div className="aspect-video bg-m3-surface-container animate-pulse" />
+      <Skeleton className="aspect-video rounded-none" />
       <div className="p-4 space-y-3">
-        <div className="h-4 bg-m3-surface-container animate-pulse rounded-lg w-3/4" />
-        <div className="h-3 bg-m3-surface-container animate-pulse rounded-lg w-1/2" />
+        <Skeleton className="h-4 w-3/4" />
+        <Skeleton className="h-3 w-1/2" />
       </div>
     </div>
   );
@@ -120,14 +123,24 @@ export default function CareerPathsPage() {
           />
 
           {list.isError && (
-            <div className="rounded-xl bg-m3-error-container border border-m3-error/20 p-6 text-center">
-              <p className="text-m3-on-error-container text-sm font-semibold">
-                Không thể tải danh sách lộ trình
-              </p>
-              <p className="text-m3-on-error-container/70 text-xs mt-1">
-                {String(list.error)}
-              </p>
-            </div>
+            <EmptyState
+              icon={AlertCircle}
+              title="Không thể tải danh sách lộ trình"
+              description={
+                list.error instanceof Error
+                  ? list.error.message
+                  : "Vui lòng thử lại sau ít phút."
+              }
+              cta={
+                <Button
+                  variant="outline"
+                  onClick={() => list.refetch()}
+                  className="cursor-pointer"
+                >
+                  Thử lại
+                </Button>
+              }
+            />
           )}
 
           {list.isLoading && (
@@ -139,18 +152,11 @@ export default function CareerPathsPage() {
           )}
 
           {!list.isLoading && !list.isError && items.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-20 text-center space-y-3">
-              <div className="w-16 h-16 rounded-full bg-m3-surface-container flex items-center justify-center">
-                <GraduationCap className="h-7 w-7 text-m3-outline" />
-              </div>
-              <p className="font-headline font-semibold text-m3-on-surface text-lg">
-                Chưa có lộ trình nào trong tổ chức của bạn
-              </p>
-              <p className="text-sm text-m3-on-surface-variant max-w-xs">
-                Khi quản lý xuất bản lộ trình mới, danh sách sẽ xuất hiện tại
-                đây.
-              </p>
-            </div>
+            <EmptyState
+              icon={GraduationCap}
+              title="Chưa có lộ trình nào"
+              description="Khi quản lý xuất bản lộ trình mới, danh sách sẽ xuất hiện tại đây."
+            />
           )}
 
           {!list.isLoading && !list.isError && items.length > 0 && (

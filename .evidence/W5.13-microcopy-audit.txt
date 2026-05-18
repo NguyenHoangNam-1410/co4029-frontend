@@ -1,0 +1,26 @@
+# W5.13 microcopy audit (final v2)
+
+## English UI strings in routes (after sweep)
+
+## undefined / [object Object] / NaN / null in JSX text
+(none — clean)
+
+## raw 'My Courses' literal
+(none)
+
+## Vietnamese 'khóa học' present in user-visible heading text
+src/routes/teacher/quiz-manage.tsx:15
+src/routes/courses-list.tsx:10
+src/routes/management-career-path-detail.tsx:9
+src/routes/dashboard.tsx:9
+src/routes/sr-dashboard.tsx:7
+src/routes/notifications.tsx:4
+src/routes/teacher/lesson-manage.tsx:3
+src/routes/dept-courses.tsx:3
+src/routes/career-path-detail.tsx:3
+src/routes/teacher/sr-cohort.tsx:2
+src/routes/settings-notifications.tsx:2
+src/routes/teacher/sr-student-detail.tsx:1
+src/routes/teacher/courses.tsx:1
+src/routes/dept-course-detail.tsx:1
+src/routes/course-learn.tsx:1

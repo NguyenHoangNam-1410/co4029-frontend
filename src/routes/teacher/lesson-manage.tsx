@@ -14,6 +14,8 @@ import "@vidstack/react/player/styles/default/theme.css";
 import "@vidstack/react/player/styles/default/layouts/video.css";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
+import { useUnsavedChangesWarning } from "@/lib/use-unsaved-changes-warning";
 import {
   useTeacherLesson,
   useUpdateLesson,
@@ -386,6 +388,22 @@ export default function LessonManagePage() {
     }
   }, [moduleItem]);
 
+  const isDirty =
+    initialized.current &&
+    !saving &&
+    !!lesson &&
+    (
+      title !== (lesson.title ?? "") ||
+      summary !== (lesson.summary ?? "") ||
+      lessonType !== (lesson.lesson_type ?? "video") ||
+      status !== (lesson.status === "published" ? "published" : "draft") ||
+      difficulty !== (lesson.difficulty ?? "intermediate") ||
+      estimatedMinutes !== (lesson.estimated_minutes?.toString() ?? "") ||
+      notes !== (lesson.notes_markdown ?? "")
+    );
+
+  useUnsavedChangesWarning(isDirty);
+
   function showFeedback(msg: string) {
     setFeedback(msg);
     setTimeout(() => setFeedback(null), 2000);
@@ -416,7 +434,7 @@ export default function LessonManagePage() {
       await Promise.all(saves);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
-      toast.success("Lesson saved");
+      toast.success("Đã lưu bài học");
     } catch (err: unknown) {
       toast.error((err as Error).message || "Save failed");
     } finally {
@@ -574,30 +592,29 @@ export default function LessonManagePage() {
     );
   }
 
-  const typeLabel = LESSON_TYPE_OPTIONS.find((t) => t.value === lessonType)?.label ?? "Lesson";
+  const typeLabel = LESSON_TYPE_OPTIONS.find((t) => t.value === lessonType)?.label ?? "Bài học";
 
   return (
     <div className="max-w-[1440px] mx-auto pb-20">
 
-      {/* ── Breadcrumb ── */}
-      <div className="flex items-center gap-1.5 text-xs text-m3-on-surface-variant pt-4 pb-6">
-        <Link to="/teacher/courses" className="hover:text-m3-primary transition-colors">My Courses</Link>
-        <ArrowRight className="h-3 w-3" />
-        <Link to="/teacher/courses/$courseId" params={{ courseId }} className="hover:text-m3-primary transition-colors truncate max-w-[140px]">
-          {course?.title ?? "…"}
-        </Link>
-        <ArrowRight className="h-3 w-3" />
-        <span className="text-m3-on-surface font-medium truncate max-w-[180px]">
-          {title || lesson?.title || "Lesson"}
-        </span>
+      <div className="pt-4 pb-2 px-4 sm:px-6 lg:px-10">
+        <Breadcrumbs
+          items={[
+            { label: "Giảng dạy", to: "/teacher/courses" },
+            {
+              label: course?.title ?? "Khóa học",
+              to: "/teacher/courses/$courseId",
+            },
+            { label: title || lesson?.title || "Bài học" },
+          ]}
+        />
       </div>
 
-      {/* ── Sticky action bar ── */}
       <div className="sticky top-16 z-10 -mx-4 sm:-mx-6 lg:-mx-10 px-4 sm:px-6 lg:px-10 py-3 mb-8 bg-m3-surface/80 backdrop-blur-md border-b border-m3-outline-variant/20 flex items-center justify-between gap-3">
         <Link to="/teacher/courses/$courseId" params={{ courseId }}>
           <Button variant="ghost" size="sm" className="gap-2 text-m3-on-surface-variant">
             <ArrowLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">Back to Course</span>
+            <span className="hidden sm:inline">Quay lại khóa học</span>
           </Button>
         </Link>
         <div className="flex items-center gap-2">
@@ -619,7 +636,7 @@ export default function LessonManagePage() {
             )}
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-            <span className="hidden sm:inline">{saved ? "Saved ✓" : "Save Changes"}</span>
+            <span className="hidden sm:inline">{saved ? "Đã lưu ✓" : "Lưu thay đổi"}</span>
           </Button>
         </div>
       </div>
@@ -740,7 +757,7 @@ export default function LessonManagePage() {
                     key={s} type="button" onClick={() => setStatus(s)}
                     className={cn(
                       "flex-1 py-2 rounded-lg text-sm font-bold capitalize transition-all cursor-pointer",
-                      status === s ? "bg-white text-m3-primary shadow-sm" : "text-m3-on-surface-variant hover:text-m3-on-surface"
+                      status === s ? "bg-surface-elev text-m3-primary shadow-sm" : "text-m3-on-surface-variant hover:text-m3-on-surface"
                     )}
                   >
                     {s}
@@ -760,7 +777,7 @@ export default function LessonManagePage() {
                       "flex items-center gap-2 p-3 rounded-xl border text-sm font-bold transition-all cursor-pointer",
                       lessonType === value
                         ? "border-m3-primary/30 bg-m3-primary-fixed text-m3-primary"
-                        : "border-m3-outline-variant/20 bg-white text-m3-on-surface-variant hover:bg-m3-surface-container-high"
+                        : "border-m3-outline-variant/20 bg-surface-elev text-m3-on-surface-variant hover:bg-m3-surface-container-high"
                     )}
                   >
                     <Icon className="h-4 w-4 shrink-0" />
@@ -779,7 +796,7 @@ export default function LessonManagePage() {
                 type="number" min={0}
                 value={estimatedMinutes}
                 onChange={(e) => setEstimatedMinutes(e.target.value)}
-                className="w-full bg-white border border-m3-outline-variant/20 rounded-xl px-4 py-3 text-sm font-medium text-m3-on-surface focus:outline-none focus:ring-2 focus:ring-m3-secondary/20 transition-all"
+                className="w-full bg-surface-elev border border-m3-outline-variant/20 rounded-xl px-4 py-3 text-sm font-medium text-m3-on-surface focus:outline-none focus:ring-2 focus:ring-m3-secondary/20 transition-all"
                 placeholder="e.g. 24"
               />
             </div>
@@ -792,7 +809,7 @@ export default function LessonManagePage() {
               <select
                 value={difficulty}
                 onChange={(e) => setDifficulty(e.target.value)}
-                className="w-full bg-white border border-m3-outline-variant/20 rounded-xl px-4 py-3 text-sm font-medium text-m3-on-surface focus:outline-none focus:ring-2 focus:ring-m3-secondary/20 transition-all appearance-none cursor-pointer"
+                className="w-full bg-surface-elev border border-m3-outline-variant/20 rounded-xl px-4 py-3 text-sm font-medium text-m3-on-surface focus:outline-none focus:ring-2 focus:ring-m3-secondary/20 transition-all appearance-none cursor-pointer"
               >
                 <option value="beginner">Beginner</option>
                 <option value="intermediate">Intermediate</option>
@@ -839,11 +856,11 @@ export default function LessonManagePage() {
                     value={prereqSearch}
                     onChange={(e) => setPrereqSearch(e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Escape") { setPrereqOpen(false); setPrereqSearch(""); } }}
-                    placeholder="Search lessons…"
-                    className="w-full pl-9 pr-3 py-2.5 text-sm rounded-xl border border-m3-outline-variant/20 bg-white focus:outline-none focus:ring-2 focus:ring-m3-secondary/20"
+                    placeholder="Tìm bài học…"
+                    className="w-full pl-9 pr-3 py-2.5 text-sm rounded-xl border border-m3-outline-variant/20 bg-surface-elev focus:outline-none focus:ring-2 focus:ring-m3-secondary/20"
                   />
                 </div>
-                <div className="max-h-48 overflow-y-auto space-y-0.5 rounded-xl border border-m3-outline-variant/10 bg-white p-1">
+                <div className="max-h-48 overflow-y-auto space-y-0.5 rounded-xl border border-m3-outline-variant/10 bg-surface-elev p-1">
                   {filteredLessons.length === 0 && (
                     <p className="text-xs text-m3-on-surface-variant/60 text-center py-3">
                       {allLessons.length === 0 ? "No other lessons in this course." : "No lessons match."}
@@ -880,7 +897,7 @@ export default function LessonManagePage() {
               <button
                 type="button"
                 onClick={() => setPrereqOpen(true)}
-                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white border border-m3-outline-variant/20 text-sm font-bold text-m3-primary hover:bg-m3-primary-fixed transition-colors cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-surface-elev border border-m3-outline-variant/20 text-sm font-bold text-m3-primary hover:bg-m3-primary-fixed transition-colors cursor-pointer"
               >
                 <Plus className="h-4 w-4" />
                 Add Prerequisite

@@ -1,0 +1,26 @@
+# W5.13 empty-state primitive audit (final)
+
+## EmptyState primitive file
+-rw-r--r-- 1 co4029 co4029 995 May 18 23:06 src/components/ui/empty-state.tsx
+
+## Routes importing the EmptyState primitive
+src/routes/me-career-paths.tsx
+src/routes/career-paths.tsx
+src/routes/notifications.tsx
+src/routes/study-cards-due.tsx
+src/routes/dashboard.tsx
+src/routes/sr-dashboard.tsx
+src/routes/courses-list.tsx
+
+## EmptyState usages by route
+src/routes/me-career-paths.tsx:94:          <EmptyState
+src/routes/me-career-paths.tsx:119:          <EmptyState
+src/routes/career-paths.tsx:126:            <EmptyState
+src/routes/career-paths.tsx:155:            <EmptyState
+src/routes/notifications.tsx:287:                <EmptyState
+src/routes/study-cards-due.tsx:133:            <EmptyState
+src/routes/dashboard.tsx:65:      <EmptyState
+src/routes/dashboard.tsx:282:              <EmptyState
+src/routes/sr-dashboard.tsx:228:            <EmptyState
+src/routes/courses-list.tsx:179:            <EmptyState
+src/routes/courses-list.tsx:214:                <EmptyState

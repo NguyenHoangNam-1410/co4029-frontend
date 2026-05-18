@@ -23,6 +23,7 @@ import { AIInsightChip } from "@/components/ui/ai-insight-chip";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { ApiError } from "@/lib/api/client";
 import {
   useAddQuizQuestion,
@@ -341,31 +342,17 @@ export default function QuizManagePage() {
 
   return (
     <div className="space-y-6 pb-12 max-w-[1500px] mx-auto">
-      <div className="flex items-center gap-1.5 text-xs text-m3-on-surface-variant flex-wrap">
-        <Link to="/teacher/courses" className="hover:text-m3-primary transition-colors">
-          Khoá học của tôi
-        </Link>
-        <ArrowRight className="h-3 w-3" />
-        <Link
-          to="/teacher/courses/$courseId"
-          params={{ courseId }}
-          className="hover:text-m3-primary transition-colors truncate max-w-[160px]"
-        >
-          {course?.title ?? "…"}
-        </Link>
-        <ArrowRight className="h-3 w-3" />
-        <Link
-          to="/teacher/courses/$courseId/modules/$moduleId"
-          params={{ courseId, moduleId }}
-          className="hover:text-m3-primary transition-colors truncate max-w-[160px]"
-        >
-          {courseModule.title}
-        </Link>
-        <ArrowRight className="h-3 w-3" />
-        <span className="text-m3-on-surface font-medium truncate max-w-[220px]">
-          {quiz.title}
-        </span>
-      </div>
+      <Breadcrumbs
+        items={[
+          { label: "Giảng dạy", to: "/teacher/courses" },
+          { label: course?.title ?? "Khóa học", to: "/teacher/courses/$courseId" },
+          {
+            label: courseModule.title,
+            to: "/teacher/courses/$courseId/modules/$moduleId",
+          },
+          { label: quiz.title },
+        ]}
+      />
 
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="flex items-start gap-3 min-w-0 flex-1">
@@ -476,7 +463,7 @@ export default function QuizManagePage() {
               className={cn(
                 "px-4 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer",
                 active
-                  ? "bg-white text-m3-primary shadow-sm"
+                  ? "bg-surface-elev text-m3-primary shadow-sm"
                   : "text-m3-on-surface-variant hover:text-m3-primary/80",
               )}
             >
@@ -1660,7 +1647,7 @@ function ToggleRow({
         <span
           className={cn(
             "absolute top-1 w-4 h-4 rounded-full shadow-sm transition-all duration-200",
-            value ? "left-6 bg-white" : "left-1 bg-slate-400",
+            value ? "left-6 bg-surface-elev" : "left-1 bg-slate-400",
           )}
         />
       </button>

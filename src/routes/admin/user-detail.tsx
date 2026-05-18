@@ -16,6 +16,8 @@ import {
   useEnableUser,
 } from "@/lib/api/hooks/admin";
 import { useMyPermissions } from "@/lib/api/hooks/auth";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const STATUS_LABEL: Record<string, string> = {
   active: "Đang hoạt động",
@@ -127,8 +129,8 @@ export default function AdminUserDetailPage() {
   if (permissions.isLoading || !canAdmin) {
     return (
       <div className="space-y-3 pb-12">
-        <div className="h-6 w-40 bg-surface-muted animate-pulse rounded" />
-        <div className="h-32 bg-surface-muted animate-pulse rounded-lg" />
+        <Skeleton className="h-6 w-40" />
+        <Skeleton className="h-32 rounded-lg" />
       </div>
     );
   }
@@ -160,6 +162,13 @@ export default function AdminUserDetailPage() {
 
   return (
     <div className="space-y-6 pb-12">
+      <Breadcrumbs
+        items={[
+          { label: "Quản trị", to: "/admin/stats" },
+          { label: "Người dùng", to: "/admin/users" },
+          { label: displayName },
+        ]}
+      />
       <Link
         to="/admin/users"
         className="inline-flex items-center gap-2 text-sm text-text-muted hover:text-text-strong"
@@ -174,8 +183,8 @@ export default function AdminUserDetailPage() {
         </div>
       ) : user.isLoading ? (
         <div className="space-y-3">
-          <div className="h-32 bg-surface-muted animate-pulse rounded-lg" />
-          <div className="h-24 bg-surface-muted animate-pulse rounded-lg" />
+          <Skeleton className="h-32 rounded-lg" />
+          <Skeleton className="h-24 rounded-lg" />
         </div>
       ) : data ? (
         <>

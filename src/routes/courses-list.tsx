@@ -1,11 +1,13 @@
 import { useState, useMemo } from "react";
 import { Link } from "@tanstack/react-router";
-import { Search, SlidersHorizontal, Sparkles, GraduationCap } from "lucide-react";
+import { Search, SlidersHorizontal, Sparkles, GraduationCap, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { SectionHeader } from "@/components/ui/section-header";
 import { AIInsightChip } from "@/components/ui/ai-insight-chip";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
 import { InfiniteList } from "@/components/ui/InfiniteList";
 import { useCourses } from "@/lib/api/hooks/courses";
 import type { Course } from "@/lib/api/types";
@@ -31,7 +33,7 @@ function CourseCard({ course, index }: { course: Course; index: number }) {
           <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
           <Badge className="absolute top-3 left-3 z-10 bg-black/40 text-white border border-white/20 backdrop-blur-sm text-[10px] font-semibold tracking-wide">
             <Sparkles className="h-2.5 w-2.5 mr-1" />
-            AI Enhanced
+            Tăng cường AI
           </Badge>
           <div className="absolute inset-0 flex items-center justify-center opacity-20 group-hover:opacity-30 transition-opacity">
             <GraduationCap className="h-16 w-16 text-white" />
@@ -68,13 +70,13 @@ function CourseCard({ course, index }: { course: Course; index: number }) {
   );
 }
 
-function SkeletonCard() {
+function CourseSkeletonCard() {
   return (
     <div className="rounded-xl ghost-border overflow-hidden">
-      <div className="aspect-video bg-m3-surface-container animate-pulse" />
+      <Skeleton className="aspect-video rounded-none" />
       <div className="p-4 space-y-3">
-        <div className="h-4 bg-m3-surface-container animate-pulse rounded-lg w-3/4" />
-        <div className="h-3 bg-m3-surface-container animate-pulse rounded-lg w-1/2" />
+        <Skeleton className="h-4 w-3/4" />
+        <Skeleton className="h-3 w-1/2" />
       </div>
     </div>
   );
@@ -114,13 +116,13 @@ export default function CoursesListPage() {
 
         <header className="pt-2">
           <div className="flex items-center gap-3 mb-2">
-            <AIInsightChip pulse>AI POWERED</AIInsightChip>
+            <AIInsightChip pulse>HỖ TRỢ BỞI AI</AIInsightChip>
           </div>
           <h1 className="font-headline font-black text-4xl sm:text-5xl text-m3-on-surface leading-none tracking-tight">
-            Mastery Awaits.
+            Khám phá khóa học.
           </h1>
           <p className="mt-3 text-m3-on-surface-variant text-base sm:text-lg max-w-xl">
-            Explore AI-curated courses designed to accelerate your journey from learner to leader.
+            Khám phá các khóa học được AI tuyển chọn, giúp bạn rút ngắn hành trình từ người học đến chuyên gia.
           </p>
         </header>
 
@@ -128,8 +130,10 @@ export default function CoursesListPage() {
           <div className="flex flex-col sm:flex-row gap-3 max-w-4xl">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-m3-outline pointer-events-none" />
+              <label htmlFor="courses-search" className="sr-only">Tìm kiếm khóa học</label>
               <Input
-                placeholder="Search courses…"
+                id="courses-search"
+                placeholder="Tìm khóa học…"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 className="pl-9 bg-m3-surface-container-lowest ghost-border rounded-xl h-10 text-sm placeholder:text-m3-outline focus-visible:ring-m3-secondary/40"
@@ -141,7 +145,8 @@ export default function CoursesListPage() {
               size="icon"
               className="shrink-0 h-10 w-10 rounded-xl ghost-border bg-m3-surface-container-lowest relative"
               onClick={clearFilters}
-              title="Clear filters"
+              title="Xóa bộ lọc"
+              aria-label="Xóa bộ lọc"
             >
               <SlidersHorizontal className="h-4 w-4 text-m3-on-surface-variant" />
             </Button>
@@ -150,14 +155,14 @@ export default function CoursesListPage() {
           {!isLoading && (
             <p className="text-xs text-m3-on-surface-variant mt-2">
               {filtered.length === items.length
-                ? `${items.length} course${items.length !== 1 ? "s" : ""} loaded`
-                : `${filtered.length} of ${items.length} courses`}
+                ? `${items.length} khóa học đã tải`
+                : `${filtered.length} trên ${items.length} khóa học`}
               {query && (
                 <button
                   onClick={clearFilters}
-                  className="ml-2 text-m3-secondary underline underline-offset-2 hover:no-underline"
+                  className="cursor-pointer ml-2 text-m3-secondary underline underline-offset-2 hover:no-underline"
                 >
-                  Clear all
+                  Xóa tất cả
                 </button>
               )}
             </p>
@@ -166,20 +171,34 @@ export default function CoursesListPage() {
 
         <section className="space-y-5 pb-4">
           <SectionHeader
-            title="All Courses"
-            subtitle="Explore the full catalog and start learning at your own pace"
+            title="Tất cả khóa học"
+            subtitle="Khám phá toàn bộ thư viện và học theo nhịp độ của bạn"
           />
 
           {isError && (
-            <div className="rounded-xl bg-m3-error-container border border-m3-error/20 p-6 text-center">
-              <p className="text-m3-on-error-container text-sm font-semibold">Failed to load courses</p>
-              <p className="text-m3-on-error-container/70 text-xs mt-1">{String(error)}</p>
-            </div>
+            <EmptyState
+              icon={AlertCircle}
+              title="Không thể tải khóa học"
+              description={
+                error instanceof Error
+                  ? error.message
+                  : "Vui lòng thử lại sau ít phút."
+              }
+              cta={
+                <Button
+                  variant="outline"
+                  onClick={() => window.location.reload()}
+                  className="cursor-pointer"
+                >
+                  Thử lại
+                </Button>
+              }
+            />
           )}
 
           {isLoading && (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-              {[1, 2, 3, 4, 5, 6].map((i) => <SkeletonCard key={i} />)}
+              {[1, 2, 3, 4, 5, 6].map((i) => <CourseSkeletonCard key={i} />)}
             </div>
           )}
 
@@ -192,29 +211,27 @@ export default function CoursesListPage() {
               keyOf={(c) => c.id}
               className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5"
               empty={
-                <div className="flex flex-col items-center justify-center py-20 text-center space-y-3">
-                  <div className="w-16 h-16 rounded-full bg-m3-surface-container flex items-center justify-center">
-                    <Search className="h-7 w-7 text-m3-outline" />
-                  </div>
-                  <p className="font-headline font-semibold text-m3-on-surface text-lg">
-                    {items.length === 0 ? "No courses yet" : "No courses found"}
-                  </p>
-                  <p className="text-sm text-m3-on-surface-variant max-w-xs">
-                    {items.length === 0
-                      ? "Courses will appear here once they are published."
-                      : "Try adjusting your search to discover more courses."}
-                  </p>
-                  {query && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="mt-2 rounded-xl ghost-border"
-                      onClick={clearFilters}
-                    >
-                      Clear search
-                    </Button>
-                  )}
-                </div>
+                <EmptyState
+                  icon={Search}
+                  title={items.length === 0 ? "Chưa có khóa học nào" : "Không tìm thấy khóa học"}
+                  description={
+                    items.length === 0
+                      ? "Khóa học sẽ xuất hiện tại đây sau khi được xuất bản."
+                      : "Thử điều chỉnh từ khóa tìm kiếm để xem thêm khóa học."
+                  }
+                  cta={
+                    query ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="cursor-pointer"
+                        onClick={clearFilters}
+                      >
+                        Xóa tìm kiếm
+                      </Button>
+                    ) : undefined
+                  }
+                />
               }
               renderItem={(course, i) => <CourseCard course={course} index={i} />}
             />

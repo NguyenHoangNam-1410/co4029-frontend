@@ -383,10 +383,10 @@ function ModuleItemsPanel({ moduleId }: { moduleId: string }) {
       {sorted.map((item) => {
         const label =
           item.item_type === "quiz"
-            ? "Quiz"
+            ? "Bài kiểm tra"
             : item.item_type === "interview"
               ? "AI Mock Interview"
-              : item.target?.title ?? "Lesson";
+              : item.target?.title ?? "Bài học";
         return (
           <div
             key={item.id}

@@ -1,0 +1,10 @@
+# W5.13 dark-mode parity grep (final)
+
+## bg-white literals (without opacity)
+OK: no bg-white violations
+
+## text-black literals (without opacity)
+OK: no text-black violations
+
+## #FFFFFF / #000000 hardcoded hex
+OK: no hardcoded white/black hex

@@ -8,6 +8,8 @@ import {
 } from "@/lib/api/hooks/admin";
 import { useMyPermissions } from "@/lib/api/hooks/auth";
 import { ApiError } from "@/lib/api/client";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const JOB_STATUS_COLOR: Record<string, string> = {
   pending: "bg-slate-100 text-slate-700",
@@ -111,6 +113,13 @@ export default function AdminProcessingJobPage() {
 
   return (
     <div className="space-y-6 pb-12">
+      <Breadcrumbs
+        items={[
+          { label: "Quản trị", to: "/admin/stats" },
+          { label: "Hàng đợi xử lý", to: "/admin/processing" },
+          { label: data?.job_type ?? "Chi tiết job" },
+        ]}
+      />
       <Link
         to="/admin/processing"
         className="inline-flex items-center gap-2 text-sm text-text-muted hover:text-text-strong"
@@ -125,8 +134,8 @@ export default function AdminProcessingJobPage() {
         </div>
       ) : job.isLoading ? (
         <div className="space-y-3">
-          <div className="h-32 bg-surface-muted animate-pulse rounded-lg" />
-          <div className="h-24 bg-surface-muted animate-pulse rounded-lg" />
+          <Skeleton className="h-32 rounded-lg" />
+          <Skeleton className="h-24 rounded-lg" />
         </div>
       ) : data ? (
         <>

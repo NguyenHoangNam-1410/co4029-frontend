@@ -1,6 +1,9 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, BookOpen, CheckCircle2, GraduationCap } from "lucide-react";
+import { ArrowRight, AlertCircle, BookOpen, CheckCircle2, GraduationCap } from "lucide-react";
 import { SectionHeader } from "@/components/ui/section-header";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Button } from "@/components/ui/button";
 import { useMyCareerEnrollments } from "@/lib/api/hooks/career-paths";
 import type { MyCareerEnrollmentRead } from "@/lib/api/types";
 
@@ -88,42 +91,44 @@ export default function MyCareerPathsPage() {
         />
 
         {list.isError && (
-          <div className="rounded-xl bg-m3-error-container border border-m3-error/20 p-6 text-center">
-            <p className="text-m3-on-error-container text-sm font-semibold">
-              Không thể tải danh sách lộ trình
-            </p>
-          </div>
+          <EmptyState
+            icon={AlertCircle}
+            title="Không thể tải danh sách lộ trình"
+            description="Vui lòng thử lại sau ít phút."
+            cta={
+              <Button
+                variant="outline"
+                onClick={() => list.refetch()}
+                className="cursor-pointer"
+              >
+                Thử lại
+              </Button>
+            }
+          />
         )}
 
         {list.isLoading && (
           <div className="space-y-2">
             {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="h-20 bg-m3-surface-container animate-pulse rounded-xl"
-              />
+              <Skeleton key={i} className="h-20 rounded-xl" />
             ))}
           </div>
         )}
 
         {!list.isLoading && !list.isError && items.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 text-center space-y-3">
-            <div className="w-16 h-16 rounded-full bg-m3-surface-container flex items-center justify-center">
-              <BookOpen className="h-7 w-7 text-m3-outline" />
-            </div>
-            <p className="font-headline font-semibold text-m3-on-surface text-lg">
-              Bạn chưa đăng ký lộ trình nào
-            </p>
-            <p className="text-sm text-m3-on-surface-variant max-w-xs">
-              Liên hệ quản lý để được đăng ký vào một lộ trình.
-            </p>
-            <Link
-              to="/career-paths"
-              className="text-sm font-semibold text-m3-primary hover:underline mt-1"
-            >
-              Xem các lộ trình hiện có →
-            </Link>
-          </div>
+          <EmptyState
+            icon={BookOpen}
+            title="Bạn chưa đăng ký lộ trình nào"
+            description="Liên hệ quản lý đào tạo để được đăng ký vào lộ trình phù hợp."
+            cta={
+              <Link
+                to="/career-paths"
+                className="text-sm font-semibold text-m3-primary hover:underline"
+              >
+                Xem các lộ trình hiện có →
+              </Link>
+            }
+          />
         )}
 
         {!list.isLoading && !list.isError && items.length > 0 && (
