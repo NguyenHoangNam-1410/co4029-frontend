@@ -1,19 +1,13 @@
-import { useState, useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Link, useParams } from "@tanstack/react-router";
-import ReactMarkdown from "react-markdown";
+import { useQueries } from "@tanstack/react-query";
 import {
   Play,
-  Volume2,
-  Maximize,
-  Settings,
-  Captions,
   CheckCircle2,
   PlayCircle,
   BookOpen,
-  Lock,
   ChevronLeft,
   ChevronRight,
-  Clock,
   Mic,
   ArrowRight,
   FileText,
@@ -21,45 +15,40 @@ import {
   Sparkles,
   HelpCircle,
 } from "lucide-react";
-import { MediaPlayer, MediaProvider } from "@vidstack/react";
-import { DefaultVideoLayout, defaultLayoutIcons } from "@vidstack/react/player/layouts/default";
 import "@vidstack/react/player/styles/base.css";
 import "@vidstack/react/player/styles/default/theme.css";
 import "@vidstack/react/player/styles/default/layouts/video.css";
 import { Button } from "@/components/ui/button";
-import { GradientProgress } from "@/components/ui/gradient-progress";
 import { GlassCard } from "@/components/ui/glass-card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ApiError, apiFetch } from "@/lib/api/client";
 import {
   useCourseBySlug,
-  useCourseContentBySlug,
-  useCourseStatus,
-  useCourseLessonsProgress,
+  useCourseContent,
+  useLesson,
   useLessonResources,
-  fetchResourceDownloadUrl,
+  useResourceDownloadUrl,
 } from "@/lib/api/hooks/courses";
-import { useMaterialStreamUrl } from "@/lib/api/hooks/materials";
-import { formatMinutes } from "@/lib/api/utils";
-import type { CourseContentItem, CourseContentModule } from "@/lib/api/types/common";
+import { queryKeys } from "@/lib/api/query-keys";
+import type {
+  InstructorRead,
+  LessonResourcePublic,
+  ModuleItemPublic,
+  ModulePublic,
+} from "@/lib/api/types";
 import { cn } from "@/lib/utils";
-
-/* ── Types ── */
 
 type LessonState = "active" | "completed" | "pending" | "locked";
 
-/** Flat entry used by the curriculum sidebar. */
 interface FlatItem {
   moduleId: string;
   moduleTitle: string;
-  item: CourseContentItem;
-  /** display label */
+  item: ModuleItemPublic;
   label: string;
 }
 
 const TABS = ["Lesson Notes", "Discussion", "Resources"] as const;
 type Tab = (typeof TABS)[number];
-
-/* ── Helpers ── */
 
 function initials(name: string) {
   return name
@@ -70,109 +59,74 @@ function initials(name: string) {
     .toUpperCase();
 }
 
-/* ════════════════════════════════════════════════════════
-   Page
-   ════════════════════════════════════════════════════════ */
+function buildFlatItems(
+  modules: ModulePublic[],
+  itemsByModule: Record<string, ModuleItemPublic[] | undefined>,
+): FlatItem[] {
+  const sortedModules = [...modules].sort((a, b) => a.position - b.position);
+  return sortedModules.flatMap((mod) => {
+    const items = itemsByModule[mod.id] ?? [];
+    return [...items]
+      .sort((a, b) => a.position - b.position)
+      .map<FlatItem>((item) => ({
+        moduleId: mod.id,
+        moduleTitle: mod.title,
+        item,
+        label:
+          item.item_type === "quiz"
+            ? "Module Quiz"
+            : item.item_type === "interview"
+              ? "AI Mock Interview"
+              : item.target?.title ?? "Lesson",
+      }));
+  });
+}
 
 export default function CourseLearnPage() {
   const { slug } = useParams({ strict: false }) as { slug: string };
 
-  const { data: course, isLoading: courseLoading } = useCourseBySlug(slug);
+  const courseQuery = useCourseBySlug(slug);
+  const course = courseQuery.data;
   const courseId = course?.id;
+  const { data: content, isLoading: contentLoading } = useCourseContent(courseId);
 
-  const { data: content, isLoading: contentLoading } = useCourseContentBySlug(slug);
-  const { data: courseStatus } = useCourseStatus(courseId);
-  const { data: lessonsProgress } = useCourseLessonsProgress(courseId);
-
-  /* ── Build flat item list from content ── */
-  const flatItems = useMemo<FlatItem[]>(() => {
+  const sortedModules = useMemo<ModulePublic[]>(() => {
     if (!content) return [];
-    const sorted = [...content.modules].sort((a, b) => a.position - b.position);
-    return sorted.flatMap((mod) =>
-      [...mod.items]
-        .sort((a, b) => a.position - b.position)
-        .map((item) => ({
-          moduleId: mod.id,
-          moduleTitle: mod.title,
-          item,
-          label:
-            item.item_type === "quiz"
-              ? "Module Quiz"
-              : item.item_type === "interview"
-              ? "AI Mock Interview"
-              : item.lesson?.title ?? "Lesson",
-        }))
-      );
+    return [...content.modules].sort((a, b) => a.position - b.position);
   }, [content]);
 
-  const lessonItems = useMemo(
-    () => flatItems.filter((fi) => fi.item.item_type === "lesson"),
-    [flatItems]
+  const courseUnavailable =
+    courseQuery.isError &&
+    courseQuery.error instanceof ApiError &&
+    courseQuery.error.status === 404;
+
+  return (
+    <CourseLearnView
+      slug={slug}
+      courseLoading={courseQuery.isLoading}
+      courseUnavailable={courseUnavailable}
+      course={course}
+      contentLoading={contentLoading}
+      sortedModules={sortedModules}
+    />
   );
+}
 
-  /* ── Active item index ── */
-  const initialIdx = useMemo(() => {
-    if (!lessonItems.length) return 0;
-    // find first non-completed lesson
-    const progressMap = new Map(lessonsProgress?.lessons.map((l) => [l.lesson_id, l.status]));
-    const idx = lessonItems.findIndex(
-      (fi) => fi.item.item_type === "lesson" && progressMap.get(fi.item.lesson_id ?? "") !== "completed"
-    );
-    return idx !== -1 ? idx : 0;
-  }, [lessonItems, lessonsProgress]);
-
-  const [activeIdx, setActiveIdx] = useState<number | null>(null);
-  const [activeTab, setActiveTab] = useState<Tab>("Lesson Notes");
-
-  const resolvedIdx = activeIdx ?? initialIdx;
-  const activeEntry = lessonItems[resolvedIdx] ?? null;
-  const activeItem = activeEntry?.item ?? null;
-  const activeLesson = activeItem?.lesson ?? null;
-
-  const activeModuleQuiz = useMemo(() => {
-    if (!activeEntry) return null;
-    return (
-      flatItems.find(
-        (fi) => fi.moduleId === activeEntry.moduleId && fi.item.item_type === "quiz" && fi.item.quiz_id
-      ) ?? null
-    );
-  }, [activeEntry, flatItems]);
-
-  /* ── Derive per-item state for sidebar ── */
-  const progressMap = useMemo(
-    () => new Map(lessonsProgress?.lessons.map((l) => [l.lesson_id, l.status]) ?? []),
-    [lessonsProgress]
-  );
-
-  function itemState(fi: FlatItem): LessonState {
-    if (fi.item.item_type === "lesson") {
-      if (fi.item.lesson_id === activeLesson?.id) return "active";
-      const s = progressMap.get(fi.item.lesson_id ?? "");
-      if (s === "completed") return "completed";
-    }
-    return "pending";
-  }
-
-  /* ── Video stream URL ── */
-  const { data: streamData } = useMaterialStreamUrl(activeLesson?.primary_material_id);
-
-  /* ── Lesson resources (loaded when Resources tab active) ── */
-  const lessonIdForResources = activeTab === "Resources" ? (activeLesson?.id ?? undefined) : undefined;
-  const { data: resources } = useLessonResources(lessonIdForResources);
-
-  /* ── Navigation ── */
-  const hasPrev = resolvedIdx > 0;
-  const hasNext = resolvedIdx < lessonItems.length - 1;
-
-  function goPrev() { if (hasPrev) setActiveIdx(resolvedIdx - 1); }
-  function goNext() { if (hasNext) setActiveIdx(resolvedIdx + 1); }
-
-  /* ── Progress stats ── */
-  const progress = courseStatus ? Number(courseStatus.progress_percent) : 0;
-  const completedLessonCount = lessonsProgress?.lessons.filter((l) => l.status === "completed").length ?? 0;
-  const totalLessonCount = lessonItems.length;
-
-  /* ── Loading state ── */
+function CourseLearnView({
+  slug,
+  courseLoading,
+  courseUnavailable,
+  course,
+  contentLoading,
+  sortedModules,
+}: {
+  slug: string;
+  courseLoading: boolean;
+  courseUnavailable: boolean;
+  course: ReturnType<typeof useCourseBySlug>["data"];
+  contentLoading: boolean;
+  sortedModules: ModulePublic[];
+}) {
   if (courseLoading || contentLoading) {
     return (
       <div className="min-h-screen bg-m3-surface flex items-center justify-center">
@@ -184,11 +138,16 @@ export default function CourseLearnPage() {
     );
   }
 
-  if (!course || !content) {
+  if (courseUnavailable || !course) {
     return (
-      <div className="min-h-screen bg-m3-surface flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <p className="text-m3-on-surface font-headline font-bold text-xl">Course not found</p>
+      <div className="min-h-screen bg-m3-surface flex items-center justify-center px-6">
+        <div className="text-center space-y-4 max-w-md">
+          <p className="text-m3-on-surface font-headline font-bold text-xl">
+            Khóa học không khả dụng
+          </p>
+          <p className="text-sm text-m3-on-surface-variant">
+            Khóa học này hiện chưa được mở hoặc đã bị tạm ẩn.
+          </p>
           <Link to="/courses">
             <Button className="gradient-primary text-white rounded-xl gap-2">
               Browse Courses <ArrowRight className="h-4 w-4" />
@@ -197,6 +156,65 @@ export default function CourseLearnPage() {
         </div>
       </div>
     );
+  }
+
+  return (
+    <CourseLearnLoaded
+      slug={slug}
+      course={course}
+      sortedModules={sortedModules}
+    />
+  );
+}
+
+function CourseLearnLoaded({
+  slug,
+  course,
+  sortedModules,
+}: {
+  slug: string;
+  course: NonNullable<ReturnType<typeof useCourseBySlug>["data"]>;
+  sortedModules: ModulePublic[];
+}) {
+  const itemsByModule = useModuleItemsMap(sortedModules);
+
+  const flatItems = useMemo(
+    () => buildFlatItems(sortedModules, itemsByModule),
+    [sortedModules, itemsByModule],
+  );
+
+  const lessonItems = useMemo(
+    () => flatItems.filter((fi) => fi.item.item_type === "lesson" && fi.item.target),
+    [flatItems],
+  );
+
+  const [activeIdx, setActiveIdx] = useState(0);
+  const [activeTab, setActiveTab] = useState<Tab>("Lesson Notes");
+
+  const activeEntry = lessonItems[activeIdx] ?? null;
+  const activeLessonId = activeEntry?.item.target?.id;
+
+  const lessonQuery = useLesson(activeLessonId);
+  const activeLesson = lessonQuery.data ?? null;
+  const lessonUnavailable =
+    lessonQuery.isError &&
+    lessonQuery.error instanceof ApiError &&
+    lessonQuery.error.status === 404;
+
+  const lessonIdForResources = activeTab === "Resources" ? (activeLessonId ?? undefined) : undefined;
+  const { data: resources } = useLessonResources(lessonIdForResources);
+
+  const hasPrev = activeIdx > 0;
+  const hasNext = activeIdx < lessonItems.length - 1;
+
+  function goPrev() { if (hasPrev) setActiveIdx(activeIdx - 1); }
+  function goNext() { if (hasNext) setActiveIdx(activeIdx + 1); }
+
+  function itemState(fi: FlatItem): LessonState {
+    if (fi.item.item_type === "lesson" && fi.item.target?.id === activeLessonId) {
+      return "active";
+    }
+    return "pending";
   }
 
   if (!lessonItems.length) {
@@ -220,7 +238,6 @@ export default function CourseLearnPage() {
   return (
     <div className="min-h-screen bg-m3-surface pb-24">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-        {/* ── Breadcrumb ── */}
         <nav className="flex items-center gap-2 text-xs text-m3-on-surface-variant mb-5">
           <Link to="/courses" className="hover:text-m3-primary transition-colors">
             Courses
@@ -234,111 +251,45 @@ export default function CourseLearnPage() {
         </nav>
 
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
-          {/* ════════════════════════════════════════
-              Main Content
-          ════════════════════════════════════════ */}
           <div className="flex-1 min-w-0 flex flex-col gap-6">
-            {/* ── Main content area: video or reading ── */}
-            {activeLesson?.lesson_type === "reading" ? (
-              <GlassCard className="p-6 sm:p-10 min-h-[260px]">
-                <div className="flex items-center gap-2 mb-5">
-                  <BookOpen className="h-5 w-5 text-m3-secondary" />
-                  <span className="text-xs font-bold uppercase tracking-widest text-m3-secondary font-label">
-                    Reading
-                  </span>
-                </div>
-                {activeLesson.notes_markdown ? (
-                  <div className="prose prose-sm max-w-none text-m3-on-surface">
-                    <ReactMarkdown>{activeLesson.notes_markdown}</ReactMarkdown>
-                  </div>
-                ) : activeLesson.summary ? (
-                  <p className="text-m3-on-surface-variant text-base leading-relaxed">{activeLesson.summary}</p>
-                ) : (
-                  <p className="text-m3-on-surface-variant text-sm">Reading content is not available yet.</p>
-                )}
+
+            {lessonUnavailable ? (
+              <GlassCard className="p-10 text-center">
+                <p className="font-headline font-bold text-xl text-m3-on-surface mb-2">
+                  Bài học không khả dụng
+                </p>
+                <p className="text-sm text-m3-on-surface-variant">
+                  Nội dung bài học này hiện chưa được mở.
+                </p>
               </GlassCard>
             ) : (
               <div className="rounded-xl overflow-hidden bg-black shadow-2xl">
-                {streamData ? (
-                  <MediaPlayer
-                    src={{ src: streamData.stream_url, type: "video/mp4" }}
-                    className="w-full aspect-video"
-                    load="play"
-                  >
-                    <MediaProvider />
-                    <DefaultVideoLayout icons={defaultLayoutIcons} download={false} />
-                  </MediaPlayer>
-                ) : (
-                  <div className="relative aspect-video">
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-blue-900 to-slate-900 opacity-80" />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-20 h-20 bg-m3-primary/90 text-white rounded-full flex items-center justify-center shadow-2xl">
-                        <Play className="h-9 w-9 fill-white" />
-                      </div>
+                <div className="relative aspect-video">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-blue-900 to-slate-900 opacity-80" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-20 h-20 bg-m3-primary/90 text-white rounded-full flex items-center justify-center shadow-2xl">
+                      <Play className="h-9 w-9 fill-white" />
                     </div>
                   </div>
-                )}
+                </div>
               </div>
             )}
 
-            {/* ── Lesson Title & Meta ── */}
-            {activeItem && (
+            {activeEntry && (
               <div className="space-y-3">
                 <h1 className="font-headline font-extrabold text-3xl sm:text-4xl text-m3-primary tracking-tight leading-none">
-                  {activeEntry?.label}
+                  {activeLesson?.title ?? activeEntry.label}
                 </h1>
-                <div className="flex flex-wrap items-center gap-3">
-                  {activeLesson?.estimated_minutes && (
-                    <>
-                      <span className="text-m3-outline text-xs">•</span>
-                      <span className="text-m3-on-surface-variant text-sm flex items-center gap-1.5">
-                        <Clock className="h-3.5 w-3.5" />
-                        {formatMinutes(activeLesson.estimated_minutes)}
-                      </span>
-                    </>
-                  )}
-                  {activeModuleQuiz?.item.quiz_id && (
-                    <Link
-                      to="/courses/$slug/quiz/$quizId"
-                      params={{ slug, quizId: activeModuleQuiz.item.quiz_id }}
-                      className="ml-auto"
-                    >
-                      <Button
-                        size="sm"
-                        className="gradient-primary text-white font-bold rounded-xl gap-2 shadow-ai-glow hover:opacity-90"
-                      >
-                        <Sparkles className="h-4 w-4" />
-                        Take Quiz
-                      </Button>
-                    </Link>
-                  )}
+                <div className="flex flex-wrap items-center gap-3 text-xs text-m3-on-surface-variant">
+                  <span>{activeEntry.moduleTitle}</span>
                 </div>
               </div>
             )}
 
-            {/* ── Instructor card ── */}
             {course.instructor && (
-              <div className="glass ghost-border rounded-xl p-6 sm:p-8 flex flex-col sm:flex-row items-center gap-6 shadow-sm">
-                <Avatar className="h-20 w-20 shrink-0 ring-4 ring-white shadow-xl">
-                  <AvatarFallback className="gradient-primary text-white text-xl font-bold font-headline">
-                    {initials(course.instructor.display_name)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="text-center sm:text-left">
-                  <h3 className="text-lg font-headline font-bold text-m3-primary">
-                    {course.instructor.display_name}
-                  </h3>
-                  <p className="text-m3-secondary font-semibold text-xs mt-0.5 mb-2">Instructor</p>
-                  {course.instructor.bio && (
-                    <p className="text-m3-on-surface-variant text-sm leading-relaxed">
-                      {course.instructor.bio}
-                    </p>
-                  )}
-                </div>
-              </div>
+              <InstructorBlock instructor={course.instructor} />
             )}
 
-            {/* ── Tab bar + prev/next ── */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-m3-outline-variant/20">
               <div className="flex gap-1 flex-wrap">
                 {TABS.map((tab) => (
@@ -366,11 +317,11 @@ export default function CourseLearnPage() {
                   disabled={!hasPrev}
                 >
                   <ChevronLeft className="h-4 w-4 mr-1" />
-                    {hasPrev ? (
-                      <span className="max-w-[120px] truncate">{lessonItems[resolvedIdx - 1]?.label}</span>
-                    ) : (
-                      "Previous"
-                    )}
+                  {hasPrev ? (
+                    <span className="max-w-[120px] truncate">{lessonItems[activeIdx - 1]?.label}</span>
+                  ) : (
+                    "Previous"
+                  )}
                 </Button>
                 <Button
                   size="sm"
@@ -378,34 +329,26 @@ export default function CourseLearnPage() {
                   onClick={goNext}
                   disabled={!hasNext}
                 >
-                    {hasNext ? (
-                      <span className="max-w-[120px] truncate">Next: {lessonItems[resolvedIdx + 1]?.label}</span>
-                    ) : (
-                      "Finished"
-                    )}
+                  {hasNext ? (
+                    <span className="max-w-[120px] truncate">Next: {lessonItems[activeIdx + 1]?.label}</span>
+                  ) : (
+                    "Finished"
+                  )}
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
             </div>
 
-            {/* ── Tab content ── */}
             <div className="pb-4">
-              {activeTab === "Lesson Notes" && activeLesson && (
+              {activeTab === "Lesson Notes" && (
                 <GlassCard className="p-6 sm:p-8">
                   <div className="flex items-center gap-2 mb-4">
                     <FileText className="h-4 w-4 text-m3-secondary" />
                     <h4 className="font-headline font-bold text-m3-on-surface text-sm">Lesson Notes</h4>
                   </div>
-                  {activeLesson.notes_markdown ? (
-                    <div className="prose prose-sm max-w-none text-m3-on-surface-variant">
-                      <ReactMarkdown>{activeLesson.notes_markdown}</ReactMarkdown>
-                    </div>
-                  ) : (
-                    <p className="text-m3-on-surface-variant text-sm leading-relaxed">
-                      Notes for <strong>{activeLesson.title}</strong> are not available yet.
-                      Notes are generated after the lesson material is processed.
-                    </p>
-                  )}
+                  <p className="text-m3-on-surface-variant text-sm leading-relaxed">
+                    Lesson notes will appear here once the material is processed.
+                  </p>
                 </GlassCard>
               )}
 
@@ -425,142 +368,174 @@ export default function CourseLearnPage() {
               )}
 
               {activeTab === "Resources" && (
-                <GlassCard className="p-6 sm:p-8">
-                  <div className="flex items-center gap-2 mb-5">
-                    <Download className="h-4 w-4 text-m3-secondary" />
-                    <h4 className="font-headline font-bold text-m3-on-surface text-sm">
-                      Downloadable Resources
-                    </h4>
-                    {resources && (
-                      <span className="ml-auto text-xs text-m3-on-surface-variant">
-                        {resources.length} file{resources.length !== 1 ? "s" : ""}
-                      </span>
-                    )}
-                  </div>
-
-                  {!resources ? (
-                    <div className="space-y-2">
-                      {[1, 2].map((i) => (
-                        <div key={i} className="h-12 rounded-xl bg-m3-surface-container animate-pulse" />
-                      ))}
-                    </div>
-                  ) : resources.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-10 text-center gap-2">
-                      <div className="w-12 h-12 rounded-full bg-m3-surface-container flex items-center justify-center">
-                        <FileText className="h-5 w-5 text-m3-outline" />
-                      </div>
-                      <p className="text-sm font-semibold text-m3-on-surface">No resources for this lesson</p>
-                    </div>
-                  ) : (
-                    resources.map((file) => (
-                      <div
-                        key={file.id}
-                        className="flex items-center gap-3 py-3 border-b border-m3-outline-variant/15 last:border-0"
-                      >
-                        <div className="w-9 h-9 rounded-xl bg-m3-secondary/10 flex items-center justify-center shrink-0">
-                          <FileText className="h-4 w-4 text-m3-secondary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-m3-on-surface truncate">{file.title}</p>
-                          <p className="text-[10px] text-m3-outline uppercase">{file.resource_type}</p>
-                        </div>
-                        {file.storage_object_id ? (
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-8 w-8 rounded-xl text-m3-secondary hover:bg-m3-secondary/10"
-                            title="Download"
-                            onClick={async () => {
-                              const url = await fetchResourceDownloadUrl(file.id);
-                              window.open(url, "_blank", "noopener,noreferrer");
-                            }}
-                          >
-                            <Download className="h-4 w-4" />
-                          </Button>
-                        ) : (
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-8 w-8 rounded-xl text-m3-secondary hover:bg-m3-secondary/10"
-                            disabled
-                            title="No file attached"
-                          >
-                            <Download className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
-                    ))
-                  )}
-                </GlassCard>
+                <ResourcesPanel resources={resources} />
               )}
             </div>
           </div>
 
-          {/* ════════════════════════════════════════
-              Curriculum Sidebar (right)
-          ════════════════════════════════════════ */}
           <aside className="w-full lg:w-72 xl:w-80 flex-shrink-0 flex flex-col gap-4">
-            {/* Progress Card */}
-            <GlassCard className="p-5">
-              <div className="flex justify-between items-end mb-2">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-m3-secondary font-label">
-                  Course Progress
-                </span>
-                <span className="text-2xl font-black font-headline text-m3-primary">
-                  {Math.round(progress)}%
-                </span>
-              </div>
-              <GradientProgress value={progress} variant="secondary" size="sm" />
-              <p className="mt-2 text-xs text-m3-on-surface-variant">
-                {completedLessonCount} of {totalLessonCount} lessons completed.
-              </p>
-            </GlassCard>
-
-            {/* Curriculum List */}
             <GlassCard className="flex flex-col overflow-hidden">
               <div className="px-5 py-4 border-b border-m3-outline-variant/20 bg-m3-primary/5">
                 <h3 className="font-headline font-bold text-m3-primary text-sm">Curriculum</h3>
               </div>
               <div className="overflow-y-auto max-h-[520px] p-3 space-y-4">
-                {content.modules
-                  .slice()
-                  .sort((a, b) => a.position - b.position)
-                  .map((mod) => (
-                    <ModuleSection
-                      key={mod.id}
-                      slug={slug}
-                      mod={mod}
-                      flatItems={flatItems}
-                      itemState={itemState}
-                      onSelect={(idx) => setActiveIdx(idx)}
-                    />
-                  ))}
+                {sortedModules.map((mod) => (
+                  <ModuleSection
+                    key={mod.id}
+                    mod={mod}
+                    flatItems={flatItems}
+                    lessonItems={lessonItems}
+                    itemState={itemState}
+                    onSelect={(idx) => setActiveIdx(idx)}
+                  />
+                ))}
               </div>
             </GlassCard>
           </aside>
         </div>
       </div>
-
     </div>
   );
 }
 
-/* ── Sub-components ── */
+function useModuleItemsMap(modules: ModulePublic[]): Record<string, ModuleItemPublic[] | undefined> {
+  const moduleIds = useMemo(
+    () => modules.map((m) => m.id),
+    [modules],
+  );
+
+  const results = useQueries({
+    queries: moduleIds.map((moduleId) => ({
+      queryKey: queryKeys.courses.moduleItems(moduleId),
+      queryFn: () => apiFetch<ModuleItemPublic[]>(`/modules/${moduleId}/items`),
+      enabled: !!moduleId,
+    })),
+  });
+
+  return useMemo(() => {
+    const next: Record<string, ModuleItemPublic[] | undefined> = {};
+    moduleIds.forEach((id, idx) => {
+      next[id] = results[idx]?.data;
+    });
+    return next;
+  }, [moduleIds, results]);
+}
+
+function ResourcesPanel({ resources }: { resources: LessonResourcePublic[] | undefined }) {
+  return (
+    <GlassCard className="p-6 sm:p-8">
+      <div className="flex items-center gap-2 mb-5">
+        <Download className="h-4 w-4 text-m3-secondary" />
+        <h4 className="font-headline font-bold text-m3-on-surface text-sm">
+          Downloadable Resources
+        </h4>
+        {resources && (
+          <span className="ml-auto text-xs text-m3-on-surface-variant">
+            {resources.length} file{resources.length !== 1 ? "s" : ""}
+          </span>
+        )}
+      </div>
+
+      {!resources ? (
+        <div className="space-y-2">
+          {[1, 2].map((i) => (
+            <div key={i} className="h-12 rounded-xl bg-m3-surface-container animate-pulse" />
+          ))}
+        </div>
+      ) : resources.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-10 text-center gap-2">
+          <div className="w-12 h-12 rounded-full bg-m3-surface-container flex items-center justify-center">
+            <FileText className="h-5 w-5 text-m3-outline" />
+          </div>
+          <p className="text-sm font-semibold text-m3-on-surface">No resources for this lesson</p>
+        </div>
+      ) : (
+        resources.map((file) => <ResourceRow key={file.id} resource={file} />)
+      )}
+    </GlassCard>
+  );
+}
+
+function ResourceRow({ resource }: { resource: LessonResourcePublic }) {
+  const [requested, setRequested] = useState(false);
+  const downloadQuery = useResourceDownloadUrl(requested ? resource.id : undefined);
+  const downloadUnavailable =
+    downloadQuery.isError &&
+    downloadQuery.error instanceof ApiError &&
+    downloadQuery.error.status === 404;
+
+  useEffect(() => {
+    if (downloadQuery.data?.url && requested) {
+      window.open(downloadQuery.data.url, "_blank", "noopener,noreferrer");
+      setRequested(false);
+    }
+  }, [downloadQuery.data, requested]);
+
+  return (
+    <div className="flex items-center gap-3 py-3 border-b border-m3-outline-variant/15 last:border-0">
+      <div className="w-9 h-9 rounded-xl bg-m3-secondary/10 flex items-center justify-center shrink-0">
+        <FileText className="h-4 w-4 text-m3-secondary" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-m3-on-surface truncate">{resource.title}</p>
+        <p className="text-[10px] text-m3-outline uppercase">{resource.resource_type}</p>
+        {downloadUnavailable && (
+          <p className="text-[10px] text-amber-600 mt-0.5">Tài nguyên không khả dụng</p>
+        )}
+      </div>
+      <Button
+        size="icon"
+        variant="ghost"
+        className="h-8 w-8 rounded-xl text-m3-secondary hover:bg-m3-secondary/10"
+        title={downloadUnavailable ? "Tài nguyên không khả dụng" : "Download"}
+        onClick={() => setRequested(true)}
+        disabled={downloadQuery.isFetching}
+      >
+        <Download className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
+
+function InstructorBlock({ instructor }: { instructor: InstructorRead }) {
+  return (
+    <div className="glass ghost-border rounded-xl p-6 sm:p-8 flex flex-col sm:flex-row items-center gap-6 shadow-sm">
+      <Avatar className="h-20 w-20 shrink-0 ring-4 ring-white shadow-xl">
+        {instructor.avatar_url ? (
+          <AvatarImage src={instructor.avatar_url} alt={instructor.display_name} />
+        ) : null}
+        <AvatarFallback className="gradient-primary text-white text-xl font-bold font-headline">
+          {initials(instructor.display_name)}
+        </AvatarFallback>
+      </Avatar>
+      <div className="text-center sm:text-left">
+        <h3 className="text-lg font-headline font-bold text-m3-primary">
+          {instructor.display_name}
+        </h3>
+        <p className="text-m3-secondary font-semibold text-xs mt-0.5 mb-2">Instructor</p>
+        {instructor.headline && (
+          <p className="text-m3-on-surface-variant text-sm leading-relaxed">
+            {instructor.headline}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function ModuleSection({
-  slug,
   mod,
   flatItems,
+  lessonItems,
   itemState,
   onSelect,
 }: {
-  slug: string;
-  mod: CourseContentModule;
+  mod: ModulePublic;
   flatItems: FlatItem[];
+  lessonItems: FlatItem[];
   itemState: (fi: FlatItem) => LessonState;
   onSelect: (idx: number) => void;
 }) {
-  const lessonItems = flatItems.filter((fi) => fi.item.item_type === "lesson");
   const modItems = flatItems
     .map((fi) => ({ fi, idx: lessonItems.findIndex((lesson) => lesson.item.id === fi.item.id) }))
     .filter(({ fi }) => fi.moduleId === mod.id);
@@ -576,23 +551,7 @@ function ModuleSection({
         const state = itemState(fi);
         const isQuiz = fi.item.item_type === "quiz";
         const isInterview = fi.item.item_type === "interview";
-        const lessonType = fi.item.lesson?.lesson_type;
-        const LessonIcon = lessonType === "reading" ? BookOpen : PlayCircle;
-
-        if (isQuiz && fi.item.quiz_id) {
-          return (
-            <Link
-              key={fi.item.id}
-              to="/courses/$slug/quiz/$quizId"
-              params={{ slug, quizId: fi.item.quiz_id }}
-              className="w-full flex items-center gap-3 p-3 rounded-lg text-left transition-all duration-200 text-sm text-m3-on-surface-variant hover:bg-white/50 font-medium cursor-pointer"
-            >
-              <HelpCircle className="h-4 w-4 flex-shrink-0 opacity-60" />
-              <span className="truncate leading-snug">{fi.label}</span>
-              <Sparkles className="h-4 w-4 ml-auto text-m3-secondary" />
-            </Link>
-          );
-        }
+        const LessonIcon = PlayCircle;
 
         return (
           <button
@@ -613,14 +572,10 @@ function ModuleSection({
             {state === "pending" && !isQuiz && !isInterview && <LessonIcon className="h-4 w-4 flex-shrink-0 opacity-40" />}
             {state === "pending" && isQuiz && <HelpCircle className="h-4 w-4 flex-shrink-0 opacity-60" />}
             {isInterview && <Mic className="h-4 w-4 flex-shrink-0" />}
-            {state === "locked" && <Lock className="h-4 w-4 flex-shrink-0" />}
+            {isQuiz && state !== "active" && <Sparkles className="h-3 w-3 ml-auto text-m3-secondary" />}
 
-            <span className="truncate leading-snug">{fi.label}</span>
-            {fi.item.lesson?.estimated_minutes && (
-              <span className="ml-auto text-[10px] opacity-60 shrink-0">
-                {formatMinutes(fi.item.lesson.estimated_minutes)}
-              </span>
-            )}
+            <span className="truncate leading-snug flex-1">{fi.label}</span>
+            <BookOpen className="h-3 w-3 opacity-0" />
           </button>
         );
       })}

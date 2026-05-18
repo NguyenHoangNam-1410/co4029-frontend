@@ -1,140 +1,184 @@
 import { useQuery } from "@tanstack/react-query";
 import { ApiError, apiFetch } from "../client";
+import { queryKeys } from "../query-keys";
+import { useInfinitePage } from "../use-infinite-page";
 import type {
   Course,
-  CourseContent,
-  CourseDetail,
-  CourseTag,
-  LearningOutcome,
-  LessonResource,
-  StreamUrlResponse,
-} from "../types/common";
-import type {
-  CourseLessonsProgress,
-  CourseModulesStatus,
-  CourseStatus,
-} from "../types/student";
+  CourseContentPublic,
+  CourseLearningOutcomePublic,
+  CoursePublic,
+  LessonPublic,
+  LessonResourcePublic,
+  ModuleItemPublic,
+  ModulePublic,
+  Page,
+  ResourceDownloadUrlResponse,
+  TagPublic,
+} from "../types";
 
-export function useCourseList() {
-  return useQuery({
-    queryKey: ["courses"],
-    queryFn: () => apiFetch<Course[]>("/courses"),
-    staleTime: 1000 * 60 * 5,
+function buildPagedUrl(base: string, cursor: string | undefined, limit: number) {
+  const params = new URLSearchParams();
+  if (cursor) params.set("cursor", cursor);
+  if (limit) params.set("limit", String(limit));
+  const qs = params.toString();
+  return qs ? `${base}?${qs}` : base;
+}
+
+export function useCourses(limit = 20) {
+  return useInfinitePage<Course>({
+    queryKey: queryKeys.courses.list(),
+    fetch: (cursor, lim = limit) =>
+      apiFetch<Page<Course>>(buildPagedUrl("/courses", cursor, lim ?? limit)),
+    limit,
   });
 }
 
-export function useMyCourses() {
-  return useQuery({
-    queryKey: ["courses", "mine"],
-    queryFn: () => apiFetch<Course[]>("/me/courses"),
-    staleTime: 1000 * 60 * 2,
-  });
-}
-
-export function useCourseById(courseId: string | undefined) {
-  return useQuery({
-    queryKey: ["courses", courseId],
-    queryFn: () => apiFetch<CourseDetail>(`/courses/${courseId}`),
-    enabled: !!courseId,
-    staleTime: 1000 * 60 * 5,
+export function useMyCourses(limit = 20) {
+  return useInfinitePage<Course>({
+    queryKey: queryKeys.courses.myList(),
+    fetch: (cursor, lim = limit) =>
+      apiFetch<Page<Course>>(buildPagedUrl("/me/courses", cursor, lim ?? limit)),
+    limit,
   });
 }
 
 export function useCourseBySlug(slug: string | undefined) {
   return useQuery({
-    queryKey: ["courses", "by-slug", slug],
-    queryFn: () => apiFetch<CourseDetail>(`/courses/by-slug/${slug}`),
+    queryKey: queryKeys.courses.bySlug(slug ?? ""),
+    queryFn: () => apiFetch<CoursePublic>(`/courses/by-slug/${slug}`),
     enabled: !!slug,
-    staleTime: 1000 * 60 * 5,
+    retry: (failureCount, error) => {
+      if (error instanceof ApiError && error.status === 404) return false;
+      return failureCount < 3;
+    },
+  });
+}
+
+export function useCourse(courseId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.courses.detail(courseId ?? ""),
+    queryFn: () => apiFetch<CoursePublic>(`/courses/${courseId}`),
+    enabled: !!courseId,
+    retry: (failureCount, error) => {
+      if (error instanceof ApiError && error.status === 404) return false;
+      return failureCount < 3;
+    },
   });
 }
 
 export function useCourseContent(courseId: string | undefined) {
   return useQuery({
-    queryKey: ["courses", courseId, "content"],
-    queryFn: () => apiFetch<CourseContent>(`/courses/${courseId}/content`),
+    queryKey: queryKeys.courses.content(courseId ?? ""),
+    queryFn: () => apiFetch<CourseContentPublic>(`/courses/${courseId}/content`),
     enabled: !!courseId,
-    staleTime: 1000 * 60 * 10,
-  });
-}
-
-export function useCourseContentBySlug(slug: string | undefined) {
-  return useQuery({
-    queryKey: ["courses", "by-slug", slug, "content"],
-    queryFn: () => apiFetch<CourseContent>(`/courses/by-slug/${slug}/content`),
-    enabled: !!slug,
-    staleTime: 1000 * 60 * 10,
-  });
-}
-
-export function useCourseOutcomes(courseId: string | undefined) {
-  return useQuery({
-    queryKey: ["courses", courseId, "outcomes"],
-    queryFn: () => apiFetch<LearningOutcome[]>(`/courses/${courseId}/outcomes`),
-    enabled: !!courseId,
-    staleTime: 1000 * 60 * 10,
+    retry: (failureCount, error) => {
+      if (error instanceof ApiError && error.status === 404) return false;
+      return failureCount < 3;
+    },
   });
 }
 
 export function useCourseTags(courseId: string | undefined) {
   return useQuery({
-    queryKey: ["courses", courseId, "tags"],
-    queryFn: () => apiFetch<CourseTag[]>(`/courses/${courseId}/tags`),
-    enabled: !!courseId,
-    staleTime: 1000 * 60 * 10,
-  });
-}
-
-export function useCourseStatus(courseId: string | undefined) {
-  return useQuery({
-    queryKey: ["courses", courseId, "status"],
-    queryFn: () => apiFetch<CourseStatus>(`/courses/${courseId}/status/me`),
+    queryKey: queryKeys.courses.tags(courseId ?? ""),
+    queryFn: () => apiFetch<TagPublic[]>(`/courses/${courseId}/tags`),
     enabled: !!courseId,
   });
 }
 
-export function useCourseLessonsProgress(courseId: string | undefined) {
+export function useCourseOutcomes(courseId: string | undefined) {
   return useQuery({
-    queryKey: ["courses", courseId, "lessons-progress"],
+    queryKey: queryKeys.courses.outcomes(courseId ?? ""),
     queryFn: async () => {
-      try {
-        return await apiFetch<CourseLessonsProgress>(`/courses/${courseId}/lessons/progress/me`);
-      } catch (e: unknown) {
-        if (e instanceof ApiError && e.status === 404) return null;
-        throw e;
-      }
+      const list = await apiFetch<CourseLearningOutcomePublic[]>(
+        `/courses/${courseId}/outcomes`,
+      );
+      return [...list].sort((a, b) => a.position - b.position);
     },
     enabled: !!courseId,
-    staleTime: 1000 * 30,
   });
 }
 
-export function useCourseModulesStatus(courseId: string | undefined) {
+export function useCourseModules(courseId: string | undefined) {
   return useQuery({
-    queryKey: ["courses", courseId, "modules-status"],
-    queryFn: async () => {
-      try {
-        return await apiFetch<CourseModulesStatus>(`/courses/${courseId}/modules/status/me`);
-      } catch (e: unknown) {
-        if (e instanceof ApiError && e.status === 404) return null;
-        throw e;
-      }
-    },
+    queryKey: queryKeys.courses.modules(courseId ?? ""),
+    queryFn: () =>
+      apiFetch<ModulePublic[]>(`/courses/${courseId}/modules`),
     enabled: !!courseId,
-    staleTime: 1000 * 30,
+  });
+}
+
+export function useModule(moduleId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.courses.moduleDetail(moduleId ?? ""),
+    queryFn: () => apiFetch<ModulePublic>(`/modules/${moduleId}`),
+    enabled: !!moduleId,
+    retry: (failureCount, error) => {
+      if (error instanceof ApiError && error.status === 404) return false;
+      return failureCount < 3;
+    },
+  });
+}
+
+export function useModuleItems(moduleId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.courses.moduleItems(moduleId ?? ""),
+    queryFn: () =>
+      apiFetch<ModuleItemPublic[]>(`/modules/${moduleId}/items`),
+    enabled: !!moduleId,
+  });
+}
+
+export function useModuleLessons(moduleId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.courses.moduleLessons(moduleId ?? ""),
+    queryFn: () =>
+      apiFetch<LessonPublic[]>(`/modules/${moduleId}/lessons`),
+    enabled: !!moduleId,
+  });
+}
+
+export function useLesson(lessonId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.courses.lesson(lessonId ?? ""),
+    queryFn: () => apiFetch<LessonPublic>(`/lessons/${lessonId}`),
+    enabled: !!lessonId,
+    retry: (failureCount, error) => {
+      if (error instanceof ApiError && error.status === 404) return false;
+      return failureCount < 3;
+    },
   });
 }
 
 export function useLessonResources(lessonId: string | undefined) {
   return useQuery({
-    queryKey: ["lessons", lessonId, "resources"],
-    queryFn: () => apiFetch<LessonResource[]>(`/lessons/${lessonId}/resources`),
+    queryKey: queryKeys.courses.lessonResources(lessonId ?? ""),
+    queryFn: () =>
+      apiFetch<LessonResourcePublic[]>(`/lessons/${lessonId}/resources`),
     enabled: !!lessonId,
-    staleTime: 1000 * 60 * 5,
   });
 }
 
-export async function fetchResourceDownloadUrl(resourceId: string): Promise<string> {
-  const data = await apiFetch<StreamUrlResponse>(`/lesson-resources/${resourceId}/download-url`);
-  return data.stream_url;
+export function useResourceDownloadUrl(resourceId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.courses.resourceDownload(resourceId ?? ""),
+    queryFn: () =>
+      apiFetch<ResourceDownloadUrlResponse>(
+        `/lesson-resources/${resourceId}/download-url`,
+      ),
+    enabled: !!resourceId,
+    retry: (failureCount, error) => {
+      if (error instanceof ApiError && error.status === 404) return false;
+      return failureCount < 3;
+    },
+  });
+}
+
+export async function fetchResourceDownloadUrl(
+  resourceId: string,
+): Promise<string> {
+  const data = await apiFetch<ResourceDownloadUrlResponse>(
+    `/lesson-resources/${resourceId}/download-url`,
+  );
+  return data.url;
 }

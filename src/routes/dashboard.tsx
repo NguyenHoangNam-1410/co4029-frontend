@@ -1,18 +1,16 @@
 import { useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { useCourseStatus, useMyCourses } from "@/lib/api/hooks/courses";
+import { useMyCourses } from "@/lib/api/hooks/courses";
 import { useNotifications } from "@/lib/api/hooks/notifications";
-import { deriveCourseStatus } from "@/lib/api/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { AIInsightChip } from "@/components/ui/ai-insight-chip";
 import { SectionHeader } from "@/components/ui/section-header";
-import { GradientProgress } from "@/components/ui/gradient-progress";
 import { StatCard } from "@/components/ui/stat-card";
 import { getAuthDisplayName, getAuthUserInitials } from "@/lib/auth";
-import type { Course } from "@/lib/api/types/common";
+import type { Course } from "@/lib/api/types";
 import {
   ArrowRight,
   ChevronLeft,
@@ -20,74 +18,41 @@ import {
   BookOpen,
   Bell,
   CheckCircle2,
-  Clock,
   GraduationCap,
-  Sparkles,
   Bot,
   Mic,
   FileText,
 } from "lucide-react";
 
-/* ── helpers ── */
-
 function CourseProgressCard({ course }: { course: Course }) {
-  const { data: status } = useCourseStatus(course.id);
-
-  const progress = status ? Number(status.progress_percent) : 0;
-  const courseStatus = status ? deriveCourseStatus(progress) : "not_started";
-
-  const statusLabel = {
-    not_started: "Not started",
-    in_progress: "In progress",
-    completed: "Completed",
-  }[courseStatus];
-
-  const statusColor = {
-    not_started: "bg-m3-surface-container text-m3-on-surface-variant",
-    in_progress: "bg-m3-secondary-fixed text-m3-on-secondary-fixed",
-    completed: "bg-emerald-100 text-emerald-700",
-  }[courseStatus];
-
   return (
     <div className="bg-m3-surface-container-lowest rounded-xl shadow-editorial ghost-border p-6 flex flex-col gap-4 hover:-translate-y-0.5 transition-transform duration-200">
-      {/* Thumbnail placeholder */}
       <div className="relative h-32 rounded-xl overflow-hidden bg-gradient-to-br from-m3-primary to-m3-secondary flex items-center justify-center">
         <GraduationCap className="h-10 w-10 text-white/60" />
         <div className="absolute top-3 right-3">
-          <Badge className={`${statusColor} border-0 text-xs font-medium`}>
-            {statusLabel}
+          <Badge className="bg-m3-secondary-fixed text-m3-on-secondary-fixed border-0 text-xs font-medium">
+            Đã ghi danh
           </Badge>
         </div>
       </div>
 
-      {/* Info */}
       <div className="space-y-2 flex-1">
         <h3 className="font-headline font-semibold text-m3-on-surface text-base leading-snug">
           {course.title}
         </h3>
-
-        {progress > 0 && (
-          <p className="text-xs text-m3-on-surface-variant">
-            {Math.round(progress)}% complete
+        {course.description && (
+          <p className="text-xs text-m3-on-surface-variant line-clamp-2">
+            {course.description}
           </p>
         )}
       </div>
 
-      {/* Progress */}
-      <GradientProgress
-        value={progress}
-        variant={courseStatus === "completed" ? "success" : "secondary"}
-        showLabel
-        size="sm"
-      />
-
-      {/* Action */}
       <Link
         to="/courses/$slug"
         params={{ slug: course.slug }}
         className="inline-flex items-center gap-2 gradient-primary text-white rounded-xl font-semibold px-4 py-2 text-sm shadow-glass hover:opacity-90 transition-opacity self-start"
       >
-        {courseStatus === "not_started" ? "Start Course" : courseStatus === "completed" ? "Review" : "Resume"}
+        Mở khóa học
         <ArrowRight className="h-4 w-4" />
       </Link>
     </div>
@@ -117,17 +82,18 @@ function EmptyCourses() {
 }
 
 function NotificationItem({ notification }: {
-  notification: { id: string; type: string; title: string; body: string | null; is_read: boolean; created_at: string };
+  notification: { id: string; category: string; title: string; body: string | null; read_at: string | null; created_at: string };
 }) {
-  const icon = notification.type === "quiz_ready" ? FileText
-    : notification.type === "interview_ready" ? Mic
-    : notification.type === "progress" ? CheckCircle2
+  const isRead = notification.read_at !== null;
+  const icon = notification.category === "quiz_ready" ? FileText
+    : notification.category === "interview_ready" ? Mic
+    : notification.category === "progress" ? CheckCircle2
     : Bell;
 
   const Icon = icon;
 
   return (
-    <div className={`flex items-start gap-3 p-4 rounded-xl transition-colors ${notification.is_read ? "opacity-60" : "bg-m3-secondary-fixed/20"}`}>
+    <div className={`flex items-start gap-3 p-4 rounded-xl transition-colors ${isRead ? "opacity-60" : "bg-m3-secondary-fixed/20"}`}>
       <div className="w-8 h-8 rounded-xl gradient-secondary flex items-center justify-center shrink-0">
         <Icon className="h-4 w-4 text-white" />
       </div>
@@ -140,29 +106,33 @@ function NotificationItem({ notification }: {
           {new Date(notification.created_at).toLocaleDateString()}
         </p>
       </div>
-      {!notification.is_read && (
+      {!isRead && (
         <div className="w-2 h-2 rounded-full bg-m3-secondary shrink-0 mt-1.5" />
       )}
     </div>
   );
 }
 
-/* ═══════════════════════════════════════════════════════ */
-
 export default function DashboardPage() {
   const { user } = useAuth();
   const [fabHovered, setFabHovered] = useState(false);
   const carouselRef = useRef<HTMLDivElement>(null);
 
-  const { data: courses, isLoading: coursesLoading } = useMyCourses();
-  const { data: notifications, isLoading: notificationsLoading } = useNotifications();
+  const {
+    items: myCourses,
+    isLoading: coursesLoading,
+  } = useMyCourses(8);
+  const {
+    items: notifications,
+    isLoading: notificationsLoading,
+  } = useNotifications();
 
   const firstName = getAuthDisplayName(user).split(" ")[0];
   const initials = getAuthUserInitials(user);
 
-  const enrolledCount = courses?.length ?? 0;
-  const completedCount = courses?.filter((_, i) => i === 0).length ?? 0; // placeholder until status is aggregated
-  const unreadCount = notifications?.filter((n) => !n.is_read).length ?? 0;
+  const visibleCourses = myCourses.slice(0, 8);
+  const enrolledCount = myCourses.length;
+  const unreadCount = notifications.filter((n) => n.read_at === null).length;
 
   function scrollCarousel(direction: "left" | "right") {
     if (!carouselRef.current) return;
@@ -176,7 +146,6 @@ export default function DashboardPage() {
     <div className="relative min-h-screen bg-m3-surface pb-28">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
 
-        {/* ── 1. Header ── */}
         <header className="flex items-start justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-3 mb-1">
@@ -198,7 +167,6 @@ export default function DashboardPage() {
           </div>
         </header>
 
-        {/* ── 2. Quick Stats ── */}
         <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <StatCard
             label="Enrolled"
@@ -230,32 +198,41 @@ export default function DashboardPage() {
           />
         </section>
 
-        {/* ── 3. My Courses ── */}
         <section className="space-y-5">
           <div className="flex items-center justify-between">
             <SectionHeader title="My Courses" subtitle="Pick up where you left off" />
-            {enrolledCount > 3 && (
-              <div className="flex gap-2 shrink-0">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => scrollCarousel("left")}
-                  className="rounded-xl border-m3-outline-variant hover:bg-m3-surface-container-low"
-                  aria-label="Scroll left"
+            <div className="flex items-center gap-2 shrink-0">
+              {enrolledCount > 8 && (
+                <Link
+                  to="/courses"
+                  className="text-xs font-semibold text-m3-secondary hover:underline"
                 >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => scrollCarousel("right")}
-                  className="rounded-xl border-m3-outline-variant hover:bg-m3-surface-container-low"
-                  aria-label="Scroll right"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
+                  Xem tất cả
+                </Link>
+              )}
+              {enrolledCount > 3 && (
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => scrollCarousel("left")}
+                    className="rounded-xl border-m3-outline-variant hover:bg-m3-surface-container-low"
+                    aria-label="Scroll left"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => scrollCarousel("right")}
+                    className="rounded-xl border-m3-outline-variant hover:bg-m3-surface-container-low"
+                    aria-label="Scroll right"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
 
           {coursesLoading ? (
@@ -270,7 +247,7 @@ export default function DashboardPage() {
             </div>
           ) : enrolledCount <= 3 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {courses!.map((course) => (
+              {visibleCourses.map((course) => (
                 <CourseProgressCard key={course.id} course={course} />
               ))}
             </div>
@@ -279,7 +256,7 @@ export default function DashboardPage() {
               ref={carouselRef}
               className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory no-scrollbar"
             >
-              {courses!.map((course) => (
+              {visibleCourses.map((course) => (
                 <div key={course.id} className="flex-none w-80 snap-start">
                   <CourseProgressCard course={course} />
                 </div>
@@ -288,7 +265,6 @@ export default function DashboardPage() {
           )}
         </section>
 
-        {/* ── 4. Notifications ── */}
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <SectionHeader
@@ -304,7 +280,7 @@ export default function DashboardPage() {
                   <div key={i} className="h-14 rounded-xl bg-m3-surface-container animate-pulse" />
                 ))}
               </div>
-            ) : !notifications || notifications.length === 0 ? (
+            ) : notifications.length === 0 ? (
               <div className="p-10 text-center space-y-3">
                 <div className="w-12 h-12 rounded-xl bg-m3-primary-fixed flex items-center justify-center mx-auto">
                   <Bell className="h-6 w-6 text-m3-primary" />
@@ -324,7 +300,6 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* ── 5. What's Next ── */}
         <section className="relative overflow-hidden rounded-xl gradient-primary p-8 flex flex-col gap-5 shadow-editorial">
           <div className="pointer-events-none absolute -bottom-10 -right-10 w-48 h-48 rounded-full opacity-20 blur-2xl" style={{ background: "#1d4ed8" }} />
 
@@ -359,7 +334,6 @@ export default function DashboardPage() {
 
       </div>
 
-      {/* ── Floating AI Coach FAB ── */}
       <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
         <div
           className={`transition-all duration-200 origin-bottom-right ${

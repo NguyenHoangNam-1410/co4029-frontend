@@ -4,37 +4,35 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronUp,
-  Clock,
   BookOpen,
   PlayCircle,
   HelpCircle,
   ArrowRight,
-  Calendar,
-  Mail,
   GraduationCap,
   Sparkles,
-  BarChart3,
   Mic,
   Bot,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { GlassCard } from "@/components/ui/glass-card";
 import { AIInsightChip } from "@/components/ui/ai-insight-chip";
-import { GradientProgress } from "@/components/ui/gradient-progress";
+import { ApiError } from "@/lib/api/client";
 import {
   useCourseBySlug,
-  useCourseContentBySlug,
+  useCourseContent,
   useCourseOutcomes,
   useCourseTags,
-  useCourseStatus,
+  useModuleItems,
 } from "@/lib/api/hooks/courses";
-import { deriveCourseStatus, formatMinutes } from "@/lib/api/utils";
-import type { CourseContentModule, CourseDetail, CourseTag } from "@/lib/api/types/common";
+import type {
+  CoursePublic,
+  InstructorRead,
+  ModulePublic,
+  TagPublic,
+} from "@/lib/api/types";
 import { cn } from "@/lib/utils";
-
-/* ── Constants ── */
 
 const CARD_GRADIENTS = [
   "from-blue-500 via-blue-700 to-blue-800",
@@ -45,17 +43,14 @@ const CARD_GRADIENTS = [
   "from-blue-500 via-blue-600 to-sky-500",
 ];
 
-/* ── Helpers ── */
-
 function slugGradient(slug: string) {
   const hash = slug.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
   return CARD_GRADIENTS[Math.abs(hash) % CARD_GRADIENTS.length];
 }
 
-function ItemTypeIcon({ type, lessonType }: { type: "lesson" | "quiz" | "interview"; lessonType?: string | null }) {
-  if (type === "quiz")      return <HelpCircle className="h-3.5 w-3.5 text-m3-primary shrink-0" />;
+function ItemTypeIcon({ type }: { type: "lesson" | "quiz" | "interview" }) {
+  if (type === "quiz") return <HelpCircle className="h-3.5 w-3.5 text-m3-primary shrink-0" />;
   if (type === "interview") return <Mic className="h-3.5 w-3.5 text-m3-secondary shrink-0" />;
-  if (lessonType === "reading")  return <BookOpen   className="h-3.5 w-3.5 text-m3-secondary shrink-0" />;
   return <PlayCircle className="h-3.5 w-3.5 text-m3-secondary shrink-0" />;
 }
 
@@ -63,38 +58,32 @@ function SkeletonBlock({ className }: { className?: string }) {
   return <div className={cn("animate-pulse rounded-xl bg-m3-surface-container", className)} />;
 }
 
-/* ════════════════════════════════════════════════════════
-   Page
-   ════════════════════════════════════════════════════════ */
+function initials(name: string) {
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
 
 export default function CourseDetailPage() {
   const { slug } = useParams({ strict: false }) as { slug: string };
 
-  const { data: course, isLoading: courseLoading } = useCourseBySlug(slug);
+  const courseQuery = useCourseBySlug(slug);
+  const course = courseQuery.data;
   const courseId = course?.id;
 
   const { data: outcomes, isLoading: outcomesLoading } = useCourseOutcomes(courseId);
-  const { data: content, isLoading: contentLoading } = useCourseContentBySlug(slug);
+  const { data: content, isLoading: contentLoading } = useCourseContent(courseId);
   const { data: tags } = useCourseTags(courseId);
-  const { data: enrollmentStatus } = useCourseStatus(courseId);
 
-  const progress = enrollmentStatus ? Number(enrollmentStatus.progress_percent) : 0;
-  const courseStatus = enrollmentStatus ? deriveCourseStatus(progress) : "not_started";
-  const isEnrolled = !!enrollmentStatus;
+  const courseUnavailable =
+    courseQuery.isError &&
+    courseQuery.error instanceof ApiError &&
+    courseQuery.error.status === 404;
 
-  const totalItems = content?.modules.reduce((acc, m) => acc + m.items.length, 0) ?? 0;
-
-  const ctaLabel =
-    courseStatus === "completed" ? "Review Course" :
-    courseStatus === "in_progress" ? "Resume Learning" :
-    "Start Learning";
-
-  const levelColor =
-    course?.level === "Beginner"     ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
-    course?.level === "Intermediate" ? "bg-amber-50 text-amber-700 border-amber-200" :
-    course?.level                    ? "bg-blue-50 text-blue-800 border-blue-200" : "";
-
-  if (courseLoading) {
+  if (courseQuery.isLoading) {
     return (
       <div className="min-h-screen bg-m3-surface pb-28">
         <div className="h-72 bg-gradient-to-br from-m3-primary via-m3-primary-container to-m3-secondary animate-pulse" />
@@ -106,11 +95,16 @@ export default function CourseDetailPage() {
     );
   }
 
-  if (!course) {
+  if (courseUnavailable || !course) {
     return (
       <div className="min-h-screen bg-m3-surface flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <p className="text-m3-on-surface font-headline font-bold text-xl">Course not found</p>
+        <div className="text-center space-y-4 max-w-md px-6">
+          <p className="text-m3-on-surface font-headline font-bold text-xl">
+            Khóa học không khả dụng
+          </p>
+          <p className="text-sm text-m3-on-surface-variant">
+            Khóa học này hiện chưa được mở hoặc đã bị tạm ẩn.
+          </p>
           <Link to="/courses">
             <Button className="gradient-primary text-white rounded-xl gap-2">
               Browse Courses <ArrowRight className="h-4 w-4" />
@@ -122,16 +116,13 @@ export default function CourseDetailPage() {
   }
 
   const gradientClass = slugGradient(slug);
+  const moduleCount = content?.modules.length ?? 0;
 
   const ctaCard = (
     <CtaCard
       course={course}
       gradientClass={gradientClass}
-      isEnrolled={isEnrolled}
-      progress={progress}
-      courseStatus={courseStatus}
-      ctaLabel={ctaLabel}
-      totalItems={totalItems}
+      moduleCount={moduleCount}
       tags={tags}
     />
   );
@@ -139,11 +130,9 @@ export default function CourseDetailPage() {
   return (
     <div className="min-h-screen bg-m3-surface pb-28">
 
-      {/* ── Hero ── */}
       <div className="relative overflow-hidden bg-gradient-to-br from-m3-primary via-m3-primary-container to-m3-secondary">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJub2lzZSI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9IjAuNjUiIG51bU9jdGF2ZXM9IjMiIHN0aXRjaFRpbGVzPSJzdGl0Y2giLz48ZmVCbGVuZCBtb2RlPSJzY3JlZW4iLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsdGVyPSJ1cmwoI25vaXNlKSIgb3BhY2l0eT0iMC4wNSIvPjwvc3ZnPg==')] opacity-20 pointer-events-none" />
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
-          {/* Breadcrumb */}
           <nav className="flex items-center gap-2 text-xs text-white/60 mb-6">
             <Link to="/courses" className="hover:text-white transition-colors">Courses</Link>
             <span>/</span>
@@ -151,14 +140,8 @@ export default function CourseDetailPage() {
           </nav>
 
           <div className="flex flex-col lg:flex-row gap-8 items-start">
-            {/* Left */}
             <div className="flex-1 space-y-5">
               <div className="flex flex-wrap items-center gap-2">
-                {course.level && (
-                  <Badge className={cn("text-xs font-semibold border", levelColor)}>
-                    {course.level}
-                  </Badge>
-                )}
                 <AIInsightChip className="bg-white/10 text-white border-0">
                   <Sparkles className="h-2.5 w-2.5 mr-1" />
                   AI Enhanced
@@ -175,44 +158,17 @@ export default function CourseDetailPage() {
                 </p>
               )}
 
-              {/* Stats */}
               <div className="flex flex-wrap items-center gap-5 text-sm text-white/80">
-                {course.estimated_minutes && (
-                  <span className="flex items-center gap-1.5">
-                    <Clock className="h-4 w-4" />
-                    {formatMinutes(course.estimated_minutes)}
-                  </span>
-                )}
-                {totalItems > 0 && (
-                  <span className="flex items-center gap-1.5">
-                    <BookOpen className="h-4 w-4" />
-                    {totalItems} items
-                  </span>
-                )}
-                {(content?.modules.length ?? 0) > 0 && (
+                {moduleCount > 0 && (
                   <span className="flex items-center gap-1.5">
                     <GraduationCap className="h-4 w-4" />
-                    {content!.modules.length} modules
+                    {moduleCount} modules
                   </span>
                 )}
               </div>
 
-              {/* Instructor line */}
-              {course.instructor && (
-                <div className="flex items-center gap-2.5 text-sm text-white/70">
-                  <Avatar className="h-7 w-7">
-                    <AvatarFallback className="gradient-secondary text-white text-xs font-bold">
-                      {initials(course.instructor.display_name)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span>
-                    Created by{" "}
-                    <span className="text-white font-semibold">{course.instructor.display_name}</span>
-                  </span>
-                </div>
-              )}
+              <InstructorLine instructor={course.instructor ?? null} />
 
-              {/* Tags */}
               {tags && tags.length > 0 && (
                 <div className="flex flex-wrap gap-2 pt-1">
                   {tags.map((tag) => (
@@ -227,20 +183,16 @@ export default function CourseDetailPage() {
               )}
             </div>
 
-            {/* Inline sidebar on desktop */}
             <div className="hidden lg:block w-80 xl:w-88 shrink-0">{ctaCard}</div>
           </div>
         </div>
       </div>
 
-      {/* ── Body ── */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col lg:flex-row gap-8 items-start">
 
-          {/* ── Left column ── */}
           <div className="flex-1 min-w-0 space-y-8">
 
-            {/* What You'll Learn */}
             {outcomesLoading ? (
               <SkeletonBlock className="h-48" />
             ) : outcomes && outcomes.length > 0 ? (
@@ -252,30 +204,24 @@ export default function CourseDetailPage() {
                   </h2>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {outcomes
-                    .slice()
-                    .sort((a, b) => a.position - b.position)
-                    .map((outcome) => (
-                      <div key={outcome.id} className="flex items-start gap-3">
-                        <CheckCircle2 className="h-4 w-4 text-m3-secondary shrink-0 mt-0.5 fill-m3-secondary/10" />
-                        <p className="text-sm text-m3-on-surface-variant leading-snug">
-                          {outcome.outcome_text}
-                        </p>
-                      </div>
-                    ))}
+                  {outcomes.map((outcome) => (
+                    <div key={outcome.id} className="flex items-start gap-3">
+                      <CheckCircle2 className="h-4 w-4 text-m3-secondary shrink-0 mt-0.5 fill-m3-secondary/10" />
+                      <p className="text-sm text-m3-on-surface-variant leading-snug">
+                        {outcome.outcome_text}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               </GlassCard>
             ) : null}
 
-            {/* Course Content */}
             <div className="space-y-3">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <h2 className="font-headline font-bold text-xl text-m3-on-surface">Course Content</h2>
                 {!contentLoading && content && (
                   <span className="text-xs text-m3-on-surface-variant">
-                    {content.modules.length} module{content.modules.length !== 1 ? "s" : ""}
-                    {totalItems > 0 && ` · ${totalItems} items`}
-                    {course.estimated_minutes && ` · ${formatMinutes(course.estimated_minutes)}`}
+                    {moduleCount} module{moduleCount !== 1 ? "s" : ""}
                   </span>
                 )}
               </div>
@@ -284,7 +230,7 @@ export default function CourseDetailPage() {
                 <div className="space-y-2">
                   {[1, 2, 3].map((i) => <SkeletonBlock key={i} className="h-16" />)}
                 </div>
-              ) : content && content.modules.length > 0 ? (
+              ) : content && moduleCount > 0 ? (
                 <ModuleAccordion modules={content.modules} />
               ) : (
                 <div className="rounded-xl border border-dashed border-m3-outline-variant p-10 text-center">
@@ -293,12 +239,10 @@ export default function CourseDetailPage() {
               )}
             </div>
 
-            {/* Instructor */}
             {course.instructor && (
               <InstructorCard instructor={course.instructor} />
             )}
 
-            {/* AI Interview callout */}
             <GlassCard className="p-6 sm:p-8 bg-gradient-to-br from-m3-secondary/5 to-m3-primary/5">
               <div className="flex items-start gap-4">
                 <div className="w-11 h-11 rounded-xl gradient-secondary flex items-center justify-center shrink-0">
@@ -317,7 +261,6 @@ export default function CourseDetailPage() {
             </GlassCard>
           </div>
 
-          {/* Sidebar — mobile: below content */}
           <div className="w-full lg:hidden">{ctaCard}</div>
         </div>
       </div>
@@ -325,36 +268,62 @@ export default function CourseDetailPage() {
   );
 }
 
-/* ── Sub-components ── */
+function InstructorLine({ instructor }: { instructor: InstructorRead | null }) {
+  if (!instructor) {
+    return (
+      <div className="flex items-center gap-2.5 text-sm text-white/70">
+        <Avatar className="h-7 w-7">
+          <AvatarFallback className="bg-white/10 text-white/70 text-xs font-bold">
+            ?
+          </AvatarFallback>
+        </Avatar>
+        <span>Giảng viên không xác định</span>
+      </div>
+    );
+  }
 
-function initials(name: string) {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+  return (
+    <div className="flex items-center gap-2.5 text-sm text-white/70">
+      <Avatar className="h-7 w-7">
+        {instructor.avatar_url ? (
+          <AvatarImage src={instructor.avatar_url} alt={instructor.display_name} />
+        ) : null}
+        <AvatarFallback className="gradient-secondary text-white text-xs font-bold">
+          {initials(instructor.display_name)}
+        </AvatarFallback>
+      </Avatar>
+      <span>
+        Created by{" "}
+        <span className="text-white font-semibold">{instructor.display_name}</span>
+        {instructor.headline && (
+          <span className="text-white/60"> · {instructor.headline}</span>
+        )}
+      </span>
+    </div>
+  );
 }
 
-function ModuleAccordion({ modules }: { modules: CourseContentModule[] }) {
+function ModuleAccordion({ modules }: { modules: ModulePublic[] }) {
   const [open, setOpen] = useState<Set<string>>(new Set());
 
   function toggle(id: string) {
     setOpen((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
       return next;
     });
   }
 
+  const sorted = [...modules].sort((a, b) => a.position - b.position);
+
   return (
     <div className="space-y-2">
-      {modules.map((mod) => {
+      {sorted.map((mod) => {
         const isOpen = open.has(mod.id);
-        const lessonCount    = mod.items.filter((i) => i.item_type === "lesson").length;
-        const quizCount      = mod.items.filter((i) => i.item_type === "quiz").length;
-        const interviewCount = mod.items.filter((i) => i.item_type === "interview").length;
-
         return (
           <div
             key={mod.id}
@@ -372,13 +341,6 @@ function ModuleAccordion({ modules }: { modules: CourseContentModule[] }) {
                   <p className="font-headline font-semibold text-sm text-m3-on-surface leading-snug">
                     {mod.title}
                   </p>
-                  <p className="text-xs text-m3-on-surface-variant mt-0.5 flex flex-wrap gap-1.5">
-                    {mod.items.length > 0 && <span>{mod.items.length} items</span>}
-                    {lessonCount > 0 && <span>· {lessonCount} lesson{lessonCount !== 1 ? "s" : ""}</span>}
-                    {quizCount > 0 && <span>· {quizCount} quiz{quizCount !== 1 ? "zes" : ""}</span>}
-                    {interviewCount > 0 && <span>· {interviewCount} interview{interviewCount !== 1 ? "s" : ""}</span>}
-                    {mod.estimated_minutes && <span>· {formatMinutes(mod.estimated_minutes)}</span>}
-                  </p>
                 </div>
               </div>
               {isOpen
@@ -387,37 +349,7 @@ function ModuleAccordion({ modules }: { modules: CourseContentModule[] }) {
               }
             </button>
 
-            {isOpen && (
-              <div className="border-t border-m3-outline-variant/20 divide-y divide-m3-outline-variant/10">
-                {mod.items.length === 0 ? (
-                  <div className="px-5 py-4 text-sm text-m3-outline">No items added yet.</div>
-                ) : (
-                  mod.items.map((item) => {
-                    const label =
-                      item.item_type === "quiz"      ? "Quiz" :
-                      item.item_type === "interview" ? "AI Mock Interview" :
-                      item.lesson?.title ?? "Lesson";
-
-                    return (
-                      <div
-                        key={item.id}
-                        className="flex items-center gap-3 px-5 py-3 hover:bg-m3-surface-container-low transition-colors"
-                      >
-                        <ItemTypeIcon type={item.item_type} lessonType={item.lesson?.lesson_type} />
-                        <span className="text-sm text-m3-on-surface-variant flex-1 leading-snug">
-                          {label}
-                        </span>
-                        {item.lesson?.estimated_minutes && (
-                          <span className="text-xs text-m3-outline shrink-0">
-                            {formatMinutes(item.lesson.estimated_minutes)}
-                          </span>
-                        )}
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            )}
+            {isOpen && <ModuleItemsPanel moduleId={mod.id} />}
           </div>
         );
       })}
@@ -425,7 +357,53 @@ function ModuleAccordion({ modules }: { modules: CourseContentModule[] }) {
   );
 }
 
-function InstructorCard({ instructor }: { instructor: NonNullable<CourseDetail["instructor"]> }) {
+function ModuleItemsPanel({ moduleId }: { moduleId: string }) {
+  const { data: items, isLoading } = useModuleItems(moduleId);
+
+  if (isLoading) {
+    return (
+      <div className="px-5 py-4">
+        <SkeletonBlock className="h-10" />
+      </div>
+    );
+  }
+
+  if (!items || items.length === 0) {
+    return (
+      <div className="border-t border-m3-outline-variant/20 px-5 py-4 text-sm text-m3-outline">
+        No items added yet.
+      </div>
+    );
+  }
+
+  const sorted = [...items].sort((a, b) => a.position - b.position);
+
+  return (
+    <div className="border-t border-m3-outline-variant/20 divide-y divide-m3-outline-variant/10">
+      {sorted.map((item) => {
+        const label =
+          item.item_type === "quiz"
+            ? "Quiz"
+            : item.item_type === "interview"
+              ? "AI Mock Interview"
+              : item.target?.title ?? "Lesson";
+        return (
+          <div
+            key={item.id}
+            className="flex items-center gap-3 px-5 py-3 hover:bg-m3-surface-container-low transition-colors"
+          >
+            <ItemTypeIcon type={item.item_type} />
+            <span className="text-sm text-m3-on-surface-variant flex-1 leading-snug">
+              {label}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function InstructorCard({ instructor }: { instructor: InstructorRead }) {
   const inits = initials(instructor.display_name);
 
   return (
@@ -433,6 +411,9 @@ function InstructorCard({ instructor }: { instructor: NonNullable<CourseDetail["
       <h2 className="font-headline font-bold text-xl text-m3-on-surface mb-5">About the Instructor</h2>
       <div className="flex flex-col sm:flex-row gap-5">
         <Avatar className="h-20 w-20 shrink-0 ring-4 ring-white shadow-xl self-start">
+          {instructor.avatar_url ? (
+            <AvatarImage src={instructor.avatar_url} alt={instructor.display_name} />
+          ) : null}
           <AvatarFallback className="gradient-primary text-white text-xl font-bold">
             {inits}
           </AvatarFallback>
@@ -444,27 +425,9 @@ function InstructorCard({ instructor }: { instructor: NonNullable<CourseDetail["
             </h3>
             <p className="text-m3-secondary text-sm font-semibold mt-0.5">Instructor</p>
           </div>
-          {instructor.bio && (
-            <p className="text-sm text-m3-on-surface-variant leading-relaxed">{instructor.bio}</p>
+          {instructor.headline && (
+            <p className="text-sm text-m3-on-surface-variant leading-relaxed">{instructor.headline}</p>
           )}
-          <div className="flex gap-3 pt-1">
-            <Button
-              variant="outline"
-              size="sm"
-              className="rounded-xl ghost-border text-xs font-bold text-m3-primary hover:bg-m3-surface-container"
-            >
-              <Mail className="h-3.5 w-3.5 mr-1.5" />
-              Message
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="rounded-xl ghost-border text-xs font-bold text-m3-primary hover:bg-m3-surface-container"
-            >
-              <Calendar className="h-3.5 w-3.5 mr-1.5" />
-              Office Hours
-            </Button>
-          </div>
         </div>
       </div>
     </GlassCard>
@@ -474,25 +437,16 @@ function InstructorCard({ instructor }: { instructor: NonNullable<CourseDetail["
 function CtaCard({
   course,
   gradientClass,
-  isEnrolled,
-  progress,
-  courseStatus,
-  ctaLabel,
-  totalItems,
+  moduleCount,
   tags,
 }: {
-  course: CourseDetail;
+  course: CoursePublic;
   gradientClass: string;
-  isEnrolled: boolean;
-  progress: number;
-  courseStatus: string;
-  ctaLabel: string;
-  totalItems: number;
-  tags: CourseTag[] | undefined;
+  moduleCount: number;
+  tags: TagPublic[] | undefined;
 }) {
   return (
     <div className="rounded-xl overflow-hidden shadow-editorial ghost-border bg-m3-surface-container-lowest">
-      {/* Thumbnail */}
       <div className={cn("relative h-44 bg-gradient-to-br", gradientClass)}>
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
         <div className="absolute inset-0 flex items-center justify-center">
@@ -500,62 +454,26 @@ function CtaCard({
             <GraduationCap className="h-8 w-8 text-white" />
           </div>
         </div>
-        <div className="absolute bottom-3 left-3">
-          <span className="text-[10px] text-white/70 font-medium">
-            Updated{" "}
-            {new Date(course.updated_at).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
-          </span>
-        </div>
       </div>
 
       <div className="p-5 space-y-5">
-        {/* Progress (only if enrolled) */}
-        {isEnrolled && (
-          <div className="space-y-1.5">
-            <div className="flex justify-between text-xs text-m3-on-surface-variant">
-              <span>Your progress</span>
-              <span className="font-semibold text-m3-secondary">{Math.round(progress)}%</span>
-            </div>
-            <GradientProgress
-              value={progress}
-              variant={courseStatus === "completed" ? "success" : "secondary"}
-              size="sm"
-            />
-          </div>
-        )}
-
-        {/* CTA */}
         <Link to="/courses/$slug/learn" params={{ slug: course.slug }} className="block">
           <Button className="w-full gradient-primary text-white font-bold rounded-xl py-5 h-auto text-base gap-2 shadow-ai-glow hover:opacity-90 transition-opacity">
-            {ctaLabel}
+            Start Learning
             <ArrowRight className="h-5 w-5" />
           </Button>
         </Link>
 
-        {/* Quick stats */}
-        <div className="space-y-3 pt-1">
-          {[
-            course.estimated_minutes && { icon: Clock,     label: "Duration", value: formatMinutes(course.estimated_minutes) },
-            totalItems > 0            && { icon: BookOpen,  label: "Items",    value: `${totalItems}` },
-            course.level              && { icon: BarChart3, label: "Level",    value: course.level },
-          ]
-            .filter(Boolean)
-            .map((stat) => {
-              if (!stat) return null;
-              const { icon: Icon, label, value } = stat as { icon: typeof Clock; label: string; value: string };
-              return (
-                <div key={label} className="flex items-center justify-between text-sm">
-                  <span className="flex items-center gap-2 text-m3-on-surface-variant">
-                    <Icon className="h-4 w-4 text-m3-outline" />
-                    {label}
-                  </span>
-                  <span className="font-semibold text-m3-on-surface text-xs">{value}</span>
-                </div>
-              );
-            })}
-        </div>
+        {moduleCount > 0 && (
+          <div className="flex items-center justify-between text-sm pt-1">
+            <span className="flex items-center gap-2 text-m3-on-surface-variant">
+              <BookOpen className="h-4 w-4 text-m3-outline" />
+              Modules
+            </span>
+            <span className="font-semibold text-m3-on-surface text-xs">{moduleCount}</span>
+          </div>
+        )}
 
-        {/* Tags */}
         {tags && tags.length > 0 && (
           <div className="flex flex-wrap gap-1.5 pt-1 border-t border-m3-outline-variant/20">
             {tags.map((tag) => (
@@ -569,10 +487,12 @@ function CtaCard({
           </div>
         )}
 
-        {/* Instructor mini-card */}
         {course.instructor && (
           <div className="flex items-center gap-3 pt-2 border-t border-m3-outline-variant/20">
             <Avatar className="h-9 w-9 shrink-0">
+              {course.instructor.avatar_url ? (
+                <AvatarImage src={course.instructor.avatar_url} alt={course.instructor.display_name} />
+              ) : null}
               <AvatarFallback className="gradient-primary text-white text-xs font-bold">
                 {initials(course.instructor.display_name)}
               </AvatarFallback>

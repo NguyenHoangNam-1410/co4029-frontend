@@ -19,7 +19,6 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { GradientProgress } from "@/components/ui/gradient-progress";
 import {
   useCourseBySlug,
-  useCourseContentBySlug,
 } from "@/lib/api/hooks/courses";
 import {
   useCreateQuizAttempt,
@@ -196,7 +195,6 @@ export default function CourseQuizPage() {
   const { slug, quizId } = useParams({ strict: false }) as { slug: string; quizId: string };
 
   const { data: course, isLoading: courseLoading } = useCourseBySlug(slug);
-  const { data: content, isLoading: contentLoading } = useCourseContentBySlug(slug);
   const { data: quiz, isLoading: quizLoading } = useStudentQuiz(quizId);
   const { data: questions = [], isLoading: questionsLoading } = useStudentQuizQuestions(quizId);
   const { data: attempts = [] } = useMyQuizAttempts(quizId);
@@ -204,15 +202,6 @@ export default function CourseQuizPage() {
   const createAttempt = useCreateQuizAttempt(quizId);
   const answerAttempt = useAnswerQuizAttempt();
   const submitAttempt = useSubmitQuizAttempt();
-
-  const moduleRef = useMemo(() => {
-    if (!content) return null;
-    for (const module of content.modules) {
-      const item = module.items.find((entry) => entry.quiz_id === quizId);
-      if (item) return { module, item };
-    }
-    return null;
-  }, [content, quizId]);
 
   const displayQuestions = useMemo(() => {
     const orderedQuestions = quiz?.shuffle_questions
@@ -339,7 +328,7 @@ export default function CourseQuizPage() {
     void handleSubmit("timeout");
   }, [handleSubmit, quiz?.time_limit_seconds, sessionReady, submittedAttemptId, submitting, timeLeft]);
 
-  if (courseLoading || contentLoading || quizLoading || questionsLoading) {
+  if (courseLoading || quizLoading || questionsLoading) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center bg-m3-surface px-6">
         <div className="space-y-3 w-full max-w-sm">
@@ -579,11 +568,6 @@ export default function CourseQuizPage() {
                 Learning Path
               </Button>
             </Link>
-            {moduleRef && (
-              <Badge className="bg-m3-secondary/10 text-m3-secondary border-0 font-bold text-xs px-3 py-1 tracking-widest uppercase">
-                {moduleRef.module.title}
-              </Badge>
-            )}
             <span className="text-m3-on-surface-variant text-sm font-medium hidden sm:block">
               {course.title}
             </span>
@@ -616,7 +600,7 @@ export default function CourseQuizPage() {
                 {quiz.title}
               </h1>
               <p className="text-m3-on-surface-variant text-base">
-                {moduleRef ? `${moduleRef.module.title} assessment` : "Module assessment"}
+                Module assessment
               </p>
             </div>
             <div className="text-right shrink-0">

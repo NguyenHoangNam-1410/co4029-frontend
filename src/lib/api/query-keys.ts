@@ -15,15 +15,27 @@ export const queryKeys = {
 
   courses: {
     list: (cursor?: string) => ["courses", "list", cursor] as const,
+    myList: (cursor?: string) => ["courses", "my", cursor] as const,
     detail: (id: string) => ["courses", "detail", id] as const,
     bySlug: (slug: string) => ["courses", "by-slug", slug] as const,
     content: (id: string) => ["courses", "content", id] as const,
+    tags: (id: string) => ["courses", "tags", id] as const,
+    outcomes: (id: string) => ["courses", "outcomes", id] as const,
     modules: (id: string) => ["courses", "modules", id] as const,
+    moduleDetail: (id: string) => ["courses", "module-detail", id] as const,
+    moduleItems: (id: string) => ["courses", "module-items", id] as const,
+    moduleLessons: (id: string) => ["courses", "module-lessons", id] as const,
+    lesson: (id: string) => ["courses", "lesson", id] as const,
+    lessonResources: (id: string) => ["courses", "lesson-resources", id] as const,
+    resourceDownload: (id: string) =>
+      ["courses", "resource-download", id] as const,
   },
 
   materials: {
     detail: (id: string) => ["materials", "detail", id] as const,
     streamUrl: (id: string) => ["materials", "stream-url", id] as const,
+    chunksPreview: (id: string, limit?: number) =>
+      ["materials", "chunks-preview", id, limit] as const,
     processing: (id: string) => ["materials", "processing", id] as const,
   },
 

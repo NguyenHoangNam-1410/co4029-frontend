@@ -1,36 +1,55 @@
 /**
  * Hand-curated re-exports of generated OpenAPI schemas.
- * Generated source: ./openapi-types.d.ts — regenerate via `bun run codegen:api`.
+ * Generated source: ./openapi-types.d.ts — regenerate via `npm run codegen:api`.
  */
 import type { components, paths } from "./openapi-types";
 
 type Schemas = components["schemas"];
 
 export type Course = Schemas["CoursePublic"];
+export type CoursePublic = Schemas["CoursePublic"];
 export type CourseAuthoring = Schemas["CourseAuthoring"];
 export type CourseCreate = Schemas["CourseCreate"];
 export type CourseUpdate = Schemas["CourseUpdate"];
 export type CourseContent = Schemas["CourseContentPublic"];
+export type CourseContentPublic = Schemas["CourseContentPublic"];
 export type CourseProgressSummary = Schemas["CourseProgressSummary"];
 export type CourseLearningOutcome = Schemas["CourseLearningOutcomePublic"];
+export type CourseLearningOutcomePublic = Schemas["CourseLearningOutcomePublic"];
 export type CourseLearningOutcomeAuthoring =
   Schemas["CourseLearningOutcomeAuthoring"];
 
+export type Module = Schemas["ModulePublic"];
+export type ModulePublic = Schemas["ModulePublic"];
+export type ModuleItem = Schemas["ModuleItemPublic"];
+export type ModuleItemPublic = Schemas["ModuleItemPublic"];
+
+export type Tag = Schemas["TagPublic"];
+export type TagPublic = Schemas["TagPublic"];
+
+export type InstructorRead = Schemas["InstructorRead"];
+
 export type Lesson = Schemas["LessonPublic"];
+export type LessonPublic = Schemas["LessonPublic"];
 export type LessonAuthoring = Schemas["LessonAuthoring"];
 export type LessonCreate = Schemas["LessonCreate"];
 export type LessonUpdate = Schemas["LessonUpdate"];
 export type LessonOverviewItem = Schemas["LessonOverviewItem"];
 export type LessonProgress = Schemas["LessonProgressPublic"];
 export type LessonResource = Schemas["LessonResourcePublic"];
+export type LessonResourcePublic = Schemas["LessonResourcePublic"];
 export type LessonResourceAuthoring = Schemas["LessonResourceAuthoring"];
 export type LessonResourceCreate = Schemas["LessonResourceCreate"];
 
+export type ResourceDownloadUrlResponse = Schemas["ResourceDownloadUrlResponse"];
+
 export type Material = Schemas["MaterialPublic"];
+export type MaterialPublic = Schemas["MaterialPublic"];
 export type MaterialAuthoring = Schemas["MaterialAuthoring"];
 export type MaterialUpdate = Schemas["MaterialUpdate"];
 export type MaterialEngagement = Schemas["MaterialEngagementPublic"];
 export type MaterialStreamUrl = Schemas["MaterialStreamUrl"];
+export type ChunkPreview = Schemas["ChunkPreview"];
 
 export type Quiz = Schemas["QuizPublic"];
 export type QuizAuthoring = Schemas["QuizAuthoring"];
