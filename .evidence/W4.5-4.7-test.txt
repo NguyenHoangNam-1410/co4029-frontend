@@ -1,0 +1,9 @@
+
+ RUN  v4.1.6 /home/co4029/co4029_projects/frontend-vite
+
+
+ Test Files  6 passed (6)
+      Tests  26 passed (26)
+   Start at  20:35:15
+   Duration  2.44s (transform 279ms, setup 1.00s, import 528ms, tests 441ms, environment 4.20s)
+

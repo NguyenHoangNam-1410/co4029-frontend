@@ -1,7 +1,22 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiDelete, apiFetch, apiPatch, apiPost, ApiError } from "../client";
+import { authenticatedFetch } from "../../auth";
 import { queryKeys } from "../query-keys";
-import type { ChunkPreview, MaterialPublic, MaterialStreamUrl } from "../types";
+import type {
+  ChunkPreview,
+  MaterialPublic,
+  MaterialStreamUrl,
+  MaterialUpdate,
+  MaterialUploadComplete,
+  MaterialUploadInit,
+  MaterialUploadInitOut,
+  MaterialAuthoring,
+  MultipartAbortIn,
+  MultipartCompleteIn,
+  MultipartPartsOut,
+  ReprocessOut,
+  UploadCompleteOut,
+} from "../types";
 import type { StreamUrlResponse } from "../types/common";
 import type {
   LearningMaterial,
@@ -15,7 +30,6 @@ function retryUnless404(failureCount: number, error: unknown) {
   return failureCount < 3;
 }
 
-/** Narrow learner projection. 404 → "Tài liệu không khả dụng". */
 export function useMaterial(materialId: string | null | undefined) {
   return useQuery({
     queryKey: queryKeys.materials.detail(materialId ?? ""),
@@ -26,7 +40,6 @@ export function useMaterial(materialId: string | null | undefined) {
   });
 }
 
-/** Presigned stream URL (TTL ≤ 1h). Refetches every 30 min as a buffer. */
 export function useStreamUrl(materialId: string | null | undefined) {
   return useQuery({
     queryKey: queryKeys.materials.streamUrl(materialId ?? ""),
@@ -39,10 +52,8 @@ export function useStreamUrl(materialId: string | null | undefined) {
   });
 }
 
-/** Back-compat alias. */
 export const useMaterialStreamUrl = useStreamUrl;
 
-/** Source-attribution preview chunks for quiz UI. Limit clamped to [1, 20]; default 5. */
 export function useChunksPreview(
   materialId: string | null | undefined,
   limit?: number,
@@ -66,7 +77,7 @@ export function useChunksPreview(
 export function useTeacherLessonMaterials(lessonId: string | undefined) {
   return useQuery({
     queryKey: ["teacher", "lessons", lessonId, "materials"],
-    queryFn: () => apiFetch<LearningMaterial[]>(`/lessons/${lessonId}/materials`),
+    queryFn: () => apiFetch<LearningMaterial[]>(`/teacher/lessons/${lessonId}/materials`),
     enabled: !!lessonId,
     staleTime: 1000 * 30,
   });
@@ -75,7 +86,7 @@ export function useTeacherLessonMaterials(lessonId: string | undefined) {
 export function useTeacherMaterialStatus(materialId: string | undefined) {
   return useQuery({
     queryKey: ["teacher", "materials", materialId, "status"],
-    queryFn: () => apiFetch<MaterialStatus>(`/materials/${materialId}/status`),
+    queryFn: () => apiFetch<MaterialStatus>(`/teacher/materials/${materialId}/processing-summary`),
     enabled: !!materialId,
     refetchInterval: (query) => {
       const status = query.state.data?.processing_status;
@@ -88,7 +99,7 @@ export function useTeacherMaterialStatus(materialId: string | undefined) {
 export function useTeacherProcessingSummary(lessonId: string | undefined) {
   return useQuery({
     queryKey: ["teacher", "lessons", lessonId, "processing-summary"],
-    queryFn: () => apiFetch<ProcessingSummary>(`/lessons/${lessonId}/processing-summary`),
+    queryFn: () => apiFetch<ProcessingSummary>(`/teacher/lessons/${lessonId}/processing-summary`),
     enabled: !!lessonId,
   });
 }
@@ -96,12 +107,18 @@ export function useTeacherProcessingSummary(lessonId: string | undefined) {
 export function useTeacherMaterialStreamUrl(materialId: string | null | undefined) {
   return useQuery({
     queryKey: ["teacher", "materials", materialId, "stream-url"],
-    queryFn: () => apiFetch<StreamUrlResponse>(`/materials/${materialId}/stream-url`),
+    queryFn: () => apiFetch<StreamUrlResponse>(`/teacher/materials/${materialId}/stream-url`),
     enabled: !!materialId,
     staleTime: 1000 * 60 * 4,
   });
 }
 
+/**
+ * @deprecated Legacy `/materials/upload-url` flow — no longer exists in
+ * backend-new. Use `useInitMaterialUpload` + `useCompleteMaterialUpload`
+ * for materials. Lesson-resource uploads still depend on this hook until
+ * W4.4 migrates them; do not delete until then.
+ */
 export function useTeacherRequestUploadUrl() {
   return useMutation({
     mutationFn: (payload: { original_filename: string; mime_type: string; size_bytes?: number }) =>
@@ -109,6 +126,12 @@ export function useTeacherRequestUploadUrl() {
   });
 }
 
+/**
+ * @deprecated Legacy `POST /courses/.../materials` — replaced by the
+ * direct-upload flow (`useInitMaterialUpload` + `useCompleteMaterialUpload`).
+ * Retained only while lesson-resource uploads still create a sibling
+ * material via this hook; W4.4 will remove it.
+ */
 export function useCreateMaterial(courseId: string, moduleId: string, lessonId: string) {
   const qc = useQueryClient();
   return useMutation({
@@ -129,38 +152,160 @@ export function useCreateMaterial(courseId: string, moduleId: string, lessonId: 
   });
 }
 
-export function useDeleteMaterial(lessonId: string) {
-  const qc = useQueryClient();
+export function useInitMaterialUpload(lessonId: string) {
   return useMutation({
-    mutationFn: (materialId: string) => apiDelete(`/materials/${materialId}`),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["teacher", "lessons", lessonId, "materials"] });
-      qc.invalidateQueries({ queryKey: ["teacher", "lessons", lessonId, "processing-summary"] });
-    },
+    mutationFn: (payload: MaterialUploadInit) =>
+      apiPost<MaterialUploadInitOut>(
+        `/teacher/lessons/${lessonId}/materials/init-upload`,
+        payload,
+      ),
   });
 }
 
-export function useUpdateMaterial(lessonId: string) {
+export function useCompleteMaterialUpload() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ materialId, payload }: {
+    mutationFn: ({
+      materialId,
+      versionId,
+      payload,
+    }: {
       materialId: string;
-      payload: { ai_processing_enabled?: boolean; visible_to_students?: boolean; title?: string };
-    }) => apiPatch<LearningMaterial>(`/materials/${materialId}`, payload),
-    onSuccess: (_, { materialId }) => {
-      qc.invalidateQueries({ queryKey: ["teacher", "lessons", lessonId, "materials"] });
-      qc.invalidateQueries({ queryKey: ["teacher", "materials", materialId, "status"] });
+      versionId: string;
+      payload: MaterialUploadComplete;
+    }) =>
+      apiPost<UploadCompleteOut>(
+        `/teacher/materials/${materialId}/versions/${versionId}/complete`,
+        payload,
+      ),
+    onSuccess: (_data, { materialId }) => {
+      qc.invalidateQueries({ queryKey: queryKeys.materials.detail(materialId) });
+      qc.invalidateQueries({ queryKey: ["teacher", "lessons"] });
+      qc.invalidateQueries({ queryKey: ["teacher", "materials", materialId] });
     },
   });
 }
 
-export function useReprocessMaterial(lessonId: string) {
+export function useFetchMultipartParts() {
+  return useMutation({
+    mutationFn: ({
+      materialId,
+      versionId,
+      uploadId,
+      from,
+      count,
+    }: {
+      materialId: string;
+      versionId: string;
+      uploadId: string;
+      from?: number;
+      count?: number;
+    }) => {
+      const params = new URLSearchParams({ upload_id: uploadId });
+      if (from !== undefined) params.set("from", String(from));
+      if (count !== undefined) params.set("count", String(count));
+      return apiPost<MultipartPartsOut>(
+        `/teacher/materials/${materialId}/versions/${versionId}/multipart/parts?${params.toString()}`,
+      );
+    },
+  });
+}
+
+export function useCompleteMultipartUpload() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (materialId: string) => apiPost<MaterialStatus>(`/materials/${materialId}/reprocess`),
-    onSuccess: (_, materialId) => {
-      qc.invalidateQueries({ queryKey: ["teacher", "materials", materialId, "status"] });
-      qc.invalidateQueries({ queryKey: ["teacher", "lessons", lessonId, "processing-summary"] });
+    mutationFn: async ({
+      materialId,
+      versionId,
+      payload,
+    }: {
+      materialId: string;
+      versionId: string;
+      payload: MultipartCompleteIn;
+    }) => {
+      const res = await authenticatedFetch(
+        `/teacher/materials/${materialId}/versions/${versionId}/multipart/complete`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        },
+      );
+      if (!res.ok && res.status !== 204) {
+        const body = await res.text().catch(() => "");
+        throw new ApiError(res.status, body, res.statusText);
+      }
+    },
+    onSuccess: (_data, { materialId }) => {
+      qc.invalidateQueries({ queryKey: queryKeys.materials.detail(materialId) });
+      qc.invalidateQueries({ queryKey: ["teacher", "lessons"] });
+      qc.invalidateQueries({ queryKey: ["teacher", "materials", materialId] });
+    },
+  });
+}
+
+export function useAbortMultipartUpload() {
+  return useMutation({
+    mutationFn: async ({
+      materialId,
+      versionId,
+      payload,
+    }: {
+      materialId: string;
+      versionId: string;
+      payload: MultipartAbortIn;
+    }) => {
+      const res = await authenticatedFetch(
+        `/teacher/materials/${materialId}/versions/${versionId}/multipart/abort`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        },
+      );
+      if (!res.ok && res.status !== 204) {
+        const body = await res.text().catch(() => "");
+        throw new ApiError(res.status, body, res.statusText);
+      }
+    },
+  });
+}
+
+export function useReprocessMaterial(materialId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () =>
+      apiPost<ReprocessOut>(`/teacher/materials/${materialId}/reprocess`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.materials.detail(materialId) });
+      qc.invalidateQueries({ queryKey: queryKeys.materials.processing(materialId) });
+      qc.invalidateQueries({ queryKey: ["teacher", "lessons"] });
+      qc.invalidateQueries({ queryKey: ["teacher", "materials", materialId] });
+    },
+  });
+}
+
+export function useUpdateMaterial(materialId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: MaterialUpdate) =>
+      apiPatch<MaterialAuthoring>(`/teacher/materials/${materialId}`, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.materials.detail(materialId) });
+      qc.invalidateQueries({ queryKey: ["teacher", "lessons"] });
+      qc.invalidateQueries({ queryKey: ["teacher", "materials", materialId] });
+    },
+  });
+}
+
+export function useDeleteMaterial(materialId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => apiDelete(`/teacher/materials/${materialId}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.materials.detail(materialId) });
+      qc.invalidateQueries({ queryKey: ["teacher", "lessons"] });
+      qc.invalidateQueries({ queryKey: ["teacher", "materials", materialId] });
     },
   });
 }

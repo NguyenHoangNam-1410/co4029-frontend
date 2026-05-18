@@ -3,7 +3,7 @@ import { Link, useParams } from "@tanstack/react-router";
 import {
   ArrowLeft, ArrowRight, Upload, FileText, Video, FileCode,
   RefreshCw, CheckCircle, AlertCircle, Loader2, Sparkles,
-  Eye, EyeOff, Trash2, Brain, CloudUpload,
+  Eye, EyeOff, Trash2, Brain, CloudUpload, X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -12,8 +12,11 @@ import {
   useTeacherLessonMaterials,
   useTeacherProcessingSummary,
   useTeacherMaterialStatus,
-  useTeacherRequestUploadUrl,
-  useCreateMaterial,
+  useInitMaterialUpload,
+  useCompleteMaterialUpload,
+  useFetchMultipartParts,
+  useCompleteMultipartUpload,
+  useAbortMultipartUpload,
   useReprocessMaterial,
   useUpdateMaterial,
   useDeleteMaterial,
@@ -23,18 +26,23 @@ import {
   useTeacherLesson,
 } from "@/lib/api/hooks/teacher-courses";
 import type { LearningMaterial } from "@/lib/api/types/teacher";
+import type {
+  MaterialUploadInit,
+  MaterialUploadInitOut,
+} from "@/lib/api/types";
+import { uploadMultipart } from "@/lib/upload/multipart";
+import { ApiError } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
 
-/* ── Processing status display config ── */
 const PROC_STATUS: Record<string, { label: string; color: string; spin?: boolean }> = {
-  not_queued:  { label: "Not Queued",    color: "bg-amber-50 text-amber-600" },
-  pending:     { label: "Pending",       color: "bg-slate-100 text-slate-500" },
-  extracting:  { label: "Extracting",    color: "bg-blue-100 text-blue-700",      spin: true },
-  chunking:    { label: "Chunking",      color: "bg-blue-100 text-blue-800",  spin: true },
-  embedding:   { label: "Embedding",     color: "bg-blue-100 text-blue-800",  spin: true },
-  building_kg: { label: "Building Graph", color: "bg-fuchsia-100 text-fuchsia-700", spin: true },
-  ready:       { label: "Ready",         color: "bg-emerald-100 text-emerald-700" },
-  failed:      { label: "Failed",        color: "bg-red-100 text-red-700" },
+  not_queued:  { label: "Chưa xếp hàng",     color: "bg-amber-50 text-amber-600" },
+  pending:     { label: "Đang chờ",          color: "bg-slate-100 text-slate-500" },
+  extracting:  { label: "Trích xuất",        color: "bg-blue-100 text-blue-700",     spin: true },
+  chunking:    { label: "Phân đoạn",         color: "bg-blue-100 text-blue-800",     spin: true },
+  embedding:   { label: "Nhúng vector",      color: "bg-blue-100 text-blue-800",     spin: true },
+  building_kg: { label: "Xây dựng KG",       color: "bg-fuchsia-100 text-fuchsia-700", spin: true },
+  ready:       { label: "Sẵn sàng",          color: "bg-emerald-100 text-emerald-700" },
+  failed:      { label: "Thất bại",          color: "bg-red-100 text-red-700" },
 };
 
 const MATERIAL_TYPE_ICON: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -42,25 +50,62 @@ const MATERIAL_TYPE_ICON: Record<string, React.ComponentType<{ className?: strin
   code:  FileCode,
 };
 
-const materialTypeFromFile = (file: File) => {
+const MATERIAL_TYPE_OPTIONS: ReadonlyArray<{
+  value: MaterialUploadInit["material_type"];
+  label: string;
+}> = [
+  { value: "pdf",   label: "PDF / Tài liệu" },
+  { value: "video", label: "Video" },
+  { value: "text",  label: "Văn bản / Markdown" },
+  { value: "pptx",  label: "Slide (PPTX)" },
+  { value: "docx",  label: "Word (DOCX)" },
+  { value: "code",  label: "Mã nguồn" },
+  { value: "audio", label: "Âm thanh" },
+  { value: "image", label: "Hình ảnh" },
+  { value: "xlsx",  label: "Excel (XLSX)" },
+];
+
+function detectMaterialType(file: File): MaterialUploadInit["material_type"] {
   const name = file.name.toLowerCase();
   if (file.type.startsWith("video/")) return "video";
+  if (file.type.startsWith("audio/")) return "audio";
+  if (file.type.startsWith("image/")) return "image";
   if (file.type === "application/pdf" || name.endsWith(".pdf")) return "pdf";
   if (name.endsWith(".pptx")) return "pptx";
   if (name.endsWith(".docx")) return "docx";
+  if (name.endsWith(".xlsx")) return "xlsx";
   if (/\.(py|js|ts|tsx|jsx|java|c|cpp|go|rs)$/.test(name)) return "code";
   if (/\.(txt|md|markdown)$/.test(name) || file.type.startsWith("text/")) return "text";
   return "pdf";
-};
-
-function materialIcon(type: string) {
-  const Icon = MATERIAL_TYPE_ICON[type] ?? FileText;
-  return Icon;
 }
 
-/* ════════════════════════════════════════
-   UploadDropzone
-   ════════════════════════════════════════ */
+function materialIcon(type: string) {
+  return MATERIAL_TYPE_ICON[type] ?? FileText;
+}
+
+async function sha256Hex(file: File): Promise<string> {
+  const buf = await file.arrayBuffer();
+  const digest = await crypto.subtle.digest("SHA-256", buf);
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+function isLikelyCorsError(err: unknown): boolean {
+  if (err instanceof TypeError) return true;
+  if (err instanceof Error && /Failed to fetch|NetworkError|CORS/i.test(err.message)) {
+    return true;
+  }
+  return false;
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`;
+}
+
 function UploadDropzone({
   onFile,
   disabled,
@@ -100,14 +145,12 @@ function UploadDropzone({
         ref={inputRef}
         type="file"
         className="hidden"
-        accept=".pdf,.mp4,.mov,.txt,.md,.pptx,.docx,.py,.js,.ts,.jsx,.tsx,.java,.c,.cpp"
+        accept=".pdf,.mp4,.mov,.txt,.md,.pptx,.docx,.xlsx,.py,.js,.ts,.jsx,.tsx,.java,.c,.cpp,.png,.jpg,.jpeg,.mp3,.wav"
         onChange={(e) => {
           const file = e.target.files?.[0];
           if (file) { onFile(file); e.target.value = ""; }
         }}
       />
-
-      {/* Icon cluster */}
       <div className="flex items-center justify-center gap-3 mb-5">
         <div className="w-12 h-12 rounded-xl bg-m3-primary-fixed flex items-center justify-center">
           <FileText className="h-6 w-6 text-m3-primary" />
@@ -121,82 +164,209 @@ function UploadDropzone({
       </div>
 
       <p className="font-headline font-bold text-m3-on-surface text-base mb-1">
-        {dragging ? "Drop to upload" : "Drag & drop or click to browse"}
+        {dragging ? "Thả tệp để tải lên" : "Kéo & thả hoặc nhấn để chọn tệp"}
       </p>
       <p className="text-sm text-m3-on-surface-variant">
-        PDF, Video (MP4/MOV), DOCX, PPTX, Code, Markdown · up to 500 MB
+        PDF, Video, DOCX, PPTX, Code, Markdown · tới 5 GB (multipart tự động khi &gt;100 MB)
       </p>
     </div>
   );
 }
 
-/* ════════════════════════════════════════
-   Inline upload form (appears after file pick)
-   ════════════════════════════════════════ */
+function ProgressBar({ value, label }: { value: number; label: string }) {
+  const pct = Math.max(0, Math.min(100, Math.round(value)));
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between text-xs text-m3-on-surface-variant">
+        <span>{label}</span>
+        <span className="tabular-nums font-semibold text-m3-on-surface">{pct}%</span>
+      </div>
+      <div className="h-1.5 w-full rounded-full bg-m3-outline-variant/30 overflow-hidden">
+        <div
+          className="h-full bg-m3-secondary transition-all duration-200"
+          style={{ width: `${pct}%` }}
+          role="progressbar"
+          aria-valuenow={pct}
+          aria-valuemin={0}
+          aria-valuemax={100}
+        />
+      </div>
+    </div>
+  );
+}
+
 function SelectedFileForm({
   file,
-  courseId,
-  moduleId,
   lessonId,
   onDone,
   onCancel,
 }: {
   file: File;
-  courseId: string;
-  moduleId: string;
   lessonId: string;
   onDone: () => void;
   onCancel: () => void;
 }) {
-  const requestUpload = useTeacherRequestUploadUrl();
-  const createMaterial = useCreateMaterial(courseId, moduleId, lessonId);
+  const initUpload = useInitMaterialUpload(lessonId);
+  const completeUpload = useCompleteMaterialUpload();
+  const fetchParts = useFetchMultipartParts();
+  const completeMultipart = useCompleteMultipartUpload();
+  const abortMultipart = useAbortMultipartUpload();
+
   const [uploading, setUploading] = useState(false);
-  const [form, setForm] = useState({
+  const [phase, setPhase] = useState<"idle" | "init" | "hashing" | "uploading" | "completing">("idle");
+  const [progress, setProgress] = useState(0);
+  const abortRef = useRef<AbortController | null>(null);
+
+  const [form, setForm] = useState<{
+    title: string;
+    material_type: MaterialUploadInit["material_type"];
+    ai_processing_enabled: boolean;
+    visible_to_students: boolean;
+  }>({
     title: file.name.replace(/\.[^.]+$/, ""),
-    material_type: materialTypeFromFile(file),
+    material_type: detectMaterialType(file),
     ai_processing_enabled: true,
     visible_to_students: true,
   });
+
+  async function runSingleUpload(init: MaterialUploadInitOut, contentType: string) {
+    if (!init.upload_url) {
+      throw new Error("Phản hồi init thiếu upload_url cho chế độ single");
+    }
+    setPhase("hashing");
+    const checksum = await sha256Hex(file);
+    setPhase("uploading");
+    setProgress(0);
+    try {
+      const res = await fetch(init.upload_url, {
+        method: "PUT",
+        body: file,
+        headers: { "Content-Type": contentType },
+      });
+      if (!res.ok) {
+        throw new Error(`S3 PUT failed: ${res.status}`);
+      }
+    } catch (err) {
+      if (isLikelyCorsError(err)) {
+        toast.error("Cấu hình lưu trữ chưa sẵn sàng. Vui lòng liên hệ admin.");
+      }
+      throw err;
+    }
+    setProgress(100);
+    setPhase("completing");
+    await completeUpload.mutateAsync({
+      materialId: init.material_id,
+      versionId: init.version_id,
+      payload: {
+        storage_object_id: init.storage_object_id,
+        checksum_sha256: checksum,
+      },
+    });
+  }
+
+  async function runMultipartUpload(init: MaterialUploadInitOut) {
+    setPhase("uploading");
+    setProgress(0);
+    const ac = new AbortController();
+    abortRef.current = ac;
+    try {
+      const result = await uploadMultipart(file, init, {
+        signal: ac.signal,
+        onProgress: ({ bytesUploaded, totalBytes }) => {
+          setProgress(totalBytes === 0 ? 0 : (bytesUploaded / totalBytes) * 100);
+        },
+        fetchParts: async (uploadId, from, count) => {
+          const res = await fetchParts.mutateAsync({
+            materialId: init.material_id,
+            versionId: init.version_id,
+            uploadId,
+            from,
+            count,
+          });
+          return res;
+        },
+      });
+      setPhase("completing");
+      await completeMultipart.mutateAsync({
+        materialId: init.material_id,
+        versionId: init.version_id,
+        payload: {
+          upload_id: result.uploadId,
+          parts: result.parts,
+        },
+      });
+    } catch (err) {
+      if (init.upload_id) {
+        try {
+          await abortMultipart.mutateAsync({
+            materialId: init.material_id,
+            versionId: init.version_id,
+            payload: { upload_id: init.upload_id },
+          });
+        } catch {
+          /* swallow abort errors — primary error is more important */
+        }
+      }
+      if (isLikelyCorsError(err)) {
+        toast.error("Cấu hình lưu trữ chưa sẵn sàng. Vui lòng liên hệ admin.");
+      }
+      throw err;
+    } finally {
+      abortRef.current = null;
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.title.trim()) return;
     setUploading(true);
+    setPhase("init");
+    setProgress(0);
+
+    const contentType = file.type || "application/octet-stream";
     try {
-      const { storage_object, upload_url } = await requestUpload.mutateAsync({
-        original_filename: file.name,
-        mime_type: file.type || "application/octet-stream",
+      const init = await initUpload.mutateAsync({
+        filename: file.name,
+        content_type: contentType,
         size_bytes: file.size,
+        title: form.title.trim(),
+        material_type: form.material_type,
       });
 
-      if (upload_url && !upload_url.startsWith("s3://")) {
-        await fetch(upload_url, { method: "PUT", body: file });
+      if (init.mode === "single") {
+        await runSingleUpload(init, contentType);
+      } else {
+        await runMultipartUpload(init);
       }
 
-      await createMaterial.mutateAsync({
-        title: form.title,
-        material_type: form.material_type,
-        storage_object_id: storage_object.id,
-        ai_processing_enabled: form.ai_processing_enabled,
-        visible_to_students: form.visible_to_students,
-      });
-      toast.success("Material uploaded — AI processing queued");
+      toast.success("Đã tải lên — AI đang xử lý");
       onDone();
     } catch (err: unknown) {
-      toast.error((err as Error).message || "Upload failed");
+      const msg = err instanceof Error ? err.message : "Tải lên thất bại";
+      toast.error(msg);
     } finally {
       setUploading(false);
+      setPhase("idle");
+      setProgress(0);
     }
   }
 
-  const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+  function handleCancelUpload() {
+    abortRef.current?.abort();
+  }
+
+  const phaseLabel =
+    phase === "init" ? "Khởi tạo phiên tải lên…"
+    : phase === "hashing" ? "Tính checksum SHA-256…"
+    : phase === "uploading" ? "Đang tải lên S3…"
+    : phase === "completing" ? "Đang hoàn tất & xếp hàng xử lý…"
+    : "";
 
   return (
     <form
       onSubmit={handleSubmit}
       className="space-y-4 p-6 bg-m3-surface-container-low rounded-xl border border-m3-outline-variant/20"
     >
-      {/* File info pill */}
       <div className="flex items-center gap-3 p-3 bg-m3-surface-container rounded-xl">
         <div className="w-9 h-9 rounded-xl bg-m3-primary-fixed flex items-center justify-center shrink-0">
           {form.material_type === "video" ? (
@@ -209,85 +379,106 @@ function SelectedFileForm({
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-m3-on-surface truncate">{file.name}</p>
-          <p className="text-xs text-m3-on-surface-variant">{sizeMB} MB</p>
+          <p className="text-xs text-m3-on-surface-variant">{formatBytes(file.size)}</p>
         </div>
       </div>
 
-      {/* Title input */}
       <div className="space-y-1.5">
         <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">
-          Title *
+          Tiêu đề *
         </label>
         <input
           required
-          className="w-full rounded-xl border border-m3-outline-variant/20 bg-m3-surface-container-lowest px-3 py-2.5 text-sm text-m3-on-surface focus:outline-none focus:ring-2 focus:ring-m3-secondary/30"
+          disabled={uploading}
+          className="w-full rounded-xl border border-m3-outline-variant/20 bg-m3-surface-container-lowest px-3 py-2.5 text-sm text-m3-on-surface focus:outline-none focus:ring-2 focus:ring-m3-secondary/30 disabled:opacity-60"
           value={form.title}
           onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
         />
       </div>
 
-      {/* Type select */}
       <div className="space-y-1.5">
         <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">
-          Material Type
+          Loại tài liệu
         </label>
         <select
-          className="w-full rounded-xl border border-m3-outline-variant/20 bg-m3-surface-container-lowest px-3 py-2.5 text-sm text-m3-on-surface focus:outline-none focus:ring-2 focus:ring-m3-secondary/30"
-          value={form.material_type}
-          onChange={(e) => setForm((f) => ({ ...f, material_type: e.target.value }))}
+          disabled={uploading}
+          className="w-full rounded-xl border border-m3-outline-variant/20 bg-m3-surface-container-lowest px-3 py-2.5 text-sm text-m3-on-surface focus:outline-none focus:ring-2 focus:ring-m3-secondary/30 disabled:opacity-60"
+          value={form.material_type ?? "pdf"}
+          onChange={(e) =>
+            setForm((f) => ({ ...f, material_type: e.target.value as MaterialUploadInit["material_type"] }))
+          }
         >
-          <option value="pdf">PDF / Document</option>
-          <option value="video">Video</option>
-          <option value="text">Text / Markdown</option>
-          <option value="pptx">Slides (PPTX)</option>
-          <option value="docx">Word Document</option>
-          <option value="code">Code</option>
+          {MATERIAL_TYPE_OPTIONS.map((opt) => (
+            <option key={opt.value ?? "pdf"} value={opt.value ?? "pdf"}>
+              {opt.label}
+            </option>
+          ))}
         </select>
       </div>
 
-      {/* Toggles */}
       <div className="flex items-center gap-6">
         <label className="flex items-center gap-2 text-xs text-m3-on-surface cursor-pointer">
           <input
             type="checkbox"
+            disabled={uploading}
             checked={form.ai_processing_enabled}
             onChange={(e) => setForm((f) => ({ ...f, ai_processing_enabled: e.target.checked }))}
             className="rounded"
           />
           <Sparkles className="h-3.5 w-3.5 text-m3-secondary" />
-          AI Processing
+          Xử lý AI
         </label>
         <label className="flex items-center gap-2 text-xs text-m3-on-surface cursor-pointer">
           <input
             type="checkbox"
+            disabled={uploading}
             checked={form.visible_to_students}
             onChange={(e) => setForm((f) => ({ ...f, visible_to_students: e.target.checked }))}
             className="rounded"
           />
           <Eye className="h-3.5 w-3.5" />
-          Visible to students
+          Hiển thị cho học viên
         </label>
       </div>
 
+      {uploading && phase !== "idle" && (
+        <div className="space-y-2">
+          <ProgressBar value={progress} label={phaseLabel} />
+          {phase === "uploading" && file.size > 100 * 1024 * 1024 && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleCancelUpload}
+              className="gap-1.5 text-xs text-m3-error hover:text-m3-error hover:bg-m3-error-container/30"
+            >
+              <X className="h-3 w-3" />
+              Huỷ tải lên
+            </Button>
+          )}
+        </div>
+      )}
+
       <div className="flex gap-2 pt-1">
-        <Button type="submit" disabled={uploading} className="flex-1 gap-2 gradient-primary text-white border-0 shadow-ai-glow">
+        <Button
+          type="submit"
+          disabled={uploading}
+          className="flex-1 gap-2 gradient-primary text-white border-0 shadow-ai-glow"
+        >
           {uploading ? (
-            <><Loader2 className="h-4 w-4 animate-spin" /> Uploading…</>
+            <><Loader2 className="h-4 w-4 animate-spin" /> Đang tải lên…</>
           ) : (
-            <><Upload className="h-4 w-4" /> Upload & Process</>
+            <><Upload className="h-4 w-4" /> Tải lên & Xử lý</>
           )}
         </Button>
-        <Button type="button" variant="ghost" onClick={onCancel} className="px-4">
-          Cancel
+        <Button type="button" variant="ghost" onClick={onCancel} disabled={uploading} className="px-4">
+          Đóng
         </Button>
       </div>
     </form>
   );
 }
 
-/* ════════════════════════════════════════
-   ProcessingStatusCard
-   ════════════════════════════════════════ */
 function ProcessingStatusCard({ material }: { material: LearningMaterial }) {
   const { data: status } = useTeacherMaterialStatus(material.id);
   const proc = PROC_STATUS[status?.processing_status ?? "pending"] ?? PROC_STATUS.pending;
@@ -311,7 +502,6 @@ function ProcessingStatusCard({ material }: { material: LearningMaterial }) {
         </div>
       </div>
 
-      {/* Step progress track */}
       <div className="space-y-1.5">
         <div className="flex gap-1">
           {steps.map((step, i) => (
@@ -330,53 +520,97 @@ function ProcessingStatusCard({ material }: { material: LearningMaterial }) {
         </div>
         <p className="text-[11px] text-m3-on-surface-variant">
           {status?.processing_status === "building_kg"
-            ? "Extracting concepts and building knowledge graph…"
+            ? "Trích xuất khái niệm và xây dựng đồ thị tri thức…"
             : status?.processing_status === "embedding"
-            ? "Generating vector embeddings…"
+            ? "Tạo vector nhúng…"
             : status?.processing_status === "chunking"
-            ? "Splitting content into semantic chunks…"
+            ? "Phân đoạn nội dung thành các chunk ngữ nghĩa…"
             : status?.processing_status === "extracting"
-            ? "Extracting text from file…"
-            : "Queued for processing…"}
+            ? "Trích xuất văn bản từ tệp…"
+            : "Đang chờ xử lý…"}
         </p>
       </div>
     </div>
   );
 }
 
-/* ════════════════════════════════════════
-   MaterialCard
-   ════════════════════════════════════════ */
 function MaterialCard({
   material,
-  lessonId,
   onDelete,
 }: {
   material: LearningMaterial;
-  lessonId: string;
   onDelete: (id: string) => void;
 }) {
   const { data: status } = useTeacherMaterialStatus(material.id);
-  const reprocess = useReprocessMaterial(lessonId);
-  const updateMaterial = useUpdateMaterial(lessonId);
+  const reprocess = useReprocessMaterial(material.id);
+  const updateMaterial = useUpdateMaterial(material.id);
 
-  /* A material is "not queued" when ai_processing_enabled is off and no job is running */
   const notQueued = !material.ai_processing_enabled && !status?.active_job_id;
   const procKey = notQueued ? "not_queued" : (status?.processing_status ?? "pending");
   const proc = PROC_STATUS[procKey] ?? PROC_STATUS.pending;
   const Icon = materialIcon(material.material_type);
 
+  function handleReprocess() {
+    reprocess.mutate(undefined, {
+      onSuccess: () => toast.success("Đã bắt đầu xử lý lại"),
+      onError: (err) => {
+        if (err instanceof ApiError && err.status === 409 && err.code === "concurrent_reprocess") {
+          toast.error("Đang xử lý lần trước; vui lòng thử lại sau");
+          return;
+        }
+        if (err instanceof ApiError && err.status === 403) {
+          toast.error("Bạn không có quyền xử lý lại tài liệu này");
+          return;
+        }
+        toast.error((err as Error).message || "Xử lý lại thất bại");
+      },
+    });
+  }
+
   function handleEnableAI() {
     updateMaterial.mutate(
-      { materialId: material.id, payload: { ai_processing_enabled: true } },
+      { ai_processing_enabled: true },
       {
         onSuccess: () =>
-          reprocess.mutate(material.id, {
-            onSuccess: () => toast.success("AI processing enabled and started"),
-            onError: (err) => toast.error((err as Error).message),
+          reprocess.mutate(undefined, {
+            onSuccess: () => toast.success("Đã bật AI và bắt đầu xử lý"),
+            onError: (err) => {
+              if (err instanceof ApiError && err.status === 409 && err.code === "concurrent_reprocess") {
+                toast.error("Đang xử lý lần trước; vui lòng thử lại sau");
+                return;
+              }
+              toast.error((err as Error).message);
+            },
           }),
-        onError: (err) => toast.error((err as Error).message),
+        onError: (err) => {
+          if (err instanceof ApiError && err.status === 403) {
+            toast.error("Bạn không có quyền chỉnh sửa tài liệu này");
+            return;
+          }
+          toast.error((err as Error).message);
+        },
       }
+    );
+  }
+
+  function handleToggleVisibility() {
+    updateMaterial.mutate(
+      { visible_to_students: !material.visible_to_students },
+      {
+        onSuccess: () =>
+          toast.success(
+            material.visible_to_students
+              ? "Đã ẩn khỏi học viên"
+              : "Đã hiển thị cho học viên",
+          ),
+        onError: (err) => {
+          if (err instanceof ApiError && err.status === 403) {
+            toast.error("Bạn không có quyền chỉnh sửa tài liệu này");
+            return;
+          }
+          toast.error((err as Error).message);
+        },
+      },
     );
   }
 
@@ -403,11 +637,11 @@ function MaterialCard({
           )}
           {material.visible_to_students ? (
             <Badge className="text-[10px] border-0 bg-emerald-50 text-emerald-700 gap-1">
-              <Eye className="h-2.5 w-2.5" /> Visible
+              <Eye className="h-2.5 w-2.5" /> Hiển thị
             </Badge>
           ) : (
             <Badge className="text-[10px] border-0 bg-slate-100 text-slate-500 gap-1">
-              <EyeOff className="h-2.5 w-2.5" /> Hidden
+              <EyeOff className="h-2.5 w-2.5" /> Ẩn
             </Badge>
           )}
         </div>
@@ -417,12 +651,26 @@ function MaterialCard({
       </div>
 
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          title={material.visible_to_students ? "Ẩn khỏi học viên" : "Hiển thị cho học viên"}
+          disabled={updateMaterial.isPending}
+          onClick={handleToggleVisibility}
+        >
+          {material.visible_to_students ? (
+            <Eye className="h-3.5 w-3.5" />
+          ) : (
+            <EyeOff className="h-3.5 w-3.5" />
+          )}
+        </Button>
         {notQueued && (
           <Button
             variant="ghost"
             size="icon"
             className="h-8 w-8 text-m3-secondary hover:text-m3-secondary hover:bg-m3-secondary-fixed/30"
-            title="Enable AI Processing"
+            title="Bật xử lý AI"
             disabled={enablingAI}
             onClick={handleEnableAI}
           >
@@ -437,13 +685,9 @@ function MaterialCard({
             variant="ghost"
             size="icon"
             className="h-8 w-8"
-            title="Reprocess"
-            onClick={() =>
-              reprocess.mutate(material.id, {
-                onSuccess: () => toast.success("Reprocessing started"),
-                onError: (err) => toast.error((err as Error).message),
-              })
-            }
+            title="Xử lý lại"
+            disabled={reprocess.isPending}
+            onClick={handleReprocess}
           >
             <RefreshCw className={cn("h-3.5 w-3.5", reprocess.isPending && "animate-spin")} />
           </Button>
@@ -452,7 +696,7 @@ function MaterialCard({
           variant="ghost"
           size="icon"
           className="h-8 w-8 text-m3-error hover:text-m3-error hover:bg-m3-error-container/30"
-          title="Delete"
+          title="Xoá"
           onClick={() => onDelete(material.id)}
         >
           <Trash2 className="h-3.5 w-3.5" />
@@ -462,9 +706,34 @@ function MaterialCard({
   );
 }
 
-/* ════════════════════════════════════════
-   KnowledgeGraphPreview
-   ════════════════════════════════════════ */
+function MaterialDeleteButton({ id, onDeleted }: { id: string; onDeleted: () => void }) {
+  const del = useDeleteMaterial(id);
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      disabled={del.isPending}
+      onClick={() =>
+        del.mutate(undefined, {
+          onSuccess: () => {
+            toast.success("Đã xoá tài liệu");
+            onDeleted();
+          },
+          onError: (err) => {
+            if (err instanceof ApiError && err.status === 403) {
+              toast.error("Bạn không có quyền xoá tài liệu này");
+              return;
+            }
+            toast.error((err as Error).message || "Xoá thất bại");
+          },
+        })
+      }
+    >
+      {del.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Xác nhận xoá"}
+    </Button>
+  );
+}
+
 function KnowledgeGraphPreview({ readyCount }: { readyCount: number }) {
   const [toastVisible, setToastVisible] = useState(false);
 
@@ -473,7 +742,7 @@ function KnowledgeGraphPreview({ readyCount }: { readyCount: number }) {
       <div className="flex items-center justify-center gap-2">
         <Brain className="h-5 w-5 text-m3-secondary" />
         <h3 className="font-headline font-bold text-lg text-m3-on-surface">
-          Knowledge Graph
+          Đồ thị Tri thức
         </h3>
       </div>
 
@@ -512,11 +781,11 @@ function KnowledgeGraphPreview({ readyCount }: { readyCount: number }) {
 
       {readyCount > 0 ? (
         <p className="text-xs text-m3-on-surface-variant font-medium">
-          {readyCount} material{readyCount !== 1 ? "s" : ""} indexed · concepts extracted
+          Đã lập chỉ mục {readyCount} tài liệu · khái niệm đã trích xuất
         </p>
       ) : (
         <p className="text-xs text-m3-on-surface-variant font-medium">
-          Upload and process materials to build your knowledge graph
+          Tải lên & xử lý tài liệu để xây dựng đồ thị tri thức của bạn
         </p>
       )}
 
@@ -525,20 +794,17 @@ function KnowledgeGraphPreview({ readyCount }: { readyCount: number }) {
         onClick={() => { setToastVisible(true); setTimeout(() => setToastVisible(false), 2500); }}
         className="border border-m3-outline-variant/20 rounded-xl px-5 py-2.5 text-sm font-bold text-m3-on-surface hover:bg-m3-surface-container-low transition-colors"
       >
-        Open Full Graph
+        Mở đồ thị đầy đủ
       </button>
       {toastVisible && (
         <p className="text-xs text-m3-secondary font-semibold animate-pulse">
-          Knowledge Graph viewer coming soon
+          Trình xem đồ thị tri thức sẽ sớm có
         </p>
       )}
     </div>
   );
 }
 
-/* ════════════════════════════════════════
-   Main page
-   ════════════════════════════════════════ */
 export default function LessonMaterialsPage() {
   const params = useParams({ strict: false }) as { courseId: string; lessonId: string };
   const { courseId, lessonId } = params;
@@ -547,29 +813,13 @@ export default function LessonMaterialsPage() {
   const { data: lesson, isLoading: lessonLoading } = useTeacherLesson(lessonId);
   const { data: materials = [], isLoading: materialsLoading } = useTeacherLessonMaterials(lessonId);
   const { data: summary } = useTeacherProcessingSummary(lessonId);
-  const deleteMaterial = useDeleteMaterial(lessonId);
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-
-  const moduleId = lesson?.module_id ?? "";
-
-  const activeProcessing = materials.find((m) => {
-    // we track status per material via individual hooks — here we use the summary flag
-    return false; // resolved per-card via useMaterialStatus
-  });
-  const _ = activeProcessing; // suppress unused var
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   const readyCount = summary?.completed_versions ?? 0;
   const processingCount = summary?.processing_versions ?? 0;
 
-  function handleDelete(id: string) {
-    deleteMaterial.mutate(id, {
-      onSuccess: () => toast.success("Material deleted"),
-      onError: (err) => toast.error((err as Error).message),
-    });
-  }
-
-  /* ── Derive the "currently processing" material for the status card ── */
   const processingMaterial = processingCount > 0
     ? materials.find((m) => m.current_version_id !== null)
     : undefined;
@@ -577,10 +827,9 @@ export default function LessonMaterialsPage() {
   return (
     <div className="space-y-8 pb-16 max-w-[1400px]">
 
-      {/* ── Breadcrumb ── */}
       <div className="flex items-center gap-1.5 text-xs text-m3-on-surface-variant">
         <Link to="/teacher/courses" className="hover:text-m3-primary transition-colors">
-          My Courses
+          Khoá học của tôi
         </Link>
         <ArrowRight className="h-3 w-3" />
         <Link
@@ -592,11 +841,10 @@ export default function LessonMaterialsPage() {
         </Link>
         <ArrowRight className="h-3 w-3" />
         <span className="truncate max-w-[180px] text-m3-on-surface font-medium">
-          {lesson?.title ?? "Lesson"}
+          {lesson?.title ?? "Bài học"}
         </span>
       </div>
 
-      {/* ── Page header ── */}
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
@@ -606,52 +854,45 @@ export default function LessonMaterialsPage() {
               </Button>
             </Link>
             <h1 className="text-3xl lg:text-4xl font-extrabold font-headline tracking-tight text-m3-primary leading-tight">
-              Material Upload &amp; AI Hub
+              Tài liệu &amp; AI Hub
             </h1>
           </div>
           <p className="text-m3-on-surface-variant text-base leading-relaxed pl-11">
-            {lessonLoading ? "Loading…" : lesson?.title} · Upload materials and let AI build your knowledge graph
+            {lessonLoading ? "Đang tải…" : lesson?.title} · Tải tài liệu để AI dựng đồ thị tri thức
           </p>
         </div>
 
-        {/* Processing summary badges */}
         {summary && (processingCount > 0 || readyCount > 0) && (
           <div className="flex gap-2 flex-wrap shrink-0">
             {processingCount > 0 && (
               <Badge className="bg-blue-100 text-blue-700 border-0 gap-1.5 text-xs">
                 <Loader2 className="h-3 w-3 animate-spin" />
-                {processingCount} processing
+                {processingCount} đang xử lý
               </Badge>
             )}
             {readyCount > 0 && (
               <Badge className="bg-emerald-100 text-emerald-700 border-0 gap-1.5 text-xs">
                 <CheckCircle className="h-3 w-3" />
-                {readyCount} ready
+                {readyCount} sẵn sàng
               </Badge>
             )}
             {(summary.failed_versions ?? 0) > 0 && (
               <Badge className="bg-red-100 text-red-700 border-0 gap-1.5 text-xs">
                 <AlertCircle className="h-3 w-3" />
-                {summary.failed_versions} failed
+                {summary.failed_versions} thất bại
               </Badge>
             )}
           </div>
         )}
       </div>
 
-      {/* ── Bento grid ── */}
       <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr] gap-8 items-start">
 
-        {/* ─────────────────────────────────
-            Left column — upload & processing
-        ───────────────────────────────── */}
         <div className="space-y-5">
 
           {selectedFile ? (
             <SelectedFileForm
               file={selectedFile}
-              courseId={courseId}
-              moduleId={moduleId}
               lessonId={lessonId}
               onDone={() => setSelectedFile(null)}
               onCancel={() => setSelectedFile(null)}
@@ -660,7 +901,6 @@ export default function LessonMaterialsPage() {
             <UploadDropzone onFile={setSelectedFile} />
           )}
 
-          {/* Processing status card */}
           {processingCount > 0 && processingMaterial ? (
             <ProcessingStatusCard material={processingMaterial} />
           ) : (
@@ -669,43 +909,37 @@ export default function LessonMaterialsPage() {
                 <Brain className="h-6 w-6 text-m3-on-surface-variant" />
               </div>
               <p className="font-headline font-bold text-m3-on-surface text-sm mb-1">
-                No files currently processing
+                Không có tệp nào đang xử lý
               </p>
               <p className="text-xs text-m3-on-surface-variant">
-                Upload a file above to start AI processing
+                Tải tệp lên ở khung trên để bắt đầu xử lý AI
               </p>
             </div>
           )}
 
-          {/* AI insight strip */}
           {readyCount > 0 && (
             <div className="flex items-center gap-3 p-4 bg-m3-secondary-fixed/30 rounded-xl border border-m3-secondary/10">
               <Sparkles className="h-5 w-5 text-m3-secondary shrink-0" />
               <p className="text-sm font-medium text-m3-on-surface">
-                AI has indexed {readyCount} material{readyCount !== 1 ? "s" : ""} — knowledge graph is active for quiz generation
+                AI đã lập chỉ mục {readyCount} tài liệu — đồ thị tri thức sẵn sàng cho việc tạo quiz
               </p>
             </div>
           )}
         </div>
 
-        {/* ─────────────────────────────────
-            Right column — history & KG
-        ───────────────────────────────── */}
         <div className="space-y-5">
 
-          {/* Material history header */}
           <div className="flex items-center justify-between">
             <h2 className="font-headline font-bold text-m3-on-surface text-lg">
-              Material History
+              Lịch sử tài liệu
             </h2>
             {summary && (
               <span className="text-sm text-m3-on-surface-variant">
-                {summary.materials_total} material{summary.materials_total !== 1 ? "s" : ""}
+                {summary.materials_total} tài liệu
               </span>
             )}
           </div>
 
-          {/* Material list */}
           {materialsLoading ? (
             <div className="space-y-3">
               {[1, 2].map((i) => (
@@ -715,25 +949,40 @@ export default function LessonMaterialsPage() {
           ) : materials.length === 0 ? (
             <div className="text-center py-10 text-m3-on-surface-variant bg-m3-surface-container-low/50 rounded-xl">
               <FileText className="h-9 w-9 mx-auto mb-3 opacity-20" />
-              <p className="text-sm font-medium">No materials yet</p>
+              <p className="text-sm font-medium">Chưa có tài liệu nào</p>
               <p className="text-xs mt-1 text-m3-on-surface-variant/70">
-                Upload your first file using the dropzone on the left
+                Tải tệp đầu tiên bằng khung kéo-thả ở bên trái
               </p>
             </div>
           ) : (
             <div className="space-y-3">
               {materials.map((material) => (
-                <MaterialCard
-                  key={material.id}
-                  material={material}
-                  lessonId={lessonId}
-                  onDelete={handleDelete}
-                />
+                <div key={material.id}>
+                  <MaterialCard
+                    material={material}
+                    onDelete={(id) => setPendingDeleteId(id)}
+                  />
+                  {pendingDeleteId === material.id && (
+                    <div className="mt-2 flex items-center justify-end gap-2 px-4 py-3 rounded-xl bg-m3-error-container/20 border border-m3-error/20 text-xs text-m3-on-surface">
+                      <span className="text-m3-error font-medium">Xoá tài liệu này?</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setPendingDeleteId(null)}
+                      >
+                        Huỷ
+                      </Button>
+                      <MaterialDeleteButton
+                        id={material.id}
+                        onDeleted={() => setPendingDeleteId(null)}
+                      />
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           )}
 
-          {/* Knowledge Graph Preview */}
           <KnowledgeGraphPreview readyCount={readyCount} />
         </div>
 

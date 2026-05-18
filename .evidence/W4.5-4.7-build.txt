@@ -1,0 +1,28 @@
+W4.5 + W4.6 + W4.7 — Direct upload + multipart + lifecycle
+============================================================
+
+Build verification (npx tsc -b on touched files only)
+------------------------------------------------------
+Touched files: 0 TypeScript errors
+
+Files in this commit:
+  - src/lib/api/hooks/materials.ts          (extended; legacy hooks @deprecated)
+  - src/lib/api/types.ts                     (added 9 re-exports)
+  - src/lib/upload/multipart.ts              (NEW)
+  - src/lib/upload/__tests__/multipart.test.ts (NEW)
+  - src/routes/teacher/lesson-materials.tsx  (rewritten upload flow)
+  - src/routes/teacher/lesson-manage.tsx     (video upload migrated to init-upload)
+
+Pre-existing baseline errors (NOT in scope, untouched by this task):
+  - src/routes/dept-course-detail.tsx        (W4.8 scope)
+  - src/routes/dept-courses.tsx              (W4.8 scope)
+  - src/routes/management-course-enrollments.tsx (W4.9 scope, missing type re-exports)
+
+These errors exist before my changes (verified via `git stash` baseline).
+Same documented pattern as W4.11-4.12-build.txt.
+
+Verification commands run:
+  $ npx tsc -b           (only the 3 pre-existing dept-* / management-* errors remain)
+  $ npx vitest run       (6 files / 26 tests passed — see W4.5-4.7-test.txt)
+  $ check-no-purple.sh   (OK)
+  $ check-radius.sh      (OK)
