@@ -30,6 +30,13 @@ import CourseStudentsPage from "@/routes/teacher/course-students";
 import CourseStudentDetailPage from "@/routes/teacher/course-student-detail";
 import ModuleManagePage from "@/routes/teacher/module-manage";
 import QuizManagePage from "@/routes/teacher/quiz-manage";
+import AdminHealthPage from "@/routes/admin/health";
+import AdminStatsPage from "@/routes/admin/stats";
+import AdminStatsActivePage from "@/routes/admin/stats-active";
+import AdminStatsContentPage from "@/routes/admin/stats-content";
+import AdminStatsHealthPage from "@/routes/admin/stats-health";
+import AdminUsersPage from "@/routes/admin/users";
+import AdminUserDetailStubPage from "@/routes/admin/user-detail";
 
 /* ── Root layout ── */
 function Root() {
@@ -184,6 +191,48 @@ const teacherCourseStudentDetailRoute = createRoute({
   component: CourseStudentDetailPage,
 });
 
+const adminHealthRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/admin/health",
+  component: AdminHealthPage,
+});
+
+const adminStatsRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/admin/stats",
+  component: AdminStatsPage,
+});
+
+const adminStatsActiveRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/admin/stats/active",
+  component: AdminStatsActivePage,
+});
+
+const adminStatsContentRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/admin/stats/content",
+  component: AdminStatsContentPage,
+});
+
+const adminStatsHealthRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/admin/stats/health",
+  component: AdminStatsHealthPage,
+});
+
+const adminUsersRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/admin/users",
+  component: AdminUsersPage,
+});
+
+const adminUserDetailRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/admin/users/$userId",
+  component: AdminUserDetailStubPage,
+});
+
 const callbackRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/auth/google/callback",
@@ -218,6 +267,13 @@ const routeTree = rootRoute.addChildren([
     teacherQuizManageRoute,
     teacherCourseStudentsRoute,
     teacherCourseStudentDetailRoute,
+    adminHealthRoute,
+    adminStatsRoute,
+    adminStatsActiveRoute,
+    adminStatsContentRoute,
+    adminStatsHealthRoute,
+    adminUsersRoute,
+    adminUserDetailRoute,
   ]),
   callbackRoute,
 ]);

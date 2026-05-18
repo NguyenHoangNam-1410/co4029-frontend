@@ -44,10 +44,20 @@ export const queryKeys = {
 
   admin: {
     statsOverview: () => ["admin", "stats", "overview"] as const,
+    activeUsers: () => ["admin", "stats", "active-users"] as const,
+    content: () => ["admin", "stats", "content"] as const,
+    statsHealth: (since: string) =>
+      ["admin", "stats", "health", since] as const,
     users: (cursor?: string) => ["admin", "users", cursor] as const,
+    userDetail: (id: string) => ["admin", "users", "detail", id] as const,
     aiCosts: {
       summary: () => ["admin", "ai-costs", "summary"] as const,
     },
+  },
+
+  infra: {
+    healthz: () => ["infra", "healthz"] as const,
+    readyz: () => ["infra", "readyz"] as const,
   },
 
   // --- Stubs for future domains (Wave 1+) ---
