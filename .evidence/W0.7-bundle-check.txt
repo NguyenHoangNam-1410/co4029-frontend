@@ -1,0 +1,9 @@
+$ bash scripts/bundle-check.sh
+Building project...
+Bundle size check:
+  Baseline total (gzip): 377.59 kB
+  Current total (gzip):  377.80 kB
+  Delta:                 0.06%
+  Budget:                +30% (max 490.87 kB)
+
+PASS: Bundle size within budget.
