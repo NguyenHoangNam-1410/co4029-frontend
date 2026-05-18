@@ -1,0 +1,4 @@
+OK: no purple/violet
+purple_exit=0
+OK: radius scale enforced
+radius_exit=0
