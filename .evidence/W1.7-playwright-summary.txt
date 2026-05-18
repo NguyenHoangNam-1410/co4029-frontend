@@ -1,0 +1,14 @@
+
+> abridgeai-frontend@0.1.0 test:e2e
+> playwright test --grep wave-1-smoke
+
+
+Running 5 tests using 1 worker
+
+  ✓  1 [chromium] › tests/e2e/wave-1-smoke.spec.ts:26:3 › wave-1-smoke › healthz status visible in /admin/health (1.4s)
+  ✓  2 [chromium] › tests/e2e/wave-1-smoke.spec.ts:46:3 › wave-1-smoke › dashboard greets seeded student (1.2s)
+  ✓  3 [chromium] › tests/e2e/wave-1-smoke.spec.ts:59:3 › wave-1-smoke › admin stats overview shows 5 KPI cards (1.2s)
+  ✓  4 [chromium] › tests/e2e/wave-1-smoke.spec.ts:74:3 › wave-1-smoke › admin users list renders seeded rows (1.4s)
+  ✓  5 [chromium] › tests/e2e/wave-1-smoke.spec.ts:94:3 › wave-1-smoke › login page renders Google OAuth button (928ms)
+
+  5 passed (8.3s)
