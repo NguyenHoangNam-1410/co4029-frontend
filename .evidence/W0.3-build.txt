@@ -1,0 +1,10 @@
+dist/assets/prod-QfiXFXxq.js                  16.51 kB │ gzip:   6.65 kB
+dist/assets/vidstack-CZgUA94N-DpZWeBx0.js     70.73 kB │ gzip:  25.23 kB
+dist/assets/index-DbXdWOdG.js              1,179.60 kB │ gzip: 328.78 kB
+
+[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 763ms

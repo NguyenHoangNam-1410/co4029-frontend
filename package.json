@@ -8,6 +8,9 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "lint": "eslint .",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:ui": "vitest --ui",
     "build:baseline": "bash scripts/bundle-baseline.sh",
     "build:check-budget": "bash scripts/bundle-check.sh",
     "codegen:api": "openapi-typescript ./openapi-snapshot.json -o ./src/lib/api/openapi-types.d.ts --root-types",
@@ -31,13 +34,20 @@
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^25.6.2",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^6.0.1",
+    "@vitest/ui": "^4.1.6",
+    "jsdom": "^29.1.1",
+    "msw": "^2.14.6",
     "openapi-typescript": "^7.13.0",
     "tailwindcss": "^4.3.0",
     "typescript": "~5.6.2",
-    "vite": "^8.0.11"
+    "vite": "^8.0.11",
+    "vitest": "^4.1.6"
   }
 }
