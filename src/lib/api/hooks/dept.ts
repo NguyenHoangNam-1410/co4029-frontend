@@ -1,2 +1,79 @@
-// TODO: populated in Wave 4 (dept migration)
-export {};
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiDelete, apiFetch, apiPost } from "../client";
+import { queryKeys } from "../query-keys";
+import type {
+  AssignTeacherRequest,
+  CourseAuthoring,
+  RosterEntry,
+  TeacherAssignmentCreated,
+  TeacherAssignmentRead,
+} from "../types";
+
+export function useDeptCourses() {
+  return useQuery({
+    queryKey: queryKeys.dept.courses(),
+    queryFn: () => apiFetch<CourseAuthoring[]>("/dept/courses"),
+    staleTime: 1000 * 60 * 2,
+  });
+}
+
+export function useCourseTeachers(courseId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.dept.teachers(courseId ?? ""),
+    queryFn: () =>
+      apiFetch<TeacherAssignmentRead[]>(
+        `/dept/courses/${courseId}/teachers`,
+      ),
+    enabled: Boolean(courseId),
+    staleTime: 1000 * 60,
+  });
+}
+
+export function useAssignTeacher(courseId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: AssignTeacherRequest) =>
+      apiPost<TeacherAssignmentCreated>(
+        `/dept/courses/${courseId}/teachers`,
+        body,
+      ),
+    onSuccess: () => {
+      void qc.invalidateQueries({
+        queryKey: queryKeys.dept.teachers(courseId),
+      });
+    },
+  });
+}
+
+export function useRemoveTeacher(courseId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (userId: string) =>
+      apiDelete(`/dept/courses/${courseId}/teachers/${userId}`),
+    onSuccess: () => {
+      void qc.invalidateQueries({
+        queryKey: queryKeys.dept.teachers(courseId),
+      });
+    },
+  });
+}
+
+export function useCourseRoster(courseId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.dept.roster(courseId ?? ""),
+    queryFn: () =>
+      apiFetch<RosterEntry[]>(`/dept/courses/${courseId}/roster`),
+    enabled: Boolean(courseId),
+    staleTime: 1000 * 60,
+  });
+}
+
+export function useOrgUnitCourses(orgUnitId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.dept.orgUnitCourses(orgUnitId ?? ""),
+    queryFn: () =>
+      apiFetch<CourseAuthoring[]>(`/dept/org-units/${orgUnitId}/courses`),
+    enabled: Boolean(orgUnitId),
+    staleTime: 1000 * 60 * 2,
+  });
+}

@@ -1,0 +1,22 @@
+W4.8 ROUTES REGISTERED — Evidence
+===================================
+Date: 2026-05-18
+
+Problem:
+  deptCoursesRoute and deptCourseDetailRoute were defined in router.tsx
+  but NOT added to authenticatedRoute.addChildren([...]).
+  This caused TS2322/TS2820 errors — TanStack Router's typed tree didn't
+  know /dept or /dept/courses/$courseId existed.
+
+Fix:
+  Added deptCoursesRoute, deptCourseDetailRoute, and managementCourseEnrollmentsRoute
+  to the authenticatedRoute.addChildren([...]) array in router.tsx (line ~372).
+
+Verification:
+  - npm run build: exit 0 (tsc -b && vite build successful)
+  - npm run test:run: 26/26 tests passed
+  - scripts/check-no-purple.sh: OK exit 0
+  - scripts/check-radius.sh: OK exit 0
+
+Files changed:
+  - frontend-vite/src/router.tsx (added 3 routes to addChildren array)

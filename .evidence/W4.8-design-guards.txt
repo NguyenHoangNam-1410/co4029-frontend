@@ -1,0 +1,5 @@
+=== check-no-purple ===
+OK: no purple/violet
+
+=== check-radius ===
+OK: radius scale enforced
