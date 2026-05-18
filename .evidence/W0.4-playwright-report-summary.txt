@@ -1,0 +1,10 @@
+
+> abridgeai-frontend@0.1.0 test:e2e
+> playwright test --grep wave-0-smoke
+
+
+Running 1 test using 1 worker
+
+  ✓  1 [chromium] › tests/e2e/wave-0-smoke.spec.ts:10:3 › wave-0-smoke › admin reaches dashboard after programmatic login (1.3s)
+
+  1 passed (4.5s)
