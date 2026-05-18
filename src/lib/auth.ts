@@ -205,6 +205,19 @@ export function clearAuthSession() {
   notifyAuthChanged();
 }
 
+export function setMfaRequired(value: boolean) {
+  if (!getStoredAuthSession()) {
+    return;
+  }
+
+  localStorage.setItem(AUTH_STORAGE_KEYS.requiresMfa, String(value));
+  notifyAuthChanged();
+}
+
+export function clearMfaRequired() {
+  setMfaRequired(false);
+}
+
 export function setPostLoginRedirect(path: string | null | undefined) {
   if (isSafeRedirectTarget(path)) {
     sessionStorage.setItem(POST_LOGIN_REDIRECT_STORAGE_KEY, path);

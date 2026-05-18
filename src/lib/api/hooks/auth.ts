@@ -1,11 +1,18 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { apiFetch } from "../client";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiFetch, apiPatch, apiPost } from "../client";
+import { authenticatedFetch } from "../../auth";
 import { queryKeys } from "../query-keys";
 import type {
   GoogleLoginResponse,
+  MfaChallengeResponse,
+  MfaEnrollResponse,
+  MfaRecoveryCodesResponse,
+  MfaTotpVerifyRequest,
+  MfaVerifyRequest,
   MyPermissions,
   TokenResponse,
   User,
+  UserProfileUpdate,
 } from "../types";
 
 const API_BASE_URL =
@@ -79,6 +86,77 @@ export function useGoogleCallback() {
       }
 
       return (await response.json()) as TokenResponse;
+    },
+  });
+}
+
+export function useEnrollTotp() {
+  return useMutation({
+    mutationFn: () =>
+      apiPost<MfaEnrollResponse>("/auth/me/mfa/totp/enroll"),
+  });
+}
+
+export function useVerifyTotp() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (body: MfaTotpVerifyRequest) =>
+      apiPost<MfaRecoveryCodesResponse>("/auth/me/mfa/totp/verify", body),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: queryKeys.auth.me() });
+    },
+  });
+}
+
+export function useMfaChallenge() {
+  return useMutation({
+    mutationFn: () =>
+      apiPost<MfaChallengeResponse>("/auth/me/mfa/challenge"),
+  });
+}
+
+export function useVerifyMfa() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (body: MfaVerifyRequest) => {
+      const response = await authenticatedFetch("/auth/me/mfa/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) {
+        const detail = await readErrorDetail(response);
+        throw new Error(
+          detail ?? response.statusText ?? "MFA verification failed",
+        );
+      }
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: queryKeys.auth.me() });
+    },
+  });
+}
+
+export function useRegenerateRecoveryCodes() {
+  return useMutation({
+    mutationFn: () =>
+      apiPost<MfaRecoveryCodesResponse>(
+        "/auth/me/mfa/recovery-codes/regenerate",
+      ),
+  });
+}
+
+export function useUpdateProfile() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (body: UserProfileUpdate) =>
+      apiPatch<User>("/users/me/profile", body),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: queryKeys.auth.me() });
     },
   });
 }

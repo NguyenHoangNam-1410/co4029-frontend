@@ -72,6 +72,14 @@ export default function GoogleCallbackPage() {
       try {
         const tokenResponse = await googleCallback.mutateAsync(code);
         storeAuthSession(tokenResponse);
+
+        if (tokenResponse.requires_mfa) {
+          const next = consumePostLoginRedirect();
+          setStatus("Đăng nhập thành công. Đang chuyển sang xác thực hai bước...");
+          window.location.replace(`/login/mfa?next=${encodeURIComponent(next)}`);
+          return;
+        }
+
         setStatus("Signed in successfully. Redirecting...");
         window.location.replace(consumePostLoginRedirect());
       } catch (err) {
