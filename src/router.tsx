@@ -21,6 +21,9 @@ import CourseLearnPage from "@/routes/course-learn";
 import CourseQuizPage from "@/routes/course-quiz";
 import NotificationsPage from "@/routes/notifications";
 import SettingsNotificationsPage from "@/routes/settings-notifications";
+import LoginMfaPage from "@/routes/login-mfa";
+import SettingsProfilePage from "@/routes/settings-profile";
+import SettingsSecurityPage from "@/routes/settings-security";
 import { ProgressPage, SettingsPage, InterviewPage } from "@/routes/placeholder";
 import TeacherDashboard from "@/routes/teacher/index";
 import TeacherCoursesPage from "@/routes/teacher/courses";
@@ -66,6 +69,15 @@ const loginRoute = createRoute({
     next: typeof search.next === "string" ? search.next : undefined,
   }),
   component: LoginPage,
+});
+
+const loginMfaRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/login/mfa",
+  validateSearch: (search: Record<string, unknown>) => ({
+    next: typeof search.next === "string" ? search.next : undefined,
+  }),
+  component: LoginMfaPage,
 });
 
 const authenticatedRoute = createRoute({
@@ -137,6 +149,18 @@ const settingsNotificationsRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/settings/notifications",
   component: SettingsNotificationsPage,
+});
+
+const settingsProfileRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/settings/profile",
+  component: SettingsProfilePage,
+});
+
+const settingsSecurityRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/settings/security",
+  component: SettingsSecurityPage,
 });
 
 const notificationsRoute = createRoute({
@@ -262,6 +286,7 @@ const callbackRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   indexRoute,
   loginRoute,
+  loginMfaRoute,
   authenticatedRoute.addChildren([
     dashboardRoute,
     coursesRoute,
@@ -272,6 +297,8 @@ const routeTree = rootRoute.addChildren([
     progressRoute,
     settingsRoute,
     settingsNotificationsRoute,
+    settingsProfileRoute,
+    settingsSecurityRoute,
     notificationsRoute,
     teacherRoute,
     teacherCoursesRoute,
