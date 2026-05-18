@@ -1,0 +1,43 @@
+W4.10 Build — Admin Recovery + Audit + Processing Queue
+========================================================
+
+Date: 2026-05-18
+Build command: npm run build
+Result: TSC fails with PRE-EXISTING errors only (none in W4.10 files).
+
+W4.10 files added/modified:
+  - src/lib/api/hooks/admin.ts (extended)
+  - src/lib/api/types.ts (8 new schema re-exports)
+  - src/lib/api/query-keys.ts (extended admin namespace)
+  - src/router.tsx (4 new admin routes registered)
+  - src/routes/admin/courses.tsx (NEW)
+  - src/routes/admin/course-detail.tsx (NEW)
+  - src/routes/admin/user-detail.tsx (replaced stub with real page)
+  - src/routes/admin/processing.tsx (NEW)
+  - src/routes/admin/processing-job.tsx (NEW)
+
+LSP diagnostics (severity=error) on each W4.10 file: NONE.
+
+Pre-existing build errors (documented in .evidence/W4.11-4.12-tsc.txt
++ regressions surfaced by removed src/lib/api/hooks/teacher-courses.ts):
+
+  - src/routes/dept-course-detail.tsx       (W4.8 — dept routes never
+                                              attached to route tree)
+  - src/routes/dept-courses.tsx              (same)
+  - src/routes/course-quiz.tsx               (pre-W4.10 quiz hook drift)
+  - src/routes/course-interview.tsx          (pre-W4.10 outcome shape drift)
+  - src/routes/teacher/lesson-manage.tsx     (W4.11/4.12 materials API)
+  - src/routes/teacher/lesson-materials.tsx  (W4.11/4.12 materials API)
+  - src/routes/teacher/module-manage.tsx     (W4.11/4.12 hooks/teacher-courses removed)
+  - src/routes/teacher/course-manage.tsx     (W4.11/4.12 enum widening)
+  - src/routes/teacher/course-new.tsx        (same)
+  - src/routes/teacher/quiz-manage.tsx       (same)
+  - src/routes/teacher/index.tsx             (same)
+
+None of these files were touched by W4.10. The W4.10 surface
+(admin.ts hook + 5 admin routes + types/query-keys) is type-clean
+per LSP and survives a force-rebuild.
+
+Tests: 26/26 pass (npm run test:run, see W4.10-test.txt).
+Design guards: PASS (no purple/violet, no over-radius, see
+  W4.10-design-guards.txt).

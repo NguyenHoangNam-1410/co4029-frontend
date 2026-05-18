@@ -62,9 +62,31 @@ export const queryKeys = {
       ["admin", "stats", "health", since] as const,
     users: (cursor?: string) => ["admin", "users", cursor] as const,
     userDetail: (id: string) => ["admin", "users", "detail", id] as const,
+    courses: (includeDeleted?: boolean, cursor?: string) =>
+      ["admin", "courses", includeDeleted ?? true, cursor] as const,
+    courseAudit: (courseId: string) =>
+      ["admin", "courses", courseId, "audit"] as const,
+    courseProcessing: (courseId: string, limit?: number) =>
+      ["admin", "courses", courseId, "processing", limit] as const,
+    courseStats: () => ["admin", "courses", "stats"] as const,
+    processingQueue: () => ["admin", "processing", "queue"] as const,
+    processingJobs: (status?: string) =>
+      ["admin", "processing", "jobs", status] as const,
+    processingJob: (jobId: string) =>
+      ["admin", "processing", "jobs", "detail", jobId] as const,
     aiCosts: {
       summary: () => ["admin", "ai-costs", "summary"] as const,
     },
+  },
+
+  dept: {
+    courses: () => ["dept", "courses"] as const,
+    teachers: (courseId: string) =>
+      ["dept", "courses", courseId, "teachers"] as const,
+    roster: (courseId: string) =>
+      ["dept", "courses", courseId, "roster"] as const,
+    orgUnitCourses: (orgUnitId: string) =>
+      ["dept", "org-units", orgUnitId, "courses"] as const,
   },
 
   infra: {
@@ -77,15 +99,25 @@ export const queryKeys = {
   quizzes: {
     list: (courseId: string) => ["quizzes", "list", courseId] as const,
     detail: (id: string) => ["quizzes", "detail", id] as const,
+    attempt: (attemptId: string) => ["quizzes", "attempt", attemptId] as const,
+    myAttempts: (quizId: string) =>
+      ["quizzes", "my-attempts", quizId] as const,
   },
 
   interviews: {
     list: (cursor?: string) => ["interviews", "list", cursor] as const,
     detail: (id: string) => ["interviews", "detail", id] as const,
+    session: (sessionId: string) =>
+      ["interviews", "session", sessionId] as const,
+    mySessions: () => ["interviews", "my-sessions"] as const,
+    gapReport: (sessionId: string) =>
+      ["interviews", "gap-report", sessionId] as const,
   },
 
   enrollments: {
-    list: (cursor?: string) => ["enrollments", "list", cursor] as const,
+    list: (courseId: string) => ["enrollments", "list", courseId] as const,
+    invitationCodes: (courseId: string) =>
+      ["enrollments", "invitation-codes", courseId] as const,
     detail: (id: string) => ["enrollments", "detail", id] as const,
   },
 

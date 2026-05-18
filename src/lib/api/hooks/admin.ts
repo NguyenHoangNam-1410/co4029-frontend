@@ -1,12 +1,21 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiFetch, apiPatch } from "../client";
+import { apiFetch, apiPatch, apiPost } from "../client";
 import { queryKeys } from "../query-keys";
 import { useInfinitePage } from "../use-infinite-page";
 import type {
   ActiveUsersOut,
+  AdminCoursePage,
   ContentOut,
+  CourseAuthoring,
+  CourseProcessingAudit,
+  CourseStats,
+  DisableUserOut,
+  EnableUserOut,
   HealthOut,
   OverviewOut,
+  ProcessingJobOut,
+  ProcessingJobRow,
+  ProcessingQueueDepth,
   User,
   UserListPage,
 } from "../types";
@@ -85,5 +94,161 @@ export function useUserDetail(userId: string) {
     queryKey: queryKeys.admin.userDetail(userId),
     queryFn: () => apiFetch<User>(`/users/${userId}`),
     enabled: Boolean(userId),
+  });
+}
+
+export function useAdminCourses(opts?: { includeDeleted?: boolean; limit?: number }) {
+  const includeDeleted = opts?.includeDeleted ?? true;
+  const limit = opts?.limit ?? 20;
+  return useInfinitePage<CourseAuthoring>({
+    queryKey: queryKeys.admin.courses(includeDeleted),
+    fetch: async (cursor, lim = limit) => {
+      const params = new URLSearchParams();
+      if (cursor) params.set("cursor", cursor);
+      if (lim) params.set("limit", String(lim));
+      params.set("include_deleted", String(includeDeleted));
+      const page = await apiFetch<AdminCoursePage>(
+        `/admin/courses?${params.toString()}`,
+      );
+      return { items: page.items, next_cursor: page.next_cursor ?? null };
+    },
+    limit,
+  });
+}
+
+export function useRestoreCourse() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (courseId: string) =>
+      apiPost<CourseAuthoring>(`/admin/courses/${courseId}/restore`),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["admin", "courses"] });
+      void qc.invalidateQueries({ queryKey: queryKeys.admin.courseStats() });
+    },
+  });
+}
+
+export function useCourseAudit(courseId: string) {
+  return useQuery({
+    queryKey: queryKeys.admin.courseAudit(courseId),
+    queryFn: () =>
+      apiFetch<CourseProcessingAudit>(`/admin/courses/${courseId}/audit`),
+    enabled: Boolean(courseId),
+    staleTime: 1000 * 30,
+  });
+}
+
+export function useCourseProcessingJobs(courseId: string, limit?: number) {
+  return useQuery({
+    queryKey: queryKeys.admin.courseProcessing(courseId, limit),
+    queryFn: () => {
+      const qs = limit ? `?limit=${limit}` : "";
+      return apiFetch<ProcessingJobRow[]>(
+        `/admin/courses/${courseId}/processing${qs}`,
+      );
+    },
+    enabled: Boolean(courseId),
+    staleTime: 1000 * 15,
+  });
+}
+
+export function useCourseStats() {
+  return useQuery({
+    queryKey: queryKeys.admin.courseStats(),
+    queryFn: () => apiFetch<CourseStats>("/admin/courses/_stats"),
+    staleTime: 1000 * 60,
+  });
+}
+
+export function useAdminUser(userId: string) {
+  return useQuery({
+    queryKey: queryKeys.admin.userDetail(userId),
+    queryFn: () => apiFetch<User>(`/admin/users/${userId}`),
+    enabled: Boolean(userId),
+  });
+}
+
+export function useDisableUser(userId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () =>
+      apiPost<DisableUserOut>(`/admin/users/${userId}/disable`),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["admin", "users"] });
+      void qc.invalidateQueries({
+        queryKey: queryKeys.admin.userDetail(userId),
+      });
+    },
+  });
+}
+
+export function useEnableUser(userId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () =>
+      apiPost<EnableUserOut>(`/admin/users/${userId}/enable`),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["admin", "users"] });
+      void qc.invalidateQueries({
+        queryKey: queryKeys.admin.userDetail(userId),
+      });
+    },
+  });
+}
+
+export function useProcessingQueue() {
+  return useQuery({
+    queryKey: queryKeys.admin.processingQueue(),
+    queryFn: () =>
+      apiFetch<ProcessingQueueDepth>("/admin/processing/queue"),
+    staleTime: 1000 * 10,
+    refetchInterval: 1000 * 15,
+  });
+}
+
+const PROCESSING_JOBS_WINDOW_MS = 1000 * 60 * 60 * 24 * 7;
+
+export function useProcessingJobs(opts?: { status?: string; since?: string; limit?: number }) {
+  const status = opts?.status;
+  const since =
+    opts?.since ?? new Date(Date.now() - PROCESSING_JOBS_WINDOW_MS).toISOString();
+  const limit = opts?.limit ?? 50;
+  return useQuery({
+    queryKey: queryKeys.admin.processingJobs(status),
+    queryFn: () => {
+      const params = new URLSearchParams();
+      params.set("since", since);
+      if (status) params.set("status", status);
+      params.set("limit", String(limit));
+      return apiFetch<ProcessingJobOut[]>(
+        `/admin/processing/jobs?${params.toString()}`,
+      );
+    },
+    staleTime: 1000 * 10,
+    refetchInterval: 1000 * 30,
+  });
+}
+
+export function useProcessingJob(jobId: string) {
+  return useQuery({
+    queryKey: queryKeys.admin.processingJob(jobId),
+    queryFn: () =>
+      apiFetch<ProcessingJobOut>(`/admin/processing/jobs/${jobId}`),
+    enabled: Boolean(jobId),
+    staleTime: 1000 * 10,
+  });
+}
+
+export function useRetryProcessingJob() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (jobId: string) =>
+      apiPost<ProcessingJobOut>(`/admin/processing/jobs/${jobId}/retry`),
+    onSuccess: (_data, jobId) => {
+      void qc.invalidateQueries({ queryKey: ["admin", "processing"] });
+      void qc.invalidateQueries({
+        queryKey: queryKeys.admin.processingJob(jobId),
+      });
+    },
   });
 }

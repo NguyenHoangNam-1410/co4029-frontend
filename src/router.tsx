@@ -18,6 +18,7 @@ import GoogleCallbackPage from "@/routes/google-callback";
 import CoursesListPage from "@/routes/courses-list";
 import CourseDetailPage from "@/routes/course-detail";
 import CourseLearnPage from "@/routes/course-learn";
+import CourseInterviewPage from "@/routes/course-interview";
 import CourseQuizPage from "@/routes/course-quiz";
 import NotificationsPage from "@/routes/notifications";
 import SettingsNotificationsPage from "@/routes/settings-notifications";
@@ -41,7 +42,14 @@ import AdminStatsActivePage from "@/routes/admin/stats-active";
 import AdminStatsContentPage from "@/routes/admin/stats-content";
 import AdminStatsHealthPage from "@/routes/admin/stats-health";
 import AdminUsersPage from "@/routes/admin/users";
-import AdminUserDetailStubPage from "@/routes/admin/user-detail";
+import AdminUserDetailPage from "@/routes/admin/user-detail";
+import AdminCoursesPage from "@/routes/admin/courses";
+import AdminCourseDetailPage from "@/routes/admin/course-detail";
+import AdminProcessingPage from "@/routes/admin/processing";
+import AdminProcessingJobPage from "@/routes/admin/processing-job";
+import DeptCoursesPage from "@/routes/dept-courses";
+import DeptCourseDetailPage from "@/routes/dept-course-detail";
+import ManagementCourseEnrollmentsPage from "@/routes/management-course-enrollments";
 
 /* ── Root layout ── */
 function Root() {
@@ -268,7 +276,49 @@ const adminUsersRoute = createRoute({
 const adminUserDetailRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/admin/users/$userId",
-  component: AdminUserDetailStubPage,
+  component: AdminUserDetailPage,
+});
+
+const adminCoursesRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/admin/courses",
+  component: AdminCoursesPage,
+});
+
+const adminCourseDetailRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/admin/courses/$courseId",
+  component: AdminCourseDetailPage,
+});
+
+const adminProcessingRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/admin/processing",
+  component: AdminProcessingPage,
+});
+
+const adminProcessingJobRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/admin/processing/$jobId",
+  component: AdminProcessingJobPage,
+});
+
+const deptCoursesRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/dept",
+  component: DeptCoursesPage,
+});
+
+const deptCourseDetailRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/dept/courses/$courseId",
+  component: DeptCourseDetailPage,
+});
+
+const managementCourseEnrollmentsRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/management/courses/$courseId/enrollments",
+  component: ManagementCourseEnrollmentsPage,
 });
 
 const callbackRoute = createRoute({
@@ -317,6 +367,13 @@ const routeTree = rootRoute.addChildren([
     adminStatsHealthRoute,
     adminUsersRoute,
     adminUserDetailRoute,
+    adminCoursesRoute,
+    adminCourseDetailRoute,
+    adminProcessingRoute,
+    adminProcessingJobRoute,
+    deptCoursesRoute,
+    deptCourseDetailRoute,
+    managementCourseEnrollmentsRoute,
   ]),
   callbackRoute,
 ]);
