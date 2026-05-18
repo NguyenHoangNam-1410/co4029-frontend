@@ -4,7 +4,7 @@ import { Plus, BookOpen, Clock, Search, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { useTeacherCourseContent, useTeacherCourses } from "@/lib/api/hooks/use-teacher-api";
+import { useTeacherCourseContent, useTeacherCourses } from "@/lib/api/hooks/teacher-courses";
 import type { Course } from "@/lib/api/types/common";
 import { cn } from "@/lib/utils";
 

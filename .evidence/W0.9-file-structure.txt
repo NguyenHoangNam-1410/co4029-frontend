@@ -1,0 +1,26 @@
+=== W0.9 File Structure Verification ===
+
+Hook file count: 14
+
+=== Original monoliths deleted ===
+OK: use-student-api.ts gone
+OK: use-teacher-api.ts gone
+
+=== Hook export counts (populated files) ===
+auth.ts:            1
+courses.ts:         13  (12 hooks + 1 helper fetchResourceDownloadUrl)
+teacher-courses.ts: 21  (20 hooks + 1 helper fetchTeacherResourceDownloadUrl)
+materials.ts:       10
+quizzes.ts:         19
+notifications.ts:   1
+admin.ts:           3
+TOTAL EXPORTS:      68
+
+=== Stub files (Wave 1+ placeholders) ===
+interviews.ts:        // TODO: populated in Wave 5 (interviews migration)
+enrollments.ts:       // TODO: populated in Wave 4 (enrollments migration)
+progress.ts:          // TODO: populated in Wave 2/5 (progress migration)
+career-paths.ts:      // TODO: populated in Wave 5 (career-paths migration)
+dept.ts:              // TODO: populated in Wave 4 (dept migration)
+spaced-repetition.ts: // TODO: populated in Wave 5 (spaced-repetition migration)
+me.ts:                // TODO: populated in Wave 1/2 (me migration)

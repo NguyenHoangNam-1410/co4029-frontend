@@ -36,9 +36,9 @@ import {
   useCourseStatus,
   useCourseLessonsProgress,
   useLessonResources,
-  useMaterialStreamUrl,
   fetchResourceDownloadUrl,
-} from "@/lib/api/hooks/use-student-api";
+} from "@/lib/api/hooks/courses";
+import { useMaterialStreamUrl } from "@/lib/api/hooks/materials";
 import { formatMinutes } from "@/lib/api/utils";
 import type { CourseContentItem, CourseContentModule } from "@/lib/api/types/common";
 import { cn } from "@/lib/utils";

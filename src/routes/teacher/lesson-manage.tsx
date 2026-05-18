@@ -20,15 +20,17 @@ import {
   useTeacherCourseById,
   useTeacherCourseContent,
   useTeacherLessonResources,
-  useTeacherRequestUploadUrl,
+  fetchTeacherResourceDownloadUrl,
   useCreateLessonResource,
   useDeleteLessonResource,
-  useCreateMaterial,
-  useTeacherMaterialStreamUrl,
-  fetchTeacherResourceDownloadUrl,
   useDeleteLesson,
   useUpdateModuleItem,
-} from "@/lib/api/hooks/use-teacher-api";
+} from "@/lib/api/hooks/teacher-courses";
+import {
+  useTeacherRequestUploadUrl,
+  useCreateMaterial,
+  useTeacherMaterialStreamUrl,
+} from "@/lib/api/hooks/materials";
 import type { CourseContentLesson, LessonResource } from "@/lib/api/types/common";
 import { cn } from "@/lib/utils";
 

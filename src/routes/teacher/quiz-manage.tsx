@@ -26,9 +26,11 @@ import {
   usePublishQuiz,
   useQuiz,
   useQuizQuestions,
+} from "@/lib/api/hooks/quizzes";
+import {
   useTeacherCourseById,
   useTeacherCourseContent,
-} from "@/lib/api/hooks/use-teacher-api";
+} from "@/lib/api/hooks/teacher-courses";
 import type { QuizQuestionRead, QuizRead } from "@/lib/api/types/teacher";
 import { cn } from "@/lib/utils";
 import {

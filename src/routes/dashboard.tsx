@@ -1,7 +1,8 @@
 import { useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { useCourseStatus, useMyCourses, useNotifications } from "@/lib/api/hooks/use-student-api";
+import { useCourseStatus, useMyCourses } from "@/lib/api/hooks/courses";
+import { useNotifications } from "@/lib/api/hooks/notifications";
 import { deriveCourseStatus } from "@/lib/api/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

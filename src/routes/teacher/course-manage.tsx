@@ -18,7 +18,7 @@ import {
   useUpdateModule,
   useUpdateCourse,
   useReorderModuleItems,
-} from "@/lib/api/hooks/use-teacher-api";
+} from "@/lib/api/hooks/teacher-courses";
 import type { CourseContentItem, CourseContentModule } from "@/lib/api/types/common";
 import { cn } from "@/lib/utils";
 

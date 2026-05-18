@@ -17,9 +17,11 @@ import {
   useReprocessMaterial,
   useUpdateMaterial,
   useDeleteMaterial,
+} from "@/lib/api/hooks/materials";
+import {
   useTeacherCourseById,
   useTeacherLesson,
-} from "@/lib/api/hooks/use-teacher-api";
+} from "@/lib/api/hooks/teacher-courses";
 import type { LearningMaterial } from "@/lib/api/types/teacher";
 import { cn } from "@/lib/utils";
 

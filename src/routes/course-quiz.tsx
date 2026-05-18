@@ -20,6 +20,8 @@ import { GradientProgress } from "@/components/ui/gradient-progress";
 import {
   useCourseBySlug,
   useCourseContentBySlug,
+} from "@/lib/api/hooks/courses";
+import {
   useCreateQuizAttempt,
   useMyQuizAttempts,
   useQuizAttemptResult,
@@ -27,7 +29,7 @@ import {
   useStudentQuizQuestions,
   useSubmitQuizAttempt,
   useAnswerQuizAttempt,
-} from "@/lib/api/hooks/use-student-api";
+} from "@/lib/api/hooks/quizzes";
 import type { QuizQuestionRead } from "@/lib/api/types/teacher";
 import { cn } from "@/lib/utils";
 

@@ -14,24 +14,26 @@ import { Badge } from "@/components/ui/badge";
 import {
   useTeacherCourseById,
   useTeacherCourseContent,
-  useCreateQuiz,
-  useCreateQuizQuestion,
-  usePatchQuiz,
   useUpdateModule,
   useCreateLesson,
   useReorderModuleItems,
   useDeleteModuleItem,
+  useLessonOutline,
+} from "@/lib/api/hooks/teacher-courses";
+import {
+  useCreateQuiz,
+  useCreateQuizQuestion,
+  usePatchQuiz,
   useGenerateQuiz,
   useGenerationRun,
-  useLessonOutline,
   usePatchQuizQuestion,
   useDeleteQuizQuestion,
   usePublishQuiz,
   useQuiz,
   useQuizQuestions,
   useRegenerateQuestion,
-  useTeacherProcessingSummary,
-} from "@/lib/api/hooks/use-teacher-api";
+} from "@/lib/api/hooks/quizzes";
+import { useTeacherProcessingSummary } from "@/lib/api/hooks/materials";
 import { ApiError } from "@/lib/api/client";
 import type {
   CourseContentItem,
