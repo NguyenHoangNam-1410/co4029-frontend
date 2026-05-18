@@ -1,0 +1,7 @@
+=== check-no-purple.sh ===
+OK: no purple/violet
+EXIT_PURPLE=0
+
+=== check-radius.sh ===
+OK: radius scale enforced
+EXIT_RADIUS=0

@@ -1,5 +1,5 @@
-import { useMemo, useState, useEffect } from "react";
-import { Link, useParams } from "@tanstack/react-router";
+import { useMemo, useState, useEffect, useRef } from "react";
+import { Link, useParams, useSearch, useLocation } from "@tanstack/react-router";
 import { useQueries } from "@tanstack/react-query";
 import {
   Play,
@@ -204,6 +204,65 @@ function CourseLearnLoaded({
   const lessonIdForResources = activeTab === "Resources" ? (activeLessonId ?? undefined) : undefined;
   const { data: resources } = useLessonResources(lessonIdForResources);
 
+  const search = useSearch({ strict: false }) as { t?: string | number; p?: string | number };
+  const { hash } = useLocation();
+  const playerRef = useRef<HTMLDivElement | null>(null);
+
+  const seekSeconds = useMemo(() => {
+    if (search.t === undefined || search.t === null) return null;
+    const n = Number(search.t);
+    return Number.isFinite(n) && n >= 0 ? n : null;
+  }, [search.t]);
+
+  const targetPage = useMemo(() => {
+    if (search.p === undefined || search.p === null) return null;
+    const n = Number(search.p);
+    return Number.isFinite(n) && n >= 1 ? Math.floor(n) : null;
+  }, [search.p]);
+
+  const targetAnchor = useMemo(() => (hash ? hash.replace(/^#/, "") : null), [hash]);
+
+  useEffect(() => {
+    const container = playerRef.current;
+    if (!container) return;
+
+    if (seekSeconds !== null) {
+      const media = container.querySelector<HTMLMediaElement>("video, audio");
+      if (media) {
+        const apply = () => {
+          try {
+            media.currentTime = seekSeconds;
+          } catch {
+            // ignore — seek before metadata loaded
+          }
+        };
+        if (media.readyState >= 1) apply();
+        else media.addEventListener("loadedmetadata", apply, { once: true });
+      }
+    }
+
+    if (targetPage !== null) {
+      const iframe = container.querySelector<HTMLIFrameElement>("iframe");
+      if (iframe) {
+        try {
+          const u = new URL(iframe.src, window.location.origin);
+          u.hash = `page=${targetPage}`;
+          if (iframe.src !== u.toString()) iframe.src = u.toString();
+        } catch {
+          // ignore — non-URL src
+        }
+        iframe.dataset.page = String(targetPage);
+      }
+    }
+
+    if (targetAnchor) {
+      const el = container.querySelector(`#${CSS.escape(targetAnchor)}`);
+      if (el && "scrollIntoView" in el) {
+        (el as HTMLElement).scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+  }, [activeLessonId, seekSeconds, targetPage, targetAnchor]);
+
   const hasPrev = activeIdx > 0;
   const hasNext = activeIdx < lessonItems.length - 1;
 
@@ -263,7 +322,11 @@ function CourseLearnLoaded({
                 </p>
               </GlassCard>
             ) : (
-              <div className="rounded-xl overflow-hidden bg-black shadow-2xl">
+              <div
+                ref={playerRef}
+                className="rounded-xl overflow-hidden bg-black shadow-2xl"
+                data-testid="course-learn-player"
+              >
                 <div className="relative aspect-video">
                   <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-blue-900 to-slate-900 opacity-80" />
                   <div className="absolute inset-0 flex items-center justify-center">

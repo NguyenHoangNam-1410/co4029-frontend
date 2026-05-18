@@ -1,0 +1,41 @@
+=== W5.10 build status ===
+
+Full tree `tsc -b && vite build` fails due to pre-existing
+tree-wide drift unrelated to W5.10 (same baseline documented
+in W4.11-4.12-build.txt: teacher-courses.ts deletion + W5.1
+authoring drift; route-typed `to=""` regressions across multiple
+unrelated routes; CourseProgressSummary duplicate identifier in
+src/lib/api/types.ts).
+
+Per-file LSP diagnostics on the W5.10 surface (all clean):
+  - src/lib/notifications/deep-link.ts                     OK
+  - src/lib/notifications/__tests__/deep-link.test.ts      OK
+  - src/routes/notifications.tsx                           OK
+  - src/routes/course-learn.tsx                            OK
+
+Per-file `tsc --noEmit` on the W5.10 surface:
+  (no errors from W5.10 files)
+
+--- Original `npm run build` output (raw) ---
+
+
+> abridgeai-frontend@0.1.0 build
+> tsc -b && vite build
+
+src/lib/api/types.ts(16,13): error TS2300: Duplicate identifier 'CourseProgressSummary'.
+src/lib/api/types.ts(197,13): error TS2300: Duplicate identifier 'CourseProgressSummary'.
+src/routes/career-path-detail.tsx(147,15): error TS2322: Type '"/career-paths"' is not assignable to type '"/" | "/dashboard" | "/courses" | "/progress" | "/teacher" | "/teacher/courses" | "/settings" | "/settings/security" | "/settings/notifications" | "/login" | "/login/mfa" | ... 31 more ... | ".."'.
+src/routes/career-paths.tsx(34,7): error TS2322: Type '"/career-paths/$slug"' is not assignable to type '"/" | "/dashboard" | "/courses" | "/progress" | "/teacher" | "/teacher/courses" | "/settings" | "/settings/security" | "/settings/notifications" | "/login" | "/login/mfa" | ... 31 more ... | ".."'.
+src/routes/career-paths.tsx(35,17): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'ParamsReducerFn<RouterCore<Route<Register, any, "/", "/", string, "__root__", undefined, {}, {}, AnyContext, AnyContext, {}, undefined, readonly [Route<...>, Route<...>, Route<...>, Route<...>, Route<...>], unknown, unknown, unknown, undefined>, "never", false, RouterHistory, Record<...>>, "PATH", string, "/career-p...'.
+src/routes/management-career-paths.tsx(47,7): error TS2322: Type '"/management/career-paths/$id"' is not assignable to type '"/" | "/dashboard" | "/courses" | "/progress" | "/teacher" | "/teacher/courses" | "/settings" | "/settings/security" | "/settings/notifications" | "/login" | "/login/mfa" | ... 31 more ... | ".."'.
+src/routes/management-career-paths.tsx(48,17): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'ParamsReducerFn<RouterCore<Route<Register, any, "/", "/", string, "__root__", undefined, {}, {}, AnyContext, AnyContext, {}, undefined, readonly [Route<...>, Route<...>, Route<...>, Route<...>, Route<...>], unknown, unknown, unknown, undefined>, "never", false, RouterHistory, Record<...>>, "PATH", string, "/manageme...'.
+src/routes/management-career-paths.tsx(114,13): error TS2322: Type '"/management/career-paths/$id"' is not assignable to type '"/" | "/dashboard" | "/courses" | "/progress" | "/teacher" | "/teacher/courses" | "/settings" | "/settings/security" | "/settings/notifications" | "/login" | "/login/mfa" | ... 31 more ... | ".."'.
+src/routes/management-career-paths.tsx(115,23): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'ParamsReducerFn<RouterCore<Route<Register, any, "/", "/", string, "__root__", undefined, {}, {}, AnyContext, AnyContext, {}, undefined, readonly [Route<...>, Route<...>, Route<...>, Route<...>, Route<...>], unknown, unknown, unknown, undefined>, "never", false, RouterHistory, Record<...>>, "PATH", string, "/manageme...'.
+src/routes/me-career-paths.tsx(33,7): error TS2322: Type '"/career-paths/$slug"' is not assignable to type '"/" | "/dashboard" | "/courses" | "/progress" | "/teacher" | "/teacher/courses" | "/settings" | "/settings/security" | "/settings/notifications" | "/login" | "/login/mfa" | ... 31 more ... | ".."'.
+src/routes/me-career-paths.tsx(34,17): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'ParamsReducerFn<RouterCore<Route<Register, any, "/", "/", string, "__root__", undefined, {}, {}, AnyContext, AnyContext, {}, undefined, readonly [Route<...>, Route<...>, Route<...>, Route<...>, Route<...>], unknown, unknown, unknown, undefined>, "never", false, RouterHistory, Record<...>>, "PATH", string, "/career-p...'.
+src/routes/me-career-paths.tsx(121,15): error TS2322: Type '"/career-paths"' is not assignable to type '"/" | "/dashboard" | "/courses" | "/progress" | "/teacher" | "/teacher/courses" | "/settings" | "/settings/security" | "/settings/notifications" | "/login" | "/login/mfa" | ... 31 more ... | ".."'.
+src/routes/sr-dashboard.tsx(214,15): error TS2322: Type '"/study/cards-due"' is not assignable to type '"/" | "/dashboard" | "/courses" | "/progress" | "/teacher" | "/teacher/courses" | "/settings" | "/settings/security" | "/settings/notifications" | "/login" | "/login/mfa" | ... 31 more ... | ".."'.
+src/routes/study-cards-due.tsx(101,13): error TS2820: Type '"/dashboard/sr"' is not assignable to type '"/" | "/dashboard" | "/courses" | "/progress" | "/teacher" | "/teacher/courses" | "/settings" | "/settings/security" | "/settings/notifications" | "/login" | "/login/mfa" | ... 31 more ... | ".."'. Did you mean '"/dashboard"'?
+src/routes/study-cards-due.tsx(144,17): error TS2820: Type '"/dashboard/sr"' is not assignable to type '"/" | "/dashboard" | "/courses" | "/progress" | "/teacher" | "/teacher/courses" | "/settings" | "/settings/security" | "/settings/notifications" | "/login" | "/login/mfa" | ... 31 more ... | ".."'. Did you mean '"/dashboard"'?
+src/routes/teacher/interview-config-new.tsx(64,9): error TS2322: Type '"/teacher/courses/$courseId/interview-configs/$configId"' is not assignable to type '"/" | "/dashboard" | "/courses" | "/progress" | "/teacher" | "/teacher/courses" | "/settings" | "/settings/security" | "/settings/notifications" | "/login" | "/login/mfa" | ... 31 more ... | ".."'.
+src/routes/teacher/interview-config-new.tsx(65,19): error TS2353: Object literal may only specify known properties, and 'courseId' does not exist in type 'ParamsReducerFn<RouterCore<Route<Register, any, "/", "/", string, "__root__", undefined, {}, {}, AnyContext, AnyContext, {}, undefined, readonly [Route<...>, Route<...>, Route<...>, Route<...>, Route<...>], unknown, unknown, unknown, undefined>, "never", false, RouterHistory, Record<...>>, "PATH", string, "/teacher/...'.

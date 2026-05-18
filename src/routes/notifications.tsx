@@ -8,7 +8,10 @@ import {
   useNotifications,
   useUnreadCount,
 } from "@/lib/api/hooks/notifications";
-import { notificationDeepLink } from "@/lib/notifications/deep-link";
+import {
+  notificationDeepLink,
+  parseNotificationBody,
+} from "@/lib/notifications/deep-link";
 import { InfiniteList } from "@/components/ui/InfiniteList";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,6 +32,47 @@ const SNIPPET_LIMIT = 200;
 function snippet(body: string): string {
   if (body.length <= SNIPPET_LIMIT) return body;
   return `${body.slice(0, SNIPPET_LIMIT).trimEnd()}…`;
+}
+
+function NotificationBody({
+  body,
+  expanded,
+  onLinkNavigate,
+}: {
+  body: string;
+  expanded: boolean;
+  onLinkNavigate: (url: string) => void;
+}) {
+  const text = expanded ? body : snippet(body);
+  const segments = parseNotificationBody(text);
+  if (segments.length === 0) return null;
+  return (
+    <p
+      className={`text-sm text-m3-on-surface-variant whitespace-pre-line ${
+        expanded ? "" : "line-clamp-3"
+      }`}
+    >
+      {segments.map((seg, i) =>
+        seg.type === "link" ? (
+          <a
+            key={i}
+            href={seg.url}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onLinkNavigate(seg.url);
+            }}
+            className="text-m3-primary underline underline-offset-2 hover:text-m3-secondary"
+            aria-label="Mở tài liệu này"
+          >
+            {seg.label}
+          </a>
+        ) : (
+          <span key={i}>{seg.text}</span>
+        ),
+      )}
+    </p>
+  );
 }
 
 function NotificationRow({
@@ -52,7 +96,6 @@ function NotificationRow({
   const categoryLabel =
     CATEGORY_LABEL[notification.category] ?? notification.category;
   const deepLink = notificationDeepLink(notification);
-  const text = expanded ? notification.body : snippet(notification.body ?? "");
 
   function handleClick() {
     if (deepLink) {
@@ -91,13 +134,11 @@ function NotificationRow({
             </Badge>
           </div>
           {notification.body && (
-            <p
-              className={`text-sm text-m3-on-surface-variant whitespace-pre-line ${
-                expanded ? "" : "line-clamp-3"
-              }`}
-            >
-              {text}
-            </p>
+            <NotificationBody
+              body={notification.body}
+              expanded={expanded}
+              onLinkNavigate={onNavigate}
+            />
           )}
           <p className="text-xs text-m3-outline">
             {new Date(notification.created_at).toLocaleString()}
