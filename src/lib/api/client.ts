@@ -10,6 +10,34 @@ export class ApiError extends Error {
     this.status = status;
     this.body = body;
   }
+
+  /**
+   * Best-effort parse of `body` as JSON. Returns `null` on failure.
+   * Backends that follow the FastAPI convention return
+   * `{detail: {error: "...", ...}}` for typed errors.
+   */
+  get parsedBody(): unknown {
+    if (!this.body) return null;
+    try {
+      return JSON.parse(this.body);
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Domain error code surfaced by the backend, if any.
+   * Pulled from `body.detail.error` when the body is JSON of the form
+   * `{ detail: { error: string, ... } }`. Returns `null` otherwise.
+   */
+  get code(): string | null {
+    const parsed = this.parsedBody;
+    if (!parsed || typeof parsed !== "object") return null;
+    const detail = (parsed as { detail?: unknown }).detail;
+    if (!detail || typeof detail !== "object") return null;
+    const error = (detail as { error?: unknown }).error;
+    return typeof error === "string" ? error : null;
+  }
 }
 
 async function readError(res: Response) {
