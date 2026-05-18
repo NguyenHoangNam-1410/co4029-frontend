@@ -64,14 +64,39 @@ export type EnrollmentAuthoring = Schemas["EnrollmentAuthoring"];
 
 export type Notification = Schemas["NotificationRead"];
 export type NotificationPreference = Schemas["NotificationPreferenceRead"];
+export type NotificationPreferenceRead = Schemas["NotificationPreferenceRead"];
+export type NotificationPreferenceUpdate = Schemas["NotificationPreferenceUpdate"];
+
+/**
+ * Notification category literals.
+ *
+ * The OpenAPI schema surfaces `category` as a free-form string, but the
+ * backend ships exactly five categories. We pin them as a literal union for
+ * exhaustive matrix rendering and Vietnamese-label maps.
+ */
+export type NotificationCategory =
+  | "spaced_repetition"
+  | "lesson_unlock"
+  | "interview_result"
+  | "course_announcement"
+  | "system";
+
+export type NotificationChannel = "email" | "in_app";
 
 export type User = Schemas["UserRead"];
 export type UserProfile = Schemas["UserProfileRead"];
+export type UserProfileUpdate = Schemas["UserProfileUpdate"];
 export type UserListRow = Schemas["UserListRow"];
 export type UserListPage = Schemas["UserListPage"];
 export type MyPermissions = Schemas["UserPermissionsRead"];
 export type GoogleLoginResponse = Schemas["GoogleLoginResponse"];
 export type TokenResponse = Schemas["TokenResponse"];
+
+export type MfaEnrollResponse = Schemas["MfaEnrollResponse"];
+export type MfaChallengeResponse = Schemas["MfaChallengeResponse"];
+export type MfaRecoveryCodesResponse = Schemas["MfaRecoveryCodesResponse"];
+export type MfaTotpVerifyRequest = Schemas["MfaTotpVerifyRequest"];
+export type MfaVerifyRequest = Schemas["MfaVerifyRequest"];
 
 export type OverviewOut = Schemas["OverviewOut"];
 export type ActiveUsersOut = Schemas["ActiveUsersOut"];
