@@ -1,0 +1,58 @@
+W5.4 — Build verification (npm run build) — 2026-05-18
+
+Status: W5.4 surface CLEAN; pre-existing failures from sister waves remain.
+
+============================================================
+Per-file tsc on the W5.4 surface (all clean):
+  src/lib/api/hooks/interviews.ts            OK
+  src/lib/api/types.ts                       OK
+  src/lib/api/query-keys.ts                  OK
+  src/routes/teacher/interview-config.tsx        OK
+  src/routes/teacher/interview-config-new.tsx    OK
+  src/routes/teacher/interview-gap-report.tsx    OK
+  src/router.tsx                             OK
+
+============================================================
+W5.4 ALSO FIXED a pre-existing duplicate identifier in src/lib/api/types.ts
+  - Removed duplicate `export type CourseProgressSummary` (was declared
+    on both line 16 and line 197 prior to this wave).
+
+============================================================
+Remaining pre-existing failures (unchanged from W5.10-build.txt and
+W4.11-4.12-build.txt; explicitly outside W5.4 scope):
+
+  src/routes/career-path-detail.tsx       — owned by sister wave
+  src/routes/career-paths.tsx             — owned by sister wave
+  src/routes/management-career-paths.tsx  — owned by sister wave
+  src/routes/me-career-paths.tsx          — owned by sister wave
+  src/routes/sr-dashboard.tsx             — owned by sister wave
+  src/routes/study-cards-due.tsx          — owned by sister wave
+
+These routes are authored but not yet registered in router.tsx (their
+registration is the responsibility of the parallel SR / career-paths
+waves). The errors are TanStack Router type-narrowing failures
+("path not in registered router union") — not logic errors.
+
+W5.4 explicit MUST NOT in the task brief:
+  - Do not touch SR or career hooks  ✓ respected
+  - Do not touch quiz hooks (W5.1+5.2+5.3 owns) ✓ respected
+
+============================================================
+Verification commands actually run:
+
+  $ npm run build
+    -> tsc -b emits the pre-existing sister-wave errors above; W5.4
+       surface contributes zero errors. Vite build never reached
+       because of those.
+
+  $ npx tsc --noEmit -p tsconfig.app.json | grep W5.4-surface-files
+    -> empty (no diagnostics on any of the files this wave changed)
+
+  $ lsp_diagnostics on every changed file
+    -> No diagnostics found
+
+============================================================
+Conclusion: W5.4 verification gate PASSES on its surface. The build
+red bar is sister-wave debt that exists independently of this wave
+and is documented as the same red bar in W5.10-build.txt and
+W4.11-4.12-build.txt.

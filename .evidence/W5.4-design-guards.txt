@@ -1,0 +1,14 @@
+W5.4 — Design guards — 2026-05-18
+
+$ bash frontend-vite/scripts/check-no-purple.sh
+OK: no purple/violet
+
+$ bash frontend-vite/scripts/check-radius.sh
+OK: radius scale enforced
+
+Both guards exit 0 with the W5.4 changes applied.
+
+Verified manually: every new component under src/routes/teacher/
+interview-* uses only m3-* tokens, gradient-primary, sky/blue/emerald/
+amber/red Tailwind palettes, and rounded-xl (12px) radius — never
+rounded-2xl, never violet/purple, never raw hex.

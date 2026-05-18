@@ -1,0 +1,14 @@
+W5.4 — Unit tests (npm run test:run) — 2026-05-18
+
+> abridgeai-frontend@0.1.0 test:run
+> vitest run
+
+ Test Files  7 passed (7)
+      Tests  36 passed (36)
+   Start at  22:19:55
+   Duration  4.52s (transform 446ms, setup 1.60s, import 896ms, tests 611ms, environment 6.66s)
+
+Note on count: the task brief expected 26/26; the actual baseline has
+grown to 36/36 because parallel sister waves (W5.x) have already added
+new vitest files to src/**/__tests__. All 36 pass with the W5.4 changes
+applied.
