@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useSearch } from "@tanstack/react-router";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { AlertCircle, Loader2, ShieldCheck } from "lucide-react";
+import { toast } from "sonner";
 import {
   consumePostLoginRedirect,
-  exchangeGoogleCode,
   GOOGLE_OAUTH_STATE_STORAGE_KEY,
   storeAuthSession,
 } from "@/lib/auth";
+import { useGoogleCallback } from "@/lib/api/hooks/auth";
 
 export default function GoogleCallbackPage() {
   const search = useSearch({ strict: false }) as {
@@ -15,7 +16,10 @@ export default function GoogleCallbackPage() {
     error?: string | null;
   };
 
-  const [status, setStatus] = useState("Finishing Google sign-in...");
+  const navigate = useNavigate();
+  const googleCallback = useGoogleCallback();
+
+  const [status, setStatus] = useState("Đang hoàn tất đăng nhập Google...");
   const [details, setDetails] = useState<string | null>(null);
   const [hasFailed, setHasFailed] = useState(false);
   const hasProcessed = useRef(false);
@@ -26,49 +30,64 @@ export default function GoogleCallbackPage() {
 
     const { code, state, error } = search;
 
+    function fail(message: string, detail: string) {
+      setHasFailed(true);
+      setStatus(message);
+      setDetails(detail);
+      toast.error("Đăng nhập thất bại. Vui lòng thử lại.");
+      void navigate({
+        to: "/login",
+        search: { error: "oauth" } as never,
+        replace: true,
+      });
+    }
+
     async function finishLogin() {
       if (error) {
-        setHasFailed(true);
-        setStatus("Google sign-in was cancelled.");
-        setDetails(error);
+        fail("Google sign-in was cancelled.", error);
         return;
       }
 
       if (!code) {
-        setHasFailed(true);
-        setStatus("Google did not return an authorization code.");
-        setDetails("Start the sign-in flow again from the login page.");
+        fail(
+          "Google did not return an authorization code.",
+          "Start the sign-in flow again from the login page.",
+        );
         return;
       }
 
-      const expectedState = sessionStorage.getItem(GOOGLE_OAUTH_STATE_STORAGE_KEY);
+      const expectedState = sessionStorage.getItem(
+        GOOGLE_OAUTH_STATE_STORAGE_KEY,
+      );
       sessionStorage.removeItem(GOOGLE_OAUTH_STATE_STORAGE_KEY);
 
       if (!state || !expectedState || state !== expectedState) {
-        setHasFailed(true);
-        setStatus("Unable to verify the Google sign-in response.");
-        setDetails("The sign-in state did not match. Please try again.");
+        fail(
+          "Unable to verify the Google sign-in response.",
+          "The sign-in state did not match. Please try again.",
+        );
         return;
       }
 
       try {
-        const tokenResponse = await exchangeGoogleCode(code);
+        const tokenResponse = await googleCallback.mutateAsync(code);
         storeAuthSession(tokenResponse);
         setStatus("Signed in successfully. Redirecting...");
         window.location.replace(consumePostLoginRedirect());
       } catch (err) {
-        setHasFailed(true);
-        setStatus("Unable to finish Google sign-in.");
-        setDetails(err instanceof Error ? err.message : "Please try again.");
+        fail(
+          "Unable to finish Google sign-in.",
+          err instanceof Error ? err.message : "Please try again.",
+        );
       }
     }
 
     void finishLogin();
-  }, [search]);
+  }, [search, googleCallback, navigate]);
 
   return (
     <main className="min-h-screen bg-m3-surface-bright px-6 py-10 flex items-center justify-center">
-      <section className="w-full max-w-md rounded-[2rem] bg-white/80 p-8 text-center shadow-[0_24px_80px_rgba(25,28,30,0.08)] ring-1 ring-m3-outline-variant/20 backdrop-blur">
+      <section className="w-full max-w-md rounded-xl bg-white/80 p-8 text-center shadow-[0_24px_80px_rgba(25,28,30,0.08)] ring-1 ring-m3-outline-variant/20 backdrop-blur">
         <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-xl bg-m3-secondary-fixed text-m3-secondary">
           {hasFailed ? (
             <AlertCircle className="h-7 w-7" />
@@ -82,21 +101,12 @@ export default function GoogleCallbackPage() {
         </h1>
 
         <p className="mt-4 text-sm font-medium leading-relaxed text-m3-on-surface-variant">
-          {details ?? "Securely exchanging your Google authorization code with aBridgeAI."}
+          {details ??
+            "Securely exchanging your Google authorization code with aBridgeAI."}
         </p>
 
         {!hasFailed && (
           <Loader2 className="mx-auto mt-8 h-6 w-6 animate-spin text-m3-secondary" />
-        )}
-
-        {hasFailed && (
-          <Link
-            to="/login"
-            search={{ next: undefined }}
-            className="mt-8 inline-flex h-11 items-center justify-center rounded-xl bg-m3-primary px-5 text-sm font-bold text-white transition-colors hover:bg-m3-primary/90"
-          >
-            Back to Login
-          </Link>
         )}
       </section>
     </main>

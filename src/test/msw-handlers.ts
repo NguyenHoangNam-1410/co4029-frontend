@@ -3,6 +3,7 @@ import { setupServer } from "msw/node";
 import type { components } from "@/lib/api/openapi-types";
 
 type UserRead = components["schemas"]["UserRead"];
+type UserPermissionsRead = components["schemas"]["UserPermissionsRead"];
 
 export const sampleUser: UserRead = {
   id: "00000000-0000-0000-0000-000000000001",
@@ -14,14 +15,16 @@ export const sampleUser: UserRead = {
   profile: null,
 };
 
+export const samplePermissions: UserPermissionsRead = {
+  permissions: ["course.read", "lesson.read"],
+};
+
 export const handlers = [
   http.get("http://localhost:8000/api/v1/users/me", () =>
     HttpResponse.json(sampleUser),
   ),
-  // Existing student-side `useMe` hits `/me`; alias the same body so the
-  // sample test covers the actual hook without coupling to a future migration.
-  http.get("http://localhost:8000/api/v1/me", () =>
-    HttpResponse.json(sampleUser),
+  http.get("http://localhost:8000/api/v1/users/me/permissions", () =>
+    HttpResponse.json(samplePermissions),
   ),
 ];
 

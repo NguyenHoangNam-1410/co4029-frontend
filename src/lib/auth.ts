@@ -22,21 +22,21 @@ export interface GoogleLoginResponse {
 
 export interface AuthUserProfile {
   user_id: string;
-  given_name: string | null;
-  family_name: string | null;
+  given_name?: string | null;
+  family_name?: string | null;
   display_name: string;
-  avatar_object_id: string | null;
-  bio: string | null;
+  avatar_object_id?: string | null;
+  bio?: string | null;
 }
 
 export interface AuthUser {
   id: string;
   primary_email: string;
   status: string;
-  last_login_at: string | null;
+  last_login_at?: string | null;
   created_at: string;
   updated_at: string;
-  profile: AuthUserProfile | null;
+  profile?: AuthUserProfile | null;
 }
 
 export interface TokenResponse {
@@ -292,7 +292,7 @@ export async function authenticatedFetch(path: string, init: RequestInit = {}, r
 }
 
 export async function getCurrentUser() {
-  const response = await authenticatedFetch("/me");
+  const response = await authenticatedFetch("/users/me");
 
   if (!response.ok) {
     if (response.status === 401) {

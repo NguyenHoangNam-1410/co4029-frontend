@@ -49,6 +49,15 @@ export type NotificationPreference = Schemas["NotificationPreferenceRead"];
 export type User = Schemas["UserRead"];
 export type UserProfile = Schemas["UserProfileRead"];
 export type UserListRow = Schemas["UserListRow"];
+export type UserListPage = Schemas["UserListPage"];
+export type MyPermissions = Schemas["UserPermissionsRead"];
+export type GoogleLoginResponse = Schemas["GoogleLoginResponse"];
+export type TokenResponse = Schemas["TokenResponse"];
+
+export type OverviewOut = Schemas["OverviewOut"];
+export type ActiveUsersOut = Schemas["ActiveUsersOut"];
+export type ContentOut = Schemas["ContentOut"];
+export type HealthOut = Schemas["HealthOut"];
 
 export type Page<T> = { items: T[]; next_cursor: string | null };
 export type Paths = paths;
