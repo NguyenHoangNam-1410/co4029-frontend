@@ -17,7 +17,7 @@ export default function CourseNewPage() {
     title: "",
     slug: "",
     description: "",
-    level: "Beginner",
+    level: "beginner",
     estimated_minutes: "",
   });
 
@@ -43,10 +43,11 @@ export default function CourseNewPage() {
     try {
       const course = await createCourse.mutateAsync({
         organization_id: "00000000-0000-0000-0000-000000000001",
+        owner_user_id: me.id,
         title: form.title,
         slug: form.slug || slugify(form.title),
         description: form.description || undefined,
-        level: form.level || undefined,
+        level: (form.level || undefined) as "beginner" | "intermediate" | "advanced" | undefined,
         estimated_minutes: form.estimated_minutes ? parseInt(form.estimated_minutes) : undefined,
       });
       toast.success("Course created");
@@ -108,9 +109,9 @@ export default function CourseNewPage() {
               onChange={(e) => setForm((f) => ({ ...f, level: e.target.value }))}
             >
               <option value="">None</option>
-              <option value="Beginner">Beginner</option>
-              <option value="Intermediate">Intermediate</option>
-              <option value="Advanced">Advanced</option>
+              <option value="beginner">Beginner</option>
+              <option value="intermediate">Intermediate</option>
+              <option value="advanced">Advanced</option>
             </select>
           </div>
 

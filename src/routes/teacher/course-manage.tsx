@@ -68,8 +68,8 @@ function CourseSettingsPanel({ courseId }: { courseId: string }) {
         slug: slug.trim() || undefined,
         title: title.trim() || undefined,
         description: description.trim() || undefined,
-        level: level || undefined,
-        status: status || undefined,
+        level: (level || undefined) as "beginner" | "intermediate" | "advanced" | undefined,
+        status: (status || undefined) as "draft" | "published" | "archived" | undefined,
         estimated_minutes: estimatedMinutes ? Number(estimatedMinutes) : undefined,
         enrollment_cap: enrollmentCap ? Number(enrollmentCap) : undefined,
         expected_completion_days: completionDays ? Number(completionDays) : undefined,
@@ -242,8 +242,7 @@ function AddLessonPills({
       await createLesson.mutateAsync({
         title,
         slug: `${slugify(title)}-${Date.now().toString(36)}`,
-        lesson_type: lessonType,
-        status: "draft",
+        lesson_type: lessonType as "video" | "reading",
       });
       toast.success(`${label} added`);
     } catch (err: unknown) {
@@ -577,7 +576,7 @@ function AddModuleForm({
     e.preventDefault();
     if (!title.trim()) return;
     try {
-      await createModule.mutateAsync({ title, position: nextPosition, status: "draft" });
+      await createModule.mutateAsync({ title, position: nextPosition });
       toast.success("Module created");
       onDone();
     } catch (err: unknown) {

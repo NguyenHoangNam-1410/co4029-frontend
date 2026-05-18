@@ -1,0 +1,23 @@
+W4.9 Build — Enrollments Manager UI
+====================================
+
+Date: 2026-05-18
+Build command: npm run build
+Result: exit 0
+
+Bundle:
+  dist/assets/index-nJVrX7uG.js              1,151.54 kB │ gzip: 313.51 kB
+  dist/assets/index-o-8wA0VB.css               180.64 kB │ gzip:  28.00 kB
+  ✓ built in 787ms
+
+Note: tsc -b --force was run after the first attempt surfaced stale
+incremental-cache errors against the pre-existing /dept routes.
+After cache invalidation, both `tsc -b` and `vite build` returned
+exit 0 with no diagnostics on the changed files.
+
+Files compiled:
+  src/lib/api/hooks/enrollments.ts (new exports)
+  src/lib/api/types.ts (added 6 schema re-exports)
+  src/lib/api/query-keys.ts (extended enrollments namespace)
+  src/routes/management-course-enrollments.tsx (NEW, 3 tabs)
+  src/router.tsx (registered managementCourseEnrollmentsRoute)

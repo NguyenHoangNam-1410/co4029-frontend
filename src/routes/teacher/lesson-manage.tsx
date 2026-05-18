@@ -30,6 +30,8 @@ import {
   useTeacherRequestUploadUrl,
   useCreateMaterial,
   useTeacherMaterialStreamUrl,
+  useInitMaterialUpload,
+  useCompleteMaterialUpload,
 } from "@/lib/api/hooks/materials";
 import type { CourseContentLesson, LessonResource } from "@/lib/api/types/common";
 import { cn } from "@/lib/utils";
@@ -312,6 +314,8 @@ export default function LessonManagePage() {
 
   const moduleId = lesson?.module_id ?? "";
   const createMaterial = useCreateMaterial(courseId, moduleId, lessonId);
+  const initVideoUpload = useInitMaterialUpload(lessonId);
+  const completeVideoUpload = useCompleteMaterialUpload();
   const { data: videoStreamData } = useTeacherMaterialStreamUrl(lesson?.primary_material_id);
   const deleteLesson = useDeleteLesson(courseId);
   const updateModuleItem = useUpdateModuleItem(courseId);
@@ -394,7 +398,7 @@ export default function LessonManagePage() {
         updateLesson.mutateAsync({
           title: title.trim() || undefined,
           summary: summary.trim() || undefined,
-          lesson_type: lessonType,
+          lesson_type: lessonType as "video" | "reading",
           status,
           difficulty: difficulty || undefined,
           estimated_minutes: estimatedMinutes ? Number(estimatedMinutes) : undefined,
@@ -444,25 +448,48 @@ export default function LessonManagePage() {
     if (uploadingVideo) return;
     setUploadingVideo(true);
     try {
-      const { storage_object, upload_url } = await requestUpload.mutateAsync({
-        original_filename: file.name,
-        mime_type: file.type || "video/mp4",
+      const contentType = file.type || "video/mp4";
+      const init = await initVideoUpload.mutateAsync({
+        filename: file.name,
+        content_type: contentType,
         size_bytes: file.size,
-      });
-      if (upload_url && !upload_url.startsWith("s3://")) {
-        await fetch(upload_url, { method: "PUT", body: file });
-      }
-      const material = await createMaterial.mutateAsync({
         title: file.name.replace(/\.[^.]+$/, ""),
         material_type: "video",
-        storage_object_id: storage_object.id,
-        ai_processing_enabled: false,
-        visible_to_students: true,
       });
-      await updateLesson.mutateAsync({ primary_material_id: material.id });
-      toast.success("Video uploaded");
+      if (init.mode !== "single" || !init.upload_url) {
+        toast.error("Video > 100MB chưa được hỗ trợ ở trang này. Hãy dùng tab Tài liệu & AI Hub.");
+        return;
+      }
+      const buf = await file.arrayBuffer();
+      const digest = await crypto.subtle.digest("SHA-256", buf);
+      const checksum = Array.from(new Uint8Array(digest))
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+
+      const putRes = await fetch(init.upload_url, {
+        method: "PUT",
+        body: file,
+        headers: { "Content-Type": contentType },
+      });
+      if (!putRes.ok) {
+        throw new Error(`S3 PUT failed: ${putRes.status}`);
+      }
+      await completeVideoUpload.mutateAsync({
+        materialId: init.material_id,
+        versionId: init.version_id,
+        payload: {
+          storage_object_id: init.storage_object_id,
+          checksum_sha256: checksum,
+        },
+      });
+      await updateLesson.mutateAsync({ primary_material_id: init.material_id });
+      toast.success("Đã tải video");
     } catch (err: unknown) {
-      toast.error((err as Error).message || "Upload failed");
+      if (err instanceof TypeError) {
+        toast.error("Cấu hình lưu trữ chưa sẵn sàng. Vui lòng liên hệ admin.");
+      } else {
+        toast.error((err as Error).message || "Tải lên thất bại");
+      }
     } finally {
       setUploadingVideo(false);
     }
@@ -482,9 +509,18 @@ export default function LessonManagePage() {
       if (upload_url && !upload_url.startsWith("s3://")) {
         await fetch(upload_url, { method: "PUT", body: file });
       }
+      const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
+      const resourceType: "pdf" | "zip" | "mp4" | "xlsx" | "pptx" | "docx" | "link" | "other" =
+        ext === "pdf" ? "pdf"
+        : ext === "zip" ? "zip"
+        : ext === "mp4" ? "mp4"
+        : ext === "xlsx" ? "xlsx"
+        : ext === "pptx" ? "pptx"
+        : ext === "docx" ? "docx"
+        : "other";
       await createResource.mutateAsync({
         title: file.name,
-        resource_type: file.name.split(".").pop()?.toLowerCase() ?? "file",
+        resource_type: resourceType,
         storage_object_id: storage_object.id,
         position: resources.length + 1,
       });
@@ -493,7 +529,6 @@ export default function LessonManagePage() {
       // Best-effort: also add to AI Material Hub (no processing until teacher enables it)
       const currentModuleId = lesson?.module_id;
       if (currentModuleId) {
-        const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
         const materialType = file.type.startsWith("video/") ? "video"
           : ext === "pdf" ? "pdf"
           : ["pptx", "ppt"].includes(ext) ? "slides"

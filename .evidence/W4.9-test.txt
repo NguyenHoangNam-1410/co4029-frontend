@@ -1,0 +1,15 @@
+W4.9 Tests — Enrollments Manager UI
+====================================
+
+Date: 2026-05-18
+Command: npm run test:run
+Result: exit 0
+
+ Test Files  5 passed (5)
+      Tests  12 passed (12)
+   Duration  2.31s
+
+No tests added in this wave — UI is shipped behind permission gate
+(course.enrollment.create OR system.administer) and depends on a
+live backend for meaningful coverage. Existing 12/12 still green
+confirms no regression in the hook layer.

@@ -1,0 +1,12 @@
+W4.1-W4.4 design guards evidence
+================================
+
+Run from frontend-vite/ working directory (paths are relative inside scripts).
+
+Command: bash scripts/check-no-purple.sh
+Result: OK: no purple/violet
+Exit: 0
+
+Command: bash scripts/check-radius.sh
+Result: OK: radius scale enforced
+Exit: 0

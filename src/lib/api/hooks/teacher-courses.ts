@@ -1,11 +1,23 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiDelete, apiFetch, apiPatch, apiPost, apiPut } from "../client";
+import { queryKeys } from "../query-keys";
+import type {
+  CourseAuthoring,
+  CourseCreate,
+  CourseUpdate,
+  LessonAuthoring,
+  LessonCreate,
+  LessonResourceAuthoring,
+  LessonResourceCreate,
+  LessonUpdate,
+  ModuleAuthoring,
+  ModuleCreate,
+  ModuleItemAuthoring,
+  ModuleUpdate,
+} from "../types";
 import type {
   Course,
   CourseContent,
-  CourseContentItem,
-  CourseContentLesson,
-  CourseContentModule,
   CourseDetail,
   LessonResource,
   StreamUrlResponse,
@@ -15,8 +27,6 @@ import type {
   LessonOutlineRead,
   LessonRead,
 } from "../types/teacher";
-
-type CourseUpdatePayload = Partial<Omit<Course, "status">> & { status?: string };
 
 export function useTeacherCourses() {
   return useQuery({
@@ -53,17 +63,6 @@ export function useTeacherLesson(lessonId: string | undefined) {
   });
 }
 
-/**
- * Outline preview for a lesson (Quiz Quality + Coverage Mode spec FR-4).
- *
- * Returns the lesson's section structure derived at request time from the
- * indexed chunks. Use this before calling `useGenerateQuiz` so the teacher
- * can pick `coverage_options.section_ids`, see `suggested_question_count`,
- * and decide between `generation_mode: "topic"` vs `"coverage"`.
- *
- * Cached for 5 minutes — the outline only changes when material is
- * re-ingested, so longer staleTime is fine.
- */
 export function useLessonOutline(lessonId: string | undefined) {
   return useQuery({
     queryKey: ["teacher", "lessons", lessonId, "outline"],
@@ -99,130 +98,235 @@ export async function fetchTeacherResourceDownloadUrl(resourceId: string): Promi
 export function useCreateCourse() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (payload: {
-      organization_id: string;
-      slug: string;
-      title: string;
-      description?: string;
-      level?: string;
-      estimated_minutes?: number;
-    }) => apiPost<Course>("/teacher/courses", payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["teacher", "courses"] }),
+    mutationFn: (payload: CourseCreate) =>
+      apiPost<CourseAuthoring>("/teacher/courses", payload),
+    onSuccess: (course) => {
+      qc.invalidateQueries({ queryKey: queryKeys.courses.list() });
+      qc.invalidateQueries({ queryKey: queryKeys.courses.bySlug(course.slug) });
+      qc.invalidateQueries({ queryKey: queryKeys.courses.detail(course.id) });
+      qc.invalidateQueries({ queryKey: ["teacher", "courses"] });
+    },
   });
 }
 
 export function useUpdateCourse(courseId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (payload: CourseUpdatePayload & { slug?: string }) =>
-      apiPatch<Course>(`/teacher/courses/${courseId}`, payload),
-    onSuccess: () => {
+    mutationFn: (payload: CourseUpdate) =>
+      apiPatch<CourseAuthoring>(`/teacher/courses/${courseId}`, payload),
+    onSuccess: (course) => {
+      qc.invalidateQueries({ queryKey: queryKeys.courses.detail(courseId) });
+      qc.invalidateQueries({ queryKey: queryKeys.courses.bySlug(course.slug) });
+      qc.invalidateQueries({ queryKey: queryKeys.courses.list() });
       qc.invalidateQueries({ queryKey: ["teacher", "courses"] });
       qc.invalidateQueries({ queryKey: ["teacher", "courses", courseId] });
     },
   });
 }
 
+export function usePublishCourse(courseId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () =>
+      apiPost<CourseAuthoring>(`/teacher/courses/${courseId}/publish`),
+    onSuccess: (course) => {
+      qc.invalidateQueries({ queryKey: queryKeys.courses.detail(courseId) });
+      qc.invalidateQueries({ queryKey: queryKeys.courses.bySlug(course.slug) });
+      qc.invalidateQueries({ queryKey: queryKeys.courses.list() });
+      qc.invalidateQueries({ queryKey: ["teacher", "courses"] });
+      qc.invalidateQueries({ queryKey: ["teacher", "courses", courseId] });
+    },
+  });
+}
+
+export function useArchiveCourse(courseId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () =>
+      apiPost<CourseAuthoring>(`/teacher/courses/${courseId}/archive`),
+    onSuccess: (course) => {
+      qc.invalidateQueries({ queryKey: queryKeys.courses.detail(courseId) });
+      qc.invalidateQueries({ queryKey: queryKeys.courses.bySlug(course.slug) });
+      qc.invalidateQueries({ queryKey: queryKeys.courses.list() });
+      qc.invalidateQueries({ queryKey: ["teacher", "courses"] });
+      qc.invalidateQueries({ queryKey: ["teacher", "courses", courseId] });
+    },
+  });
+}
+
+type CreateModuleInput = Omit<ModuleCreate, "course_id" | "requires_all_lessons_unlocked"> & {
+  requires_all_lessons_unlocked?: boolean;
+};
+
 export function useCreateModule(courseId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (payload: { title: string; description?: string; position: number; status?: string }) =>
-      apiPost<CourseContentModule>(`/teacher/courses/${courseId}/modules`, payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["teacher", "courses", courseId, "content"] }),
+    mutationFn: (payload: CreateModuleInput) =>
+      apiPost<ModuleAuthoring>(`/teacher/courses/${courseId}/modules`, {
+        course_id: courseId,
+        requires_all_lessons_unlocked: false,
+        ...payload,
+      } satisfies ModuleCreate),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.courses.modules(courseId) });
+      qc.invalidateQueries({ queryKey: queryKeys.courses.content(courseId) });
+      qc.invalidateQueries({ queryKey: ["teacher", "courses", courseId, "content"] });
+    },
   });
 }
 
 export function useUpdateModule(moduleId: string, courseId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (payload: {
-      title?: string;
-      description?: string;
-      position?: number;
-      status?: string;
-      estimated_minutes?: number;
-    }) => apiPatch<CourseContentModule>(`/teacher/modules/${moduleId}`, payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["teacher", "courses", courseId, "content"] }),
+    mutationFn: (payload: ModuleUpdate) =>
+      apiPatch<ModuleAuthoring>(`/teacher/modules/${moduleId}`, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.courses.modules(courseId) });
+      qc.invalidateQueries({ queryKey: queryKeys.courses.content(courseId) });
+      qc.invalidateQueries({ queryKey: queryKeys.courses.moduleDetail(moduleId) });
+      qc.invalidateQueries({ queryKey: ["teacher", "courses", courseId, "content"] });
+    },
   });
 }
 
+/**
+ * Reorder body MUST contain the FULL ordered list of `ModuleItem.id` —
+ * partial reorders are rejected because the backend uses an
+ * OFFSET=100_000 two-phase swap to escape the unique position constraint.
+ */
+export function useReorderModuleItems(moduleId: string, courseId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (newOrder: string[]) =>
+      apiPut<ModuleItemAuthoring[]>(`/teacher/modules/${moduleId}/items/reorder`, {
+        module_id: moduleId,
+        new_order: newOrder,
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.courses.moduleItems(moduleId) });
+      qc.invalidateQueries({ queryKey: queryKeys.courses.content(courseId) });
+      qc.invalidateQueries({ queryKey: ["teacher", "courses", courseId, "content"] });
+    },
+  });
+}
+
+export function useSetModulePrerequisites(moduleId: string, courseId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (prerequisiteModuleIds: string[]) =>
+      apiPut<ModuleAuthoring>(`/teacher/modules/${moduleId}/prerequisites`, {
+        module_id: moduleId,
+        prerequisite_module_ids: prerequisiteModuleIds,
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.courses.modules(courseId) });
+      qc.invalidateQueries({ queryKey: queryKeys.courses.content(courseId) });
+      qc.invalidateQueries({ queryKey: queryKeys.courses.moduleDetail(moduleId) });
+      qc.invalidateQueries({ queryKey: ["teacher", "courses", courseId, "content"] });
+    },
+  });
+}
+
+type CreateLessonInput = Omit<
+  LessonCreate,
+  "module_id" | "lesson_type" | "ef_min_unlock" | "tau_unlock" | "requires_interview_pass"
+> & {
+  lesson_type?: LessonCreate["lesson_type"];
+  ef_min_unlock?: number;
+  tau_unlock?: number;
+  requires_interview_pass?: boolean;
+};
+
+/**
+ * Server atomically inserts the linking `ModuleItem` row alongside the
+ * lesson — callers must NOT also POST to `/modules/{id}/items` after this
+ * or they will create a duplicate item pointing at the same lesson.
+ */
 export function useCreateLesson(moduleId: string, courseId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (payload: {
-      slug: string;
-      title: string;
-      summary?: string;
-      lesson_type?: string;
-      estimated_minutes?: number;
-      status?: string;
-    }) => apiPost<CourseContentLesson>(`/teacher/modules/${moduleId}/lessons`, payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["teacher", "courses", courseId, "content"] }),
+    mutationFn: (payload: CreateLessonInput) =>
+      apiPost<LessonAuthoring>(`/teacher/modules/${moduleId}/lessons`, {
+        module_id: moduleId,
+        lesson_type: "video",
+        ef_min_unlock: 2,
+        tau_unlock: 0.8,
+        requires_interview_pass: false,
+        ...payload,
+      } satisfies LessonCreate),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.courses.content(courseId) });
+      qc.invalidateQueries({ queryKey: queryKeys.courses.moduleLessons(moduleId) });
+      qc.invalidateQueries({ queryKey: queryKeys.courses.moduleItems(moduleId) });
+      qc.invalidateQueries({ queryKey: ["teacher", "courses", courseId, "content"] });
+    },
   });
 }
 
 export function useUpdateLesson(lessonId: string, courseId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (payload: {
-      title?: string;
-      summary?: string;
-      lesson_type?: string;
-      status?: string;
-      difficulty?: string;
-      estimated_minutes?: number;
-      notes_markdown?: string;
-      primary_material_id?: string | null;
-    }) => apiPatch<LessonRead>(`/teacher/lessons/${lessonId}`, payload),
+    mutationFn: (payload: LessonUpdate) =>
+      apiPatch<LessonAuthoring>(`/teacher/lessons/${lessonId}`, payload),
     onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.courses.lesson(lessonId) });
+      qc.invalidateQueries({ queryKey: queryKeys.courses.content(courseId) });
       qc.invalidateQueries({ queryKey: ["teacher", "courses", courseId, "content"] });
       qc.invalidateQueries({ queryKey: ["teacher", "lessons", lessonId] });
     },
   });
 }
 
+/**
+ * Backend exposes no DELETE for lessons; archive-via-status is the
+ * documented soft-delete path (learner queries filter on
+ * `status = 'published'`).
+ */
+export function useDeleteLesson(courseId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (lessonId: string) =>
+      apiPatch<LessonAuthoring>(`/teacher/lessons/${lessonId}`, {
+        status: "archived",
+      }),
+    onSuccess: (_lesson, lessonId) => {
+      qc.invalidateQueries({ queryKey: queryKeys.courses.lesson(lessonId) });
+      qc.invalidateQueries({ queryKey: queryKeys.courses.content(courseId) });
+      qc.invalidateQueries({ queryKey: ["teacher", "courses", courseId, "content"] });
+      qc.invalidateQueries({ queryKey: ["teacher", "lessons", lessonId] });
+    },
+  });
+}
+
+type CreateLessonResourceInput = Omit<LessonResourceCreate, "lesson_id" | "visible_to_students"> & {
+  visible_to_students?: boolean;
+};
+
 export function useCreateLessonResource(lessonId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (payload: {
-      title: string;
-      resource_type: string;
-      storage_object_id?: string;
-      position: number;
-      visible_to_students?: boolean;
-    }) => apiPost<LessonResource>(`/teacher/lessons/${lessonId}/resources`, payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["teacher", "lessons", lessonId, "resources"] }),
+    mutationFn: (payload: CreateLessonResourceInput) =>
+      apiPost<LessonResourceAuthoring>(`/teacher/lessons/${lessonId}/resources`, {
+        lesson_id: lessonId,
+        visible_to_students: true,
+        ...payload,
+      } satisfies LessonResourceCreate),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.courses.lessonResources(lessonId) });
+      qc.invalidateQueries({ queryKey: ["teacher", "lessons", lessonId, "resources"] });
+    },
   });
 }
 
 export function useDeleteLessonResource(lessonId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (resourceId: string) => apiDelete(`/teacher/lesson-resources/${resourceId}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["teacher", "lessons", lessonId, "resources"] }),
-  });
-}
-
-export function useAddModuleItem(moduleId: string, courseId: string) {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (payload: {
-      item_type: string;
-      lesson_id?: string;
-      quiz_id?: string;
-      interview_config_id?: string;
-      position: number;
-    }) => apiPost(`/teacher/modules/${moduleId}/items`, payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["teacher", "courses", courseId, "content"] }),
-  });
-}
-
-export function useReorderModuleItems(moduleId: string, courseId: string) {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (itemIds: string[]) =>
-      apiPut<CourseContentItem[]>(`/teacher/modules/${moduleId}/items/reorder`, { item_ids: itemIds }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["teacher", "courses", courseId, "content"] }),
+    mutationFn: (resourceId: string) =>
+      apiDelete(`/teacher/lesson-resources/${resourceId}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.courses.lessonResources(lessonId) });
+      qc.invalidateQueries({ queryKey: ["teacher", "lessons", lessonId, "resources"] });
+    },
   });
 }
 
@@ -239,14 +343,6 @@ export function useUpdateModuleItem(courseId: string) {
   return useMutation({
     mutationFn: ({ itemId, payload }: { itemId: string; payload: { unlock_rule_json?: Record<string, unknown> } }) =>
       apiPatch(`/teacher/module-items/${itemId}`, payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["teacher", "courses", courseId, "content"] }),
-  });
-}
-
-export function useDeleteLesson(courseId: string) {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (lessonId: string) => apiDelete(`/teacher/lessons/${lessonId}`),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["teacher", "courses", courseId, "content"] }),
   });
 }

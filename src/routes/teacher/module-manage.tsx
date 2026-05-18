@@ -369,8 +369,7 @@ function AddContentPills({ moduleId, courseId, itemCount }: {
       await createLesson.mutateAsync({
         title,
         slug: `${slugify(title)}-${Date.now().toString(36)}`,
-        lesson_type: lessonType,
-        status: "draft",
+        lesson_type: lessonType as "video" | "reading",
       });
       toast.success(`${label} added`);
     } catch (err: unknown) {

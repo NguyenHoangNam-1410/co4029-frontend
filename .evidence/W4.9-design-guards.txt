@@ -1,0 +1,17 @@
+W4.9 Design Guards — Enrollments Manager UI
+============================================
+
+Date: 2026-05-18
+
+scripts/check-no-purple.sh:
+  OK: no purple/violet
+  exit 0
+
+scripts/check-radius.sh:
+  OK: radius scale enforced
+  exit 0
+
+The new route uses only sanctioned tokens:
+  - rounded-lg, rounded-md, rounded-xl (≤12px)
+  - m3-primary, m3-on-surface, m3-surface-container-* (semantic)
+  - emerald/amber/red/slate/blue (status only — no violet/purple)

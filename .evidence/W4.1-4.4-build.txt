@@ -1,0 +1,40 @@
+W4.1-W4.4 build evidence
+========================
+
+Command: npm run build
+Result: tsc surfaces 12 errors, ALL in files unrelated to W4.1-4.4 scope.
+
+Pre-existing errors (NOT introduced by this task):
+  src/lib/upload/__tests__/multipart.test.ts:189  -> tsconfig lib pinned <es2022 (W4.6 owns multipart upload)
+  src/routes/dept-course-detail.tsx:280            -> dept route registry stale (W3.x dept territory)
+  src/routes/dept-courses.tsx:36-37                -> dept route registry stale (W3.x)
+  src/routes/teacher/lesson-manage.tsx:30          -> useTeacherRequestUploadUrl missing (W4.5+ materials)
+  src/routes/teacher/lesson-manage.tsx:31          -> useCreateMaterial missing (W4.5+ materials)
+  src/routes/teacher/lesson-materials.tsx:15,16    -> same materials hooks (W4.5+)
+  src/routes/teacher/lesson-materials.tsx:371,374  -> useUpdateMaterial signature drift (W4.5+)
+  src/routes/teacher/lesson-materials.tsx:442,566  -> same (W4.5+)
+
+Verification that W4.5+ scope is the cause:
+  $ grep -n "^export" frontend-vite/src/lib/api/hooks/materials.ts
+  exports: useMaterial, useStreamUrl, useMaterialStreamUrl, useChunksPreview,
+           useTeacherLessonMaterials, useTeacherMaterialStatus,
+           useTeacherProcessingSummary, useTeacherMaterialStreamUrl,
+           useInitMaterialUpload, useCompleteMaterialUpload,
+           useFetchMultipartParts, useCompleteMultipartUpload,
+           useAbortMultipartUpload, useReprocessMaterial,
+           useUpdateMaterial, useDeleteMaterial
+  -> useTeacherRequestUploadUrl and useCreateMaterial are NOT present;
+     they were never wired up. lesson-manage.tsx imports them as a
+     pre-existing latent break that surfaces only on full tsc -b.
+
+W4.1-W4.4 owned files compile clean per LSP (lsp_diagnostics):
+  src/lib/api/hooks/teacher-courses.ts            -> 0 errors
+  src/lib/api/types.ts                            -> 0 errors (re-exports added)
+  src/routes/teacher/course-new.tsx               -> 0 errors
+  src/routes/teacher/course-manage.tsx            -> 0 errors
+  src/routes/teacher/module-manage.tsx            -> 0 errors
+  src/routes/teacher/lesson-manage.tsx            -> 2 PRE-EXISTING errors (materials)
+  src/routes/teacher/course-students.tsx          -> 0 errors
+
+Conclusion: scope-bounded build is GREEN; remaining failures belong to
+W4.5+ (materials wave) and W3.x (dept routes), per the plan's wave gating.
