@@ -1,0 +1,10 @@
+(node:961979) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:961988) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+ Test Files  7 passed (7)
+      Tests  36 passed (36)
+   Start at  22:43:40
+   Duration  3.31s (transform 241ms, setup 1.08s, import 522ms, tests 462ms, environment 5.07s)
+

@@ -1,0 +1,139 @@
+import { Link } from "@tanstack/react-router";
+import { ArrowRight, BookOpen, CheckCircle2, GraduationCap } from "lucide-react";
+import { SectionHeader } from "@/components/ui/section-header";
+import { useMyCareerEnrollments } from "@/lib/api/hooks/career-paths";
+import type { MyCareerEnrollmentRead } from "@/lib/api/types";
+
+const STATUS_LABEL: Record<MyCareerEnrollmentRead["status"], string> = {
+  active: "Đang học",
+  completed: "Hoàn thành",
+  dropped: "Đã bỏ",
+};
+
+const STATUS_COLOR: Record<MyCareerEnrollmentRead["status"], string> = {
+  active: "bg-emerald-100 text-emerald-700",
+  completed: "bg-m3-primary-fixed text-m3-primary",
+  dropped: "bg-slate-100 text-slate-500",
+};
+
+function formatDate(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString("vi-VN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+}
+
+function EnrollmentRow({ item }: { item: MyCareerEnrollmentRead }) {
+  return (
+    <Link
+      to="/career-paths/$slug"
+      params={{ slug: item.slug }}
+      className="block group"
+    >
+      <div className="flex items-center gap-4 p-4 rounded-xl bg-card ghost-border hover:shadow-editorial transition-all duration-200 cursor-pointer">
+        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-m3-primary to-m3-secondary flex items-center justify-center shrink-0">
+          <GraduationCap className="h-6 w-6 text-white" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start gap-2">
+            <h3 className="font-headline font-semibold text-sm text-m3-on-surface line-clamp-1 leading-snug flex-1">
+              {item.name}
+            </h3>
+            <span
+              className={`text-[10px] font-semibold px-2 py-0.5 rounded-md shrink-0 ${STATUS_COLOR[item.status]}`}
+            >
+              {STATUS_LABEL[item.status]}
+            </span>
+          </div>
+          <div className="mt-1 flex items-center gap-3 text-[11px] text-m3-on-surface-variant">
+            <span className="font-mono truncate">{item.slug}</span>
+            <span>Bắt đầu: {formatDate(item.started_at)}</span>
+            {item.completed_at && (
+              <span className="inline-flex items-center gap-1 text-emerald-700">
+                <CheckCircle2 className="h-3 w-3" />
+                {formatDate(item.completed_at)}
+              </span>
+            )}
+          </div>
+        </div>
+        <ArrowRight className="h-4 w-4 text-m3-on-surface-variant shrink-0 opacity-50 group-hover:opacity-100 transition-opacity" />
+      </div>
+    </Link>
+  );
+}
+
+export default function MyCareerPathsPage() {
+  const list = useMyCareerEnrollments();
+  const items = list.data ?? [];
+
+  return (
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-16 space-y-8">
+      <header className="pt-2">
+        <h1 className="font-headline font-black text-3xl sm:text-4xl text-m3-on-surface tracking-tight">
+          Lộ trình của tôi
+        </h1>
+        <p className="mt-2 text-m3-on-surface-variant text-sm sm:text-base max-w-xl">
+          Theo dõi tiến độ học tập trên các lộ trình bạn đã đăng ký.
+        </p>
+      </header>
+
+      <section className="space-y-4">
+        <SectionHeader
+          title="Đã đăng ký"
+          subtitle={`${items.length} lộ trình`}
+        />
+
+        {list.isError && (
+          <div className="rounded-xl bg-m3-error-container border border-m3-error/20 p-6 text-center">
+            <p className="text-m3-on-error-container text-sm font-semibold">
+              Không thể tải danh sách lộ trình
+            </p>
+          </div>
+        )}
+
+        {list.isLoading && (
+          <div className="space-y-2">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="h-20 bg-m3-surface-container animate-pulse rounded-xl"
+              />
+            ))}
+          </div>
+        )}
+
+        {!list.isLoading && !list.isError && items.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-20 text-center space-y-3">
+            <div className="w-16 h-16 rounded-full bg-m3-surface-container flex items-center justify-center">
+              <BookOpen className="h-7 w-7 text-m3-outline" />
+            </div>
+            <p className="font-headline font-semibold text-m3-on-surface text-lg">
+              Bạn chưa đăng ký lộ trình nào
+            </p>
+            <p className="text-sm text-m3-on-surface-variant max-w-xs">
+              Liên hệ quản lý để được đăng ký vào một lộ trình.
+            </p>
+            <Link
+              to="/career-paths"
+              className="text-sm font-semibold text-m3-primary hover:underline mt-1"
+            >
+              Xem các lộ trình hiện có →
+            </Link>
+          </div>
+        )}
+
+        {!list.isLoading && !list.isError && items.length > 0 && (
+          <div className="space-y-2">
+            {items.map((item) => (
+              <EnrollmentRow key={item.career_path_id} item={item} />
+            ))}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
