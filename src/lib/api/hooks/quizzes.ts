@@ -1,23 +1,29 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { apiDelete, apiFetch, apiPatch, apiPost } from "../client";
+import { ApiError } from "../client";
 import { queryKeys } from "../query-keys";
 import type {
+  BulkSetExpectedTimeRequest,
+  BulkSetExpectedTimeResponse,
+  GenerationRunRead,
+  QuizAttemptAnswerRead,
   QuizAttemptRead,
   QuizAttemptStart,
   QuizAttemptSubmitAnswer,
-  QuizAttemptAnswerRead,
+  QuizAuthoring,
+  QuizForAuthoringPublic,
   QuizForTakingPublic,
   QuizPublic,
+  QuizQuestionAuthoring,
 } from "../types";
-import type {
-  GenerationRun,
-  QuizCreatePayload,
-  QuizGeneratePayload,
-  QuizQuestionCreatePayload,
-  QuizQuestionPatch,
-  QuizQuestionRead,
-  QuizRead,
-} from "../types/teacher";
+
+const TERMINAL_GENERATION_STATUSES = new Set([
+  "completed",
+  "succeeded",
+  "failed",
+  "cancelled",
+]);
 
 export function useStudentQuiz(quizId: string | null | undefined) {
   return useQuery({
@@ -45,13 +51,6 @@ export function useStartQuizAttempt(quizId: string | null | undefined) {
   });
 }
 
-/**
- * POST /attempts/{attempt_id}/answers — record one answer.
- *
- * The hook does NOT toast on 429 `card_cooldown_active`; the caller is
- * expected to inspect `ApiError.code` and surface a per-question cooldown
- * UI (see `useCardCooldown`).
- */
 export function useSubmitQuizAnswer(attemptId: string | null | undefined) {
   return useMutation({
     mutationFn: (payload: QuizAttemptSubmitAnswer) =>
@@ -95,148 +94,261 @@ export function useMyQuizAttempts(quizId: string | null | undefined) {
   });
 }
 
-export function useGenerateQuiz(moduleId: string | undefined) {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (payload: QuizGeneratePayload) =>
-      apiPost<GenerationRun>(`/modules/${moduleId}/quizzes/generate`, payload),
-    onSuccess: (run) => {
-      qc.invalidateQueries({ queryKey: ["teacher", "generation-runs", run.id] });
-      if (moduleId) qc.invalidateQueries({ queryKey: ["teacher", "modules", moduleId, "quizzes"] });
-      if (run.course_id) qc.invalidateQueries({ queryKey: ["teacher", "courses", run.course_id, "content"] });
-    },
-  });
-}
-
-export function useCreateQuiz(moduleId: string | undefined, courseId: string | undefined) {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (payload: QuizCreatePayload) => apiPost<QuizRead>(`/modules/${moduleId}/quizzes`, payload),
-    onSuccess: (quiz) => {
-      qc.invalidateQueries({ queryKey: ["teacher", "quizzes", quiz.id] });
-      if (courseId) qc.invalidateQueries({ queryKey: ["teacher", "courses", courseId, "content"] });
-    },
-  });
-}
-
-export function useGenerationRun(generationRunId: string | null | undefined) {
+export function useQuizAuthoring(quizId: string | null | undefined) {
   return useQuery({
-    queryKey: ["teacher", "generation-runs", generationRunId],
-    queryFn: () => apiFetch<GenerationRun>(`/generation-runs/${generationRunId}`),
-    enabled: !!generationRunId,
-    refetchInterval: (query) => {
-      const status = query.state.data?.status;
-      if (status && ["pending", "running"].includes(status)) return 2500;
-      return false;
-    },
-  });
-}
-
-export function useQuiz(quizId: string | null | undefined) {
-  return useQuery({
-    queryKey: ["teacher", "quizzes", quizId],
-    queryFn: () => apiFetch<QuizRead>(`/quizzes/${quizId}`),
+    queryKey: queryKeys.quizzes.authoring(quizId ?? ""),
+    queryFn: () =>
+      apiFetch<QuizForAuthoringPublic>(`/teacher/quizzes/${quizId}`),
     enabled: !!quizId,
   });
 }
 
-export function usePatchQuiz(courseId: string | undefined) {
+export function useCreateQuiz(courseId: string | null | undefined) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ quizId, payload }: { quizId: string; payload: Partial<QuizCreatePayload> & { status?: string } }) =>
-      apiPatch<QuizRead>(`/quizzes/${quizId}`, payload),
+    mutationFn: (payload: Record<string, unknown>) =>
+      apiPost<QuizAuthoring>(
+        `/teacher/courses/${courseId}/quizzes`,
+        payload,
+      ),
     onSuccess: (quiz) => {
-      qc.invalidateQueries({ queryKey: ["teacher", "quizzes", quiz.id] });
-      if (courseId) qc.invalidateQueries({ queryKey: ["teacher", "courses", courseId, "content"] });
+      void qc.invalidateQueries({
+        queryKey: queryKeys.quizzes.authoring(quiz.id),
+      });
+      if (courseId) {
+        void qc.invalidateQueries({
+          queryKey: queryKeys.courses.content(courseId),
+        });
+      }
     },
   });
 }
 
-export function useQuizQuestions(quizId: string | null | undefined) {
-  return useQuery({
-    queryKey: ["teacher", "quizzes", quizId, "questions"],
-    queryFn: () => apiFetch<QuizQuestionRead[]>(`/quizzes/${quizId}/questions`),
-    enabled: !!quizId,
-  });
-}
-
-export function useCreateQuizQuestion() {
+export function usePatchQuiz(quizId: string | null | undefined) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ quizId, payload }: { quizId: string; payload: QuizQuestionCreatePayload }) =>
-      apiPost<QuizQuestionRead>(`/quizzes/${quizId}/questions`, payload),
-    onSuccess: (question) => {
-      qc.invalidateQueries({ queryKey: ["teacher", "quizzes", question.quiz_id, "questions"] });
+    mutationFn: (payload: Record<string, unknown>) =>
+      apiPatch<QuizAuthoring>(`/teacher/quizzes/${quizId}`, payload),
+    onSuccess: (quiz) => {
+      void qc.invalidateQueries({
+        queryKey: queryKeys.quizzes.authoring(quiz.id),
+      });
+      void qc.invalidateQueries({
+        queryKey: queryKeys.courses.content(quiz.course_id),
+      });
     },
   });
 }
 
-export function usePatchQuizQuestion() {
+const PUBLISH_MISSING_TEXP_MESSAGE =
+  "Cần đặt thời gian dự kiến cho mọi câu hỏi trước khi xuất bản. Dùng nút 'Đặt nhanh thời gian'.";
+
+export function usePublishQuiz(quizId: string | null | undefined) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ questionId, payload }: { questionId: string; payload: QuizQuestionPatch }) =>
-      apiPatch<QuizQuestionRead>(`/questions/${questionId}`, payload),
-    onSuccess: (question) => {
-      qc.invalidateQueries({ queryKey: ["teacher", "quizzes", question.quiz_id, "questions"] });
+    mutationFn: () =>
+      apiPost<QuizAuthoring>(`/teacher/quizzes/${quizId}/publish`),
+    onSuccess: (quiz) => {
+      void qc.invalidateQueries({
+        queryKey: queryKeys.quizzes.authoring(quiz.id),
+      });
+      void qc.invalidateQueries({
+        queryKey: queryKeys.courses.content(quiz.course_id),
+      });
+    },
+    onError: (err: unknown) => {
+      if (
+        err instanceof ApiError &&
+        err.status === 422 &&
+        (err.code === "missing_t_exp" ||
+          err.code === "missing_expected_response_time" ||
+          err.code === "missing_expected_time")
+      ) {
+        toast.error(PUBLISH_MISSING_TEXP_MESSAGE);
+      }
     },
   });
 }
 
-export function useDeleteQuizQuestion(quizId: string | null | undefined) {
+export function useDeleteQuiz(quizId: string | null | undefined) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (questionId: string) => apiDelete(`/questions/${questionId}`),
+    mutationFn: () => apiDelete(`/teacher/quizzes/${quizId}`),
     onSuccess: () => {
       if (quizId) {
-        qc.invalidateQueries({ queryKey: ["teacher", "quizzes", quizId, "questions"] });
+        qc.removeQueries({ queryKey: queryKeys.quizzes.authoring(quizId) });
+        qc.removeQueries({ queryKey: queryKeys.quizzes.questions(quizId) });
       }
     },
   });
 }
 
-/**
- * Kick off a single-question regenerate (FR-9 of the
- * 2026-05-16-quiz-quality-and-coverage spec).
- *
- * The endpoint returns a `GenerationRun` immediately; the worker rewrites the
- * `QuizQuestion` row in place, so the caller should poll the run with
- * `useGenerationRun` and invalidate the quiz question list once the run
- * completes.
- */
-export function useRegenerateQuestion(quizId: string | null | undefined) {
+export function useAddQuizQuestion(quizId: string | null | undefined) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (questionId: string) =>
-      apiPost<GenerationRun>(`/questions/${questionId}/regenerate`),
-    onSuccess: (run) => {
-      qc.invalidateQueries({ queryKey: ["teacher", "generation-runs", run.id] });
+    mutationFn: (payload: Record<string, unknown>) =>
+      apiPost<QuizQuestionAuthoring>(
+        `/teacher/quizzes/${quizId}/questions`,
+        payload,
+      ),
+    onSuccess: () => {
       if (quizId) {
-        qc.invalidateQueries({ queryKey: ["teacher", "quizzes", quizId, "questions"] });
+        void qc.invalidateQueries({
+          queryKey: queryKeys.quizzes.authoring(quizId),
+        });
+        void qc.invalidateQueries({
+          queryKey: queryKeys.quizzes.questions(quizId),
+        });
       }
     },
   });
 }
 
-export function usePublishQuiz() {
+export function useUpdateQuizQuestion(
+  quizId: string | null | undefined,
+  questionId: string | null | undefined,
+) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (quizId: string) => apiPost<QuizRead>(`/quizzes/${quizId}/publish`),
-    onSuccess: (quiz) => {
-      qc.invalidateQueries({ queryKey: ["teacher", "quizzes", quiz.id] });
-      qc.invalidateQueries({ queryKey: ["teacher", "courses", quiz.course_id, "content"] });
+    mutationFn: (payload: Record<string, unknown>) =>
+      apiPatch<QuizQuestionAuthoring>(
+        `/teacher/quizzes/${quizId}/questions/${questionId}`,
+        payload,
+      ),
+    onSuccess: () => {
+      if (quizId) {
+        void qc.invalidateQueries({
+          queryKey: queryKeys.quizzes.authoring(quizId),
+        });
+        void qc.invalidateQueries({
+          queryKey: queryKeys.quizzes.questions(quizId),
+        });
+      }
     },
   });
 }
 
-export function useDeleteQuiz(courseId: string | undefined) {
+export function useDeleteQuizQuestion(
+  quizId: string | null | undefined,
+  questionId: string | null | undefined,
+) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (quizId: string) => apiDelete(`/quizzes/${quizId}`),
-    onSuccess: (_, quizId) => {
-      qc.removeQueries({ queryKey: ["teacher", "quizzes", quizId] });
-      qc.removeQueries({ queryKey: ["teacher", "quizzes", quizId, "questions"] });
-      if (courseId) {
-        qc.invalidateQueries({ queryKey: ["teacher", "courses", courseId, "content"] });
+    mutationFn: () =>
+      apiDelete(`/teacher/quizzes/${quizId}/questions/${questionId}`),
+    onSuccess: () => {
+      if (quizId) {
+        void qc.invalidateQueries({
+          queryKey: queryKeys.quizzes.authoring(quizId),
+        });
+        void qc.invalidateQueries({
+          queryKey: queryKeys.quizzes.questions(quizId),
+        });
+      }
+    },
+  });
+}
+
+export function useRegenerateQuestion(
+  quizId: string | null | undefined,
+  questionId: string | null | undefined,
+) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () =>
+      apiPost<GenerationRunRead>(
+        `/teacher/quizzes/${quizId}/questions/${questionId}/regenerate`,
+      ),
+    onSuccess: () => {
+      if (quizId) {
+        void qc.invalidateQueries({
+          queryKey: queryKeys.quizzes.authoring(quizId),
+        });
+        void qc.invalidateQueries({
+          queryKey: queryKeys.quizzes.questions(quizId),
+        });
+      }
+    },
+  });
+}
+
+export function useGenerateQuiz(quizId: string | null | undefined) {
+  return useMutation({
+    mutationFn: (payload: Record<string, unknown>) =>
+      apiPost<GenerationRunRead>(
+        `/teacher/quizzes/${quizId}/generate`,
+        payload,
+      ),
+  });
+}
+
+export function useQuizGenerationRun(
+  quizId: string | null | undefined,
+  runId: string | null | undefined,
+) {
+  const qc = useQueryClient();
+  return useQuery({
+    queryKey: queryKeys.quizzes.generationRun(quizId ?? "", runId ?? ""),
+    enabled: !!quizId && !!runId,
+    queryFn: async () => {
+      const run = await apiFetch<GenerationRunRead>(
+        `/teacher/quizzes/${quizId}/generation-runs/${runId}`,
+      );
+      if (quizId && run.status === "completed") {
+        void qc.invalidateQueries({
+          queryKey: queryKeys.quizzes.authoring(quizId),
+        });
+        void qc.invalidateQueries({
+          queryKey: queryKeys.quizzes.questions(quizId),
+        });
+      }
+      return run;
+    },
+    refetchInterval: (query) => {
+      const data = query.state.data;
+      if (data && TERMINAL_GENERATION_STATUSES.has(data.status)) {
+        return false;
+      }
+      return 3000;
+    },
+  });
+}
+
+export function useBulkSetExpectedTime(quizId: string | null | undefined) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      question_ids,
+      expected_seconds,
+    }: {
+      question_ids: string[];
+      expected_seconds: number;
+    }) => {
+      if (question_ids.length === 0) {
+        throw new Error("Hãy chọn ít nhất một câu hỏi.");
+      }
+      if (!Number.isFinite(expected_seconds) || expected_seconds <= 0) {
+        throw new Error("Thời gian dự kiến phải lớn hơn 0 giây.");
+      }
+      const body: BulkSetExpectedTimeRequest = {
+        items: question_ids.map((qid) => ({
+          question_id: qid,
+          expected_response_time_ms: Math.round(expected_seconds * 1000),
+        })),
+      };
+      return apiPost<BulkSetExpectedTimeResponse>(
+        `/teacher/quizzes/${quizId}/questions/bulk-set-expected-time`,
+        body,
+      );
+    },
+    onSuccess: () => {
+      if (quizId) {
+        void qc.invalidateQueries({
+          queryKey: queryKeys.quizzes.authoring(quizId),
+        });
+        void qc.invalidateQueries({
+          queryKey: queryKeys.quizzes.questions(quizId),
+        });
       }
     },
   });

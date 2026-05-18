@@ -46,12 +46,18 @@ export const queryKeys = {
   },
 
   sr: {
-    cardsDue: (lessonId?: string, cursor?: string) =>
-      ["sr", "cards-due", lessonId, cursor] as const,
+    cardsDue: (lessonId?: string) => ["sr", "cards-due", lessonId] as const,
     lessonSummary: (lessonId: string) =>
       ["sr", "lesson-summary", lessonId] as const,
     courseOverview: (courseId: string) =>
       ["sr", "course-overview", courseId] as const,
+    cohortKr: (courseId: string, lessonId: string) =>
+      ["sr", "cohort-kr", courseId, lessonId] as const,
+    difficultCards: (courseId: string, lessonId: string, topN: number) =>
+      ["sr", "difficult-cards", courseId, lessonId, topN] as const,
+    atRisk: (courseId: string) => ["sr", "at-risk", courseId] as const,
+    studentDetail: (courseId: string, studentId: string) =>
+      ["sr", "student-detail", courseId, studentId] as const,
   },
 
   admin: {
@@ -75,7 +81,14 @@ export const queryKeys = {
     processingJob: (jobId: string) =>
       ["admin", "processing", "jobs", "detail", jobId] as const,
     aiCosts: {
-      summary: () => ["admin", "ai-costs", "summary"] as const,
+      summary: (period: string) =>
+        ["admin", "ai-costs", "summary", period] as const,
+      byUser: (topN: number, period: string) =>
+        ["admin", "ai-costs", "by-user", topN, period] as const,
+      byPipeline: (period: string) =>
+        ["admin", "ai-costs", "by-pipeline", period] as const,
+      recent: (limit: number) =>
+        ["admin", "ai-costs", "recent", limit] as const,
     },
   },
 
@@ -102,6 +115,10 @@ export const queryKeys = {
     attempt: (attemptId: string) => ["quizzes", "attempt", attemptId] as const,
     myAttempts: (quizId: string) =>
       ["quizzes", "my-attempts", quizId] as const,
+    authoring: (quizId: string) => ["quizzes", "authoring", quizId] as const,
+    questions: (quizId: string) => ["quizzes", "questions", quizId] as const,
+    generationRun: (quizId: string, runId: string) =>
+      ["quizzes", "gen-run", quizId, runId] as const,
   },
 
   interviews: {
@@ -112,6 +129,14 @@ export const queryKeys = {
     mySessions: () => ["interviews", "my-sessions"] as const,
     gapReport: (sessionId: string) =>
       ["interviews", "gap-report", sessionId] as const,
+    configAuthoring: (configId: string) =>
+      ["interviews", "config-authoring", configId] as const,
+    teacherGapReport: (sessionId: string) =>
+      ["interviews", "teacher-gap-report", sessionId] as const,
+    generationRun: (configId: string, runId: string) =>
+      ["interviews", "generation-run", configId, runId] as const,
+    teacherSession: (sessionId: string) =>
+      ["interviews", "teacher-session", sessionId] as const,
   },
 
   enrollments: {
@@ -127,7 +152,17 @@ export const queryKeys = {
   },
 
   careerPaths: {
-    list: (cursor?: string) => ["career-paths", "list", cursor] as const,
-    detail: (id: string) => ["career-paths", "detail", id] as const,
+    list: () => ["career-paths", "list"] as const,
+    bySlug: (slug: string) => ["career-paths", "by-slug", slug] as const,
+    myEnrollments: () => ["career-paths", "my-enrollments"] as const,
+    progress: (cpId: string) => ["career-paths", "progress", cpId] as const,
+    managementList: (orgId: string, includeArchived?: boolean) =>
+      ["career-paths", "mgmt-list", orgId, includeArchived ?? false] as const,
+    managementDetail: (id: string) =>
+      ["career-paths", "mgmt-detail", id] as const,
+    managementCourses: (id: string) =>
+      ["career-paths", "mgmt-courses", id] as const,
+    teacherProgress: (id: string) =>
+      ["career-paths", "teacher-progress", id] as const,
   },
 } as const;
