@@ -6271,6 +6271,8 @@ export interface components {
             title: string;
             /** Position */
             position: number;
+            /** Items */
+            items?: components["schemas"]["ModuleItemAuthoring"][];
             /** Description */
             description?: string | null;
             /**
@@ -6475,6 +6477,11 @@ export interface components {
             title: string;
             /** Position */
             position: number;
+            /**
+             * Items
+             * @default []
+             */
+            items: components["schemas"]["ModuleItemPublic"][];
         };
         /** ModuleUpdate */
         ModuleUpdate: {
