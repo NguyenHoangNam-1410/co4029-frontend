@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
   BookOpen,
@@ -15,27 +16,29 @@ import { Button } from "@/components/ui/button";
 import type { CardDue } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
 
-function relativeDue(dueAt: string): { label: string; overdue: boolean } {
-  const now = Date.now();
-  const due = new Date(dueAt).getTime();
-  const diffMs = due - now;
-  if (diffMs <= 0) return { label: "Cần ôn ngay", overdue: true };
-  const minutes = Math.round(diffMs / 60_000);
-  if (minutes < 60) {
-    return {
-      label: `Còn ${minutes} phút`,
-      overdue: false,
-    };
-  }
-  const hours = Math.round(minutes / 60);
-  if (hours < 24) {
-    return { label: `Còn ${hours} giờ`, overdue: false };
-  }
-  const days = Math.round(hours / 24);
-  return { label: `Còn ${days} ngày`, overdue: false };
+function useRelativeDue() {
+  const { t } = useTranslation();
+  return (dueAt: string): { label: string; overdue: boolean } => {
+    const now = Date.now();
+    const due = new Date(dueAt).getTime();
+    const diffMs = due - now;
+    if (diffMs <= 0) return { label: t("study_cards_due.due_now"), overdue: true };
+    const minutes = Math.round(diffMs / 60_000);
+    if (minutes < 60) {
+      return { label: t("study_cards_due.minutes_left", { count: minutes }), overdue: false };
+    }
+    const hours = Math.round(minutes / 60);
+    if (hours < 24) {
+      return { label: t("study_cards_due.hours_left", { count: hours }), overdue: false };
+    }
+    const days = Math.round(hours / 24);
+    return { label: t("study_cards_due.days_left", { count: days }), overdue: false };
+  };
 }
 
 function CardDueRow({ card }: { card: CardDue }) {
+  const { t } = useTranslation();
+  const relativeDue = useRelativeDue();
   const { label: dueLabel, overdue } = relativeDue(card.due_at);
   return (
     <div className="bg-m3-surface-container-lowest rounded-xl ghost-border shadow-editorial p-4 flex items-center gap-4 hover:bg-m3-surface-container-low transition-colors">
@@ -70,10 +73,10 @@ function CardDueRow({ card }: { card: CardDue }) {
         <p className="text-xs text-m3-on-surface-variant mt-0.5 flex items-center gap-3">
           <span className="inline-flex items-center gap-1">
             <BookOpen className="h-3 w-3" />
-            EF {card.ef.toFixed(2)}
+            {t("study_cards_due.ef_label")} {card.ef.toFixed(2)}
           </span>
           {typeof card.last_q === "number" && (
-            <span>Q gần nhất: {card.last_q}</span>
+            <span>{t("study_cards_due.last_q", { q: card.last_q })}</span>
           )}
         </p>
       </div>
@@ -83,6 +86,7 @@ function CardDueRow({ card }: { card: CardDue }) {
 }
 
 export default function StudyCardsDuePage() {
+  const { t } = useTranslation();
   const {
     items,
     hasNextPage,
@@ -97,24 +101,26 @@ export default function StudyCardsDuePage() {
 
   return (
     <div className="min-h-screen bg-m3-surface pb-12">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      <div className="max-w-3xl mx-auto pb-6 space-y-6">
         <div className="flex items-center gap-3">
           <Link
             to="/dashboard/sr"
             className="p-2 rounded-xl hover:bg-m3-surface-container-high text-m3-on-surface-variant transition-colors cursor-pointer"
-            aria-label="Quay lại bảng điều khiển"
+            aria-label={t("study_cards_due.back")}
           >
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <SectionHeader
-            title="Thẻ cần ôn"
+            title={t("study_cards_due.title")}
             subtitle={
               isLoading
-                ? "Đang tải..."
+                ? t("study_cards_due.loading")
                 : items.length === 0
-                  ? "Không có thẻ nào trong hàng đợi"
-                  : `${items.length} thẻ${
-                      overdueCount > 0 ? ` • ${overdueCount} cần ôn ngay` : ""
+                  ? t("study_cards_due.empty_subtitle")
+                  : `${t("study_cards_due.n_cards", { count: items.length })}${
+                      overdueCount > 0
+                        ? t("study_cards_due.n_overdue_suffix", { count: overdueCount })
+                        : ""
                     }`
             }
           />
@@ -132,12 +138,12 @@ export default function StudyCardsDuePage() {
           empty={
             <EmptyState
               icon={Inbox}
-              title="Bạn đã hoàn thành tốt!"
-              description="Không còn thẻ nào cần ôn tập hôm nay. Hãy quay lại sau khi học bài mới."
+              title={t("study_cards_due.empty_title")}
+              description={t("study_cards_due.empty_body")}
               cta={
                 <Link to="/dashboard/sr">
                   <Button variant="default" className="cursor-pointer">
-                    Quay lại bảng điều khiển
+                    {t("study_cards_due.back_to_dashboard")}
                   </Button>
                 </Link>
               }

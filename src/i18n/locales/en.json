@@ -140,6 +140,27 @@
       "regen_failed": "Couldn't regenerate recovery codes."
     }
   },
+  "study_cards_due": {
+    "back": "Back to dashboard",
+    "title": "Cards due",
+    "loading": "Loading…",
+    "empty_subtitle": "No cards in your queue",
+    "n_cards": "{{count}} card",
+    "n_cards_plural": "{{count}} cards",
+    "n_overdue_suffix": " • {{count}} due now",
+    "due_now": "Due now",
+    "minutes_left": "{{count}} min left",
+    "minutes_left_plural": "{{count}} mins left",
+    "hours_left": "{{count}} hour left",
+    "hours_left_plural": "{{count}} hours left",
+    "days_left": "{{count}} day left",
+    "days_left_plural": "{{count}} days left",
+    "ef_label": "EF",
+    "last_q": "Last Q: {{q}}",
+    "empty_title": "All caught up!",
+    "empty_body": "No cards left to review today. Come back after you've learned a new lesson.",
+    "back_to_dashboard": "Back to dashboard"
+  },
   "settings_notifications": {
     "title": "Notification preferences",
     "subtitle": "You'll always receive in-app notifications. Turn off email for any category you don't want.",

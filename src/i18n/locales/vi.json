@@ -140,6 +140,24 @@
       "regen_failed": "Không thể tạo lại mã khôi phục."
     }
   },
+  "study_cards_due": {
+    "back": "Quay lại bảng điều khiển",
+    "title": "Thẻ cần ôn",
+    "loading": "Đang tải...",
+    "empty_subtitle": "Không có thẻ nào trong hàng đợi",
+    "n_cards": "{{count}} thẻ",
+    "n_cards_plural": "{{count}} thẻ",
+    "n_overdue_suffix": " • {{count}} cần ôn ngay",
+    "due_now": "Cần ôn ngay",
+    "minutes_left": "Còn {{count}} phút",
+    "hours_left": "Còn {{count}} giờ",
+    "days_left": "Còn {{count}} ngày",
+    "ef_label": "EF",
+    "last_q": "Q gần nhất: {{q}}",
+    "empty_title": "Bạn đã hoàn thành tốt!",
+    "empty_body": "Không còn thẻ nào cần ôn tập hôm nay. Hãy quay lại sau khi học bài mới.",
+    "back_to_dashboard": "Quay lại bảng điều khiển"
+  },
   "settings_notifications": {
     "title": "Tùy chọn thông báo",
     "subtitle": "Bạn sẽ luôn nhận được thông báo trong ứng dụng. Tắt email cho từng loại nếu không muốn nhận.",
