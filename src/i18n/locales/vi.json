@@ -140,6 +140,31 @@
       "regen_failed": "Không thể tạo lại mã khôi phục."
     }
   },
+  "notifications": {
+    "title": "Thông báo",
+    "subtitle": "Cập nhật khóa học, nhắc bài kiểm tra, kết quả phỏng vấn.",
+    "mark_all_read": "Đánh dấu tất cả đã đọc",
+    "mark_read": "Đánh dấu đã đọc",
+    "delete": "Xoá thông báo",
+    "open_link": "Mở tài liệu này",
+    "empty_title": "Chưa có thông báo nào",
+    "empty_body": "Khi có cập nhật khóa học, bài kiểm tra hoặc kết quả phỏng vấn, bạn sẽ thấy ở đây.",
+    "category": {
+      "spaced_repetition": "Học lặp lại",
+      "lesson_unlock": "Mở khóa bài học",
+      "interview_result": "Kết quả phỏng vấn",
+      "course_announcement": "Thông báo khóa học",
+      "system": "Hệ thống"
+    },
+    "errors": {
+      "mark_read_failed": "Không thể đánh dấu đã đọc",
+      "delete_failed": "Không thể xoá thông báo",
+      "mark_all_failed": "Không thể đánh dấu tất cả"
+    },
+    "success": {
+      "all_marked": "Đã đánh dấu tất cả đã đọc"
+    }
+  },
   "teacher_sr_student_detail": {
     "breadcrumb_detail": "Chi tiết",
     "subtitle": "Tiến độ ôn tập theo bài và lịch sử gần đây",

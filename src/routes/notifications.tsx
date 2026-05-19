@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import {
   useDeleteNotification,
   useMarkAllNotificationsRead,
@@ -21,14 +22,6 @@ import { EmptyState } from "@/components/ui/empty-state";
 import type { Notification } from "@/lib/api/types";
 import { Check, CheckCheck, Eye, EyeOff, Mail, Trash2 } from "lucide-react";
 
-const CATEGORY_LABEL: Record<string, string> = {
-  spaced_repetition: "Học lặp lại",
-  lesson_unlock: "Mở khóa bài học",
-  interview_result: "Kết quả phỏng vấn",
-  course_announcement: "Thông báo khóa học",
-  system: "Hệ thống",
-};
-
 const SNIPPET_LIMIT = 200;
 
 function snippet(body: string): string {
@@ -45,6 +38,7 @@ function NotificationBody({
   expanded: boolean;
   onLinkNavigate: (url: string) => void;
 }) {
+  const { t } = useTranslation();
   const text = expanded ? body : snippet(body);
   const segments = parseNotificationBody(text);
   if (segments.length === 0) return null;
@@ -65,7 +59,7 @@ function NotificationBody({
               onLinkNavigate(seg.url);
             }}
             className="text-m3-primary underline underline-offset-2 hover:text-m3-secondary"
-            aria-label="Mở tài liệu này"
+            aria-label={t("notifications.open_link")}
           >
             {seg.label}
           </a>
@@ -94,9 +88,11 @@ function NotificationRow({
   onDelete: (id: string) => void;
   busy: boolean;
 }) {
+  const { t } = useTranslation();
   const isRead = notification.read_at !== null;
-  const categoryLabel =
-    CATEGORY_LABEL[notification.category] ?? notification.category;
+  const categoryLabel = t(`notifications.category.${notification.category}`, {
+    defaultValue: notification.category,
+  });
   const deepLink = notificationDeepLink(notification);
 
   function handleClick() {
@@ -163,8 +159,8 @@ function NotificationRow({
               e.stopPropagation();
               onMarkRead(notification.id);
             }}
-            aria-label="Đánh dấu đã đọc"
-            title="Đánh dấu đã đọc"
+            aria-label={t("notifications.mark_read")}
+            title={t("notifications.mark_read")}
           >
             <Check className="h-4 w-4" />
           </Button>
@@ -178,8 +174,8 @@ function NotificationRow({
             e.stopPropagation();
             onDelete(notification.id);
           }}
-          aria-label="Xoá thông báo"
-          title="Xoá thông báo"
+          aria-label={t("notifications.delete")}
+          title={t("notifications.delete")}
           className="text-m3-on-surface-variant hover:text-destructive"
         >
           <Trash2 className="h-4 w-4" />
@@ -190,6 +186,7 @@ function NotificationRow({
 }
 
 export default function NotificationsPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const {
@@ -210,22 +207,22 @@ export default function NotificationsPage() {
   function handleMarkRead(id: string) {
     markRead.mutate(id, {
       onError: (err) =>
-        toast.error((err as Error).message || "Không thể đánh dấu đã đọc"),
+        toast.error((err as Error).message || t("notifications.errors.mark_read_failed")),
     });
   }
 
   function handleDelete(id: string) {
     deleteNotification.mutate(id, {
       onError: (err) =>
-        toast.error((err as Error).message || "Không thể xoá thông báo"),
+        toast.error((err as Error).message || t("notifications.errors.delete_failed")),
     });
   }
 
   function handleMarkAllRead() {
     markAllRead.mutate(undefined, {
-      onSuccess: () => toast.success("Đã đánh dấu tất cả đã đọc"),
+      onSuccess: () => toast.success(t("notifications.success.all_marked")),
       onError: (err) =>
-        toast.error((err as Error).message || "Không thể đánh dấu tất cả"),
+        toast.error((err as Error).message || t("notifications.errors.mark_all_failed")),
     });
   }
 
@@ -233,11 +230,11 @@ export default function NotificationsPage() {
 
   return (
     <div className="min-h-screen bg-m3-surface pb-16">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      <div className="max-w-3xl mx-auto pb-6 space-y-6">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <SectionHeader
-            title="Thông báo"
-            subtitle="Cập nhật khóa học, nhắc bài kiểm tra, kết quả phỏng vấn."
+            title={t("notifications.title")}
+            subtitle={t("notifications.subtitle")}
           />
           <Button
             type="button"
@@ -248,7 +245,7 @@ export default function NotificationsPage() {
             className="gap-2 cursor-pointer"
           >
             <CheckCheck className="h-4 w-4" />
-            Đánh dấu tất cả đã đọc
+            {t("notifications.mark_all_read")}
           </Button>
         </div>
 
@@ -286,8 +283,8 @@ export default function NotificationsPage() {
               empty={
                 <EmptyState
                   icon={Mail}
-                  title="Chưa có thông báo nào"
-                  description="Khi có cập nhật khóa học, bài kiểm tra hoặc kết quả phỏng vấn, bạn sẽ thấy ở đây."
+                  title={t("notifications.empty_title")}
+                  description={t("notifications.empty_body")}
                 />
               }
             />

@@ -140,6 +140,31 @@
       "regen_failed": "Couldn't regenerate recovery codes."
     }
   },
+  "notifications": {
+    "title": "Notifications",
+    "subtitle": "Course updates, quiz reminders, and interview results.",
+    "mark_all_read": "Mark all read",
+    "mark_read": "Mark read",
+    "delete": "Delete notification",
+    "open_link": "Open this resource",
+    "empty_title": "No notifications yet",
+    "empty_body": "When course updates, quizzes, or interview results arrive, you'll see them here.",
+    "category": {
+      "spaced_repetition": "Spaced repetition",
+      "lesson_unlock": "Lesson unlock",
+      "interview_result": "Interview result",
+      "course_announcement": "Course announcement",
+      "system": "System"
+    },
+    "errors": {
+      "mark_read_failed": "Couldn't mark as read",
+      "delete_failed": "Couldn't delete notification",
+      "mark_all_failed": "Couldn't mark all as read"
+    },
+    "success": {
+      "all_marked": "All marked as read"
+    }
+  },
   "teacher_sr_student_detail": {
     "breadcrumb_detail": "Detail",
     "subtitle": "Per-lesson review progress and recent history",
