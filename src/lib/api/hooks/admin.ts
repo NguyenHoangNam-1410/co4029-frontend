@@ -184,10 +184,26 @@ export function useCourseStats() {
   });
 }
 
+export interface AdminUserDetailResponse {
+  user: User;
+  role_assignments: RoleAssignmentRead[];
+  active_sessions: Array<{
+    id: string;
+    user_id: string;
+    expires_at: string;
+    revoked_at: string | null;
+    mfa_verified_at: string | null;
+    ip_address: string | null;
+    user_agent: string | null;
+    created_at: string;
+  }>;
+}
+
 export function useAdminUser(userId: string) {
   return useQuery({
     queryKey: queryKeys.admin.userDetail(userId),
-    queryFn: () => apiFetch<User>(`/admin/users/${userId}`),
+    queryFn: () =>
+      apiFetch<AdminUserDetailResponse>(`/admin/users/${userId}`),
     enabled: Boolean(userId),
   });
 }
