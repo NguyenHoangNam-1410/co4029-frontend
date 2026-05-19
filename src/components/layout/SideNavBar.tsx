@@ -1,5 +1,6 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { type NavItem, secondaryNavItems } from "@/lib/navigation";
 
@@ -12,6 +13,10 @@ interface SideNavBarProps {
 
 export default function SideNavBar({ navItems, className, collapsed = false, onToggle }: SideNavBarProps) {
   const location = useLocation();
+  const { t } = useTranslation();
+
+  const labelOf = (item: NavItem) =>
+    item.i18nKey ? t(item.i18nKey, { defaultValue: item.label }) : item.label;
 
   return (
     <aside
@@ -22,7 +27,6 @@ export default function SideNavBar({ navItems, className, collapsed = false, onT
         className
       )}
     >
-      {/* Header */}
       <div
         className={cn(
           "mb-6 flex",
@@ -50,17 +54,17 @@ export default function SideNavBar({ navItems, className, collapsed = false, onT
         )}
       </div>
 
-      {/* Nav Items */}
       <nav className="flex-1 flex flex-col gap-1 px-2 overflow-y-auto">
         {navItems.map((item) => {
           const isActive = item.exact
             ? location.pathname === item.href
             : location.pathname === item.href || location.pathname.startsWith(item.href + "/");
+          const label = labelOf(item);
           return (
             <Link
               key={item.href}
               to={item.href}
-              title={collapsed ? item.label : undefined}
+              title={collapsed ? label : undefined}
               className={cn(
                 "cursor-pointer flex items-center gap-3 py-2.5 mx-2 rounded-md transition-colors duration-150",
                 collapsed ? "justify-center px-0" : "px-4",
@@ -72,31 +76,33 @@ export default function SideNavBar({ navItems, className, collapsed = false, onT
               )}
             >
               <item.icon className="h-5 w-5 flex-shrink-0" />
-              {!collapsed && <span>{item.label}</span>}
+              {!collapsed && <span>{label}</span>}
             </Link>
           );
         })}
       </nav>
 
-      {/* Secondary Nav */}
       <div className={cn("flex flex-col gap-1 px-2 pt-4 border-t border-border", !collapsed && "mx-2")}>
-        {secondaryNavItems.map((item) => (
-          <Link
-            key={item.label}
-            to={item.href}
-            title={collapsed ? item.label : undefined}
-            className={cn(
-              "cursor-pointer flex items-center gap-3 py-2.5 transition-colors duration-150 rounded-md",
-              collapsed ? "justify-center px-0 mx-0" : "px-4",
-              item.label === "Log Out"
-                ? "text-text-subtle hover:text-danger hover:bg-danger/10"
-                : "text-text-subtle hover:text-primary hover:bg-surface-muted"
-            )}
-          >
-            <item.icon className="h-5 w-5 flex-shrink-0" />
-            {!collapsed && <span>{item.label}</span>}
-          </Link>
-        ))}
+        {secondaryNavItems.map((item) => {
+          const label = labelOf(item);
+          return (
+            <Link
+              key={item.label}
+              to={item.href}
+              title={collapsed ? label : undefined}
+              className={cn(
+                "cursor-pointer flex items-center gap-3 py-2.5 transition-colors duration-150 rounded-md",
+                collapsed ? "justify-center px-0 mx-0" : "px-4",
+                item.label === "Log Out"
+                  ? "text-text-subtle hover:text-danger hover:bg-danger/10"
+                  : "text-text-subtle hover:text-primary hover:bg-surface-muted"
+              )}
+            >
+              <item.icon className="h-5 w-5 flex-shrink-0" />
+              {!collapsed && <span>{label}</span>}
+            </Link>
+          );
+        })}
       </div>
     </aside>
   );

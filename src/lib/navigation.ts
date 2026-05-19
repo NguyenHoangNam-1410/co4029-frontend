@@ -2,7 +2,6 @@ import {
   LayoutDashboard,
   BookOpen,
   BarChart3,
-  GraduationCap,
   Users,
   Settings,
   HelpCircle,
@@ -11,72 +10,83 @@ import {
   Shield,
   MessageSquare,
   FileText,
+  Activity,
+  Cpu,
+  DollarSign,
+  Briefcase,
   type LucideIcon,
 } from "lucide-react";
 
 export interface NavItem {
   label: string;
+  i18nKey?: string;
   href: string;
   icon: LucideIcon;
   exact?: boolean;
 }
 
 export const studentNavItems: NavItem[] = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Courses", href: "/courses", icon: BookOpen },
-  { label: "Progress", href: "/progress", icon: BarChart3 },
+  { label: "Dashboard", i18nKey: "nav.dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Courses", i18nKey: "nav.courses", href: "/courses", icon: BookOpen },
+  { label: "Progress", i18nKey: "nav.progress", href: "/progress", icon: BarChart3 },
+  { label: "Career Paths", i18nKey: "nav.career_paths", href: "/career-paths", icon: Briefcase },
 ];
 
 export const teacherNavItems: NavItem[] = [
-  { label: "Overview", href: "/teacher", icon: LayoutDashboard, exact: true },
-  { label: "My Courses", href: "/teacher/courses", icon: BookOpen },
+  { label: "Overview", i18nKey: "nav.overview", href: "/teacher", icon: LayoutDashboard, exact: true },
+  { label: "My Courses", i18nKey: "nav.my_courses", href: "/teacher/courses", icon: BookOpen },
+  { label: "Department Courses", i18nKey: "nav.department_courses", href: "/dept/courses", icon: Users },
+  { label: "Career Paths", i18nKey: "nav.career_paths", href: "/management/career-paths", icon: Briefcase },
 ];
 
 export const instructorNavItems: NavItem[] = [
-  { label: "Dashboard", href: "/instructor-dashboard", icon: LayoutDashboard },
-  { label: "My Courses", href: "/my-courses", icon: BookOpen },
+  { label: "Dashboard", i18nKey: "nav.dashboard", href: "/teacher", icon: LayoutDashboard },
+  { label: "My Courses", i18nKey: "nav.my_courses", href: "/teacher/courses", icon: BookOpen },
 ];
 
 export const adminNavItems: NavItem[] = [
-  { label: "Dashboard", href: "/admin-dashboard", icon: LayoutDashboard },
-  { label: "Courses", href: "/admin-courses", icon: BookOpen },
-  { label: "Users", href: "/admin-users", icon: Users },
-  { label: "Analytics", href: "/admin-analytics", icon: BarChart3 },
-  { label: "Settings", href: "/admin-settings", icon: Settings },
-  { label: "Audit Log", href: "/admin-audit", icon: FileText },
+  { label: "Dashboard", i18nKey: "nav.dashboard", href: "/admin/stats", icon: LayoutDashboard, exact: true },
+  { label: "Active Users", i18nKey: "nav.active_users", href: "/admin/stats/active", icon: Activity },
+  { label: "Content", i18nKey: "nav.content", href: "/admin/stats/content", icon: BarChart3 },
+  { label: "Users", i18nKey: "nav.users", href: "/admin/users", icon: Users },
+  { label: "Courses", i18nKey: "nav.courses", href: "/admin/courses", icon: BookOpen },
+  { label: "Processing", i18nKey: "nav.processing", href: "/admin/processing", icon: Cpu },
+  { label: "AI Costs", i18nKey: "nav.ai_costs", href: "/admin/ai-costs", icon: DollarSign },
+  { label: "Health", i18nKey: "nav.health", href: "/admin/health", icon: Shield },
 ];
 
 export const settingsNavItems: NavItem[] = [
-  { label: "Profile", href: "/settings", icon: Settings },
-  { label: "Security", href: "/settings/security", icon: Shield },
-  { label: "Notifications", href: "/settings/notifications", icon: MessageSquare },
+  { label: "Profile", i18nKey: "nav.profile", href: "/settings", icon: Settings },
+  { label: "Security", i18nKey: "nav.health", href: "/settings/security", icon: Shield },
+  { label: "Notifications", i18nKey: "nav.processing", href: "/settings/notifications", icon: MessageSquare },
 ];
 
 export const bottomNavItems: NavItem[] = [
-  { label: "Home", href: "/dashboard", icon: Home },
-  { label: "Courses", href: "/courses", icon: BookOpen },
-  { label: "Profile", href: "/settings", icon: Settings },
+  { label: "Home", i18nKey: "nav.dashboard", href: "/dashboard", icon: Home },
+  { label: "Courses", i18nKey: "nav.courses", href: "/courses", icon: BookOpen },
+  { label: "Profile", i18nKey: "nav.profile", href: "/settings", icon: Settings },
 ];
 
 export const instructorBottomNavItems: NavItem[] = [
-  { label: "Dashboard", href: "/instructor-dashboard", icon: LayoutDashboard },
-  { label: "Courses", href: "/my-courses", icon: BookOpen },
-  { label: "Students", href: "/students", icon: Users },
+  { label: "Dashboard", i18nKey: "nav.dashboard", href: "/teacher", icon: LayoutDashboard },
+  { label: "Courses", i18nKey: "nav.courses", href: "/teacher/courses", icon: BookOpen },
 ];
 
 export const adminBottomNavItems: NavItem[] = [
-  { label: "Dashboard", href: "/admin-dashboard", icon: LayoutDashboard },
-  { label: "Courses", href: "/admin-courses", icon: BookOpen },
-  { label: "Users", href: "/admin-users", icon: Users },
-  { label: "Settings", href: "/admin-settings", icon: Settings },
+  { label: "Dashboard", i18nKey: "nav.dashboard", href: "/admin/stats", icon: LayoutDashboard },
+  { label: "Users", i18nKey: "nav.users", href: "/admin/users", icon: Users },
+  { label: "Courses", i18nKey: "nav.courses", href: "/admin/courses", icon: BookOpen },
+  { label: "AI Costs", i18nKey: "nav.ai_costs", href: "/admin/ai-costs", icon: DollarSign },
 ];
 
 export const secondaryNavItems: NavItem[] = [
   { label: "Help", href: "#", icon: HelpCircle },
-  { label: "Log Out", href: "#", icon: LogOut },
+  { label: "Log Out", i18nKey: "nav.logout", href: "#", icon: LogOut },
 ];
 
 export const topNavLinks = [
   { label: "Explore", href: "/courses" },
   { label: "Dashboard", href: "/dashboard" },
 ];
+
+void FileText;
