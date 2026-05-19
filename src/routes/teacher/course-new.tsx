@@ -20,6 +20,7 @@ export default function CourseNewPage() {
     level: "beginner",
     estimated_minutes: "",
   });
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
 
   function slugify(title: string) {
     return title
@@ -32,8 +33,13 @@ export default function CourseNewPage() {
     setForm((f) => ({
       ...f,
       title,
-      slug: f.slug || slugify(title),
+      slug: slugManuallyEdited ? f.slug : slugify(title),
     }));
+  }
+
+  function handleSlugChange(slug: string) {
+    setSlugManuallyEdited(true);
+    setForm((f) => ({ ...f, slug }));
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -83,7 +89,7 @@ export default function CourseNewPage() {
             required
             placeholder="e.g. intro-to-algorithms"
             value={form.slug}
-            onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
+            onChange={(e) => handleSlugChange(e.target.value)}
           />
           <p className="text-[11px] text-m3-on-surface-variant">Used in the course URL. Must be unique.</p>
         </div>

@@ -62,6 +62,17 @@ export interface CourseContentInterview {
   question_count: number;
 }
 
+export interface CourseContentItemTarget {
+  id: string;
+  title: string;
+  slug?: string | null;
+  lesson_type?: string | null;
+  status?: string | null;
+  summary?: string | null;
+  estimated_minutes?: number | null;
+  difficulty?: string | null;
+}
+
 export interface CourseContentItem {
   id: string;
   item_type: "lesson" | "quiz" | "interview";
@@ -70,6 +81,7 @@ export interface CourseContentItem {
   interview_config_id: string | null;
   position: number;
   unlock_rule_json: Record<string, unknown>;
+  target: CourseContentItemTarget | null;
   lesson: CourseContentLesson | null;
   quiz: CourseContentQuiz | null;
   interview: CourseContentInterview | null;

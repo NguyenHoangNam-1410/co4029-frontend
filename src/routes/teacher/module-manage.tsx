@@ -87,22 +87,23 @@ function ItemRow({
   onDelete: () => void;
 }) {
   const { t } = useTranslation();
-  const lesson: CourseContentLesson | null = item.lesson;
+  const lesson = item.lesson;
   const quiz = item.quiz;
   const interview = item.interview;
-  const cfg = quiz
+  const lessonType = item.target?.lesson_type ?? lesson?.lesson_type ?? "video";
+  const cfg = item.item_type === "quiz"
     ? QUIZ_ITEM_CONFIG
-    : lesson
-      ? LESSON_TYPE_CONFIG[lesson.lesson_type ?? "video"]
+    : item.item_type === "lesson"
+      ? (LESSON_TYPE_CONFIG[lessonType] ?? LESSON_TYPE_CONFIG["video"])
       : null;
   const Icon = cfg?.icon ?? BookOpen;
-  const label = quiz
+  const label = item.item_type === "quiz"
     ? t(QUIZ_ITEM_CONFIG.label)
     : item.item_type === "interview"
       ? t("teacher_common.interview_label")
       : (cfg?.label ?? item.item_type);
-  const title = lesson?.title ?? quiz?.title ?? interview?.title ?? label;
-  const status = lesson?.status ?? quiz?.status ?? interview?.status;
+  const title = item.target?.title ?? lesson?.title ?? quiz?.title ?? interview?.title ?? label;
+  const status = item.target?.status ?? lesson?.status ?? quiz?.status ?? interview?.status;
 
   return (
     <div
@@ -128,9 +129,41 @@ function ItemRow({
       >
         <Icon className="h-3.5 w-3.5" />
       </div>
-      <span className="flex-1 text-sm font-medium text-m3-on-surface truncate">
-        {title}
-      </span>
+      {item.item_type === "lesson" && item.lesson_id ? (
+        <Link
+          to="/teacher/courses/$courseId/lessons/$lessonId"
+          params={{ courseId, lessonId: item.lesson_id }}
+          draggable={false}
+          onClick={(e) => e.stopPropagation()}
+          className="flex-1 text-sm font-medium text-m3-on-surface truncate hover:text-m3-primary transition-colors cursor-pointer"
+        >
+          {title}
+        </Link>
+      ) : item.item_type === "quiz" && item.quiz_id ? (
+        <Link
+          to="/teacher/courses/$courseId/quizzes/$quizId"
+          params={{ courseId, quizId: item.quiz_id }}
+          draggable={false}
+          onClick={(e) => e.stopPropagation()}
+          className="flex-1 text-sm font-medium text-m3-on-surface truncate hover:text-m3-primary transition-colors cursor-pointer"
+        >
+          {title}
+        </Link>
+      ) : item.item_type === "interview" && item.interview_config_id ? (
+        <Link
+          to="/teacher/courses/$courseId/interview-configs/$configId"
+          params={{ courseId, configId: item.interview_config_id }}
+          draggable={false}
+          onClick={(e) => e.stopPropagation()}
+          className="flex-1 text-sm font-medium text-m3-on-surface truncate hover:text-m3-primary transition-colors cursor-pointer"
+        >
+          {title}
+        </Link>
+      ) : (
+        <span className="flex-1 text-sm font-medium text-m3-on-surface truncate">
+          {title}
+        </span>
+      )}
       <Badge
         className={cn(
           "text-[10px] border-0 shrink-0",
@@ -152,10 +185,10 @@ function ItemRow({
         </Badge>
       )}
       <div className="flex items-center gap-1 text-m3-on-surface-variant shrink-0">
-        {lesson && (
+        {item.item_type === "lesson" && item.lesson_id && (
           <Link
             to="/teacher/courses/$courseId/lessons/$lessonId"
-            params={{ courseId, lessonId: lesson.id }}
+            params={{ courseId, lessonId: item.lesson_id }}
             onClick={(e) => e.stopPropagation()}
           >
             <Button variant="ghost" size="icon" className="h-7 w-7 hover:text-m3-on-surface">
@@ -163,10 +196,10 @@ function ItemRow({
             </Button>
           </Link>
         )}
-        {quiz && (
+        {item.item_type === "quiz" && item.quiz_id && (
           <Link
             to="/teacher/courses/$courseId/quizzes/$quizId"
-            params={{ courseId, quizId: quiz.id }}
+            params={{ courseId, quizId: item.quiz_id }}
             onClick={(e) => e.stopPropagation()}
           >
             <Button variant="ghost" size="icon" className="h-7 w-7 hover:text-m3-on-surface">
@@ -174,10 +207,10 @@ function ItemRow({
             </Button>
           </Link>
         )}
-        {interview && (
+        {item.item_type === "interview" && item.interview_config_id && (
           <Link
             to="/teacher/courses/$courseId/interview-configs/$configId"
-            params={{ courseId, configId: interview.id }}
+            params={{ courseId, configId: item.interview_config_id }}
             onClick={(e) => e.stopPropagation()}
           >
             <Button variant="ghost" size="icon" className="h-7 w-7 hover:text-m3-on-surface">

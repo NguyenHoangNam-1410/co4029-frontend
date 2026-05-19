@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Link, useParams } from "@tanstack/react-router";
+import { Link, useParams, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import {
   ArrowLeft, Plus, ChevronDown, ChevronRight,
@@ -20,6 +20,7 @@ import {
   useUpdateCourse,
   useReorderModuleItems,
 } from "@/lib/api/hooks/teacher-courses";
+import { useCreateQuiz } from "@/lib/api/hooks/quizzes";
 import type { CourseContentItem, CourseContentModule } from "@/lib/api/types/common";
 import { cn } from "@/lib/utils";
 
@@ -222,12 +223,16 @@ function AddLessonPills({
   moduleId,
   courseId,
   nextPosition,
+  itemCount,
 }: {
   moduleId: string;
   courseId: string;
   nextPosition: number;
+  itemCount: number;
 }) {
+  const navigate = useNavigate();
   const createLesson = useCreateLesson(moduleId, courseId);
+  const createQuiz = useCreateQuiz(courseId);
   const [adding, setAdding] = useState(false);
 
   function slugify(title: string) {
@@ -253,6 +258,27 @@ function AddLessonPills({
     }
   }
 
+  async function handleAddQuiz() {
+    if (adding) return;
+    setAdding(true);
+    try {
+      const quiz = await createQuiz.mutateAsync({
+        module_id: moduleId,
+        title: `New Quiz ${itemCount + 1}`,
+        description: "Draft quiz for this module.",
+      });
+      void navigate({
+        to: "/teacher/courses/$courseId/quizzes/$quizId",
+        params: { courseId, quizId: quiz.id },
+      });
+      toast.success("Quiz added");
+    } catch (err: unknown) {
+      toast.error((err as Error).message || "Failed to add quiz");
+    } finally {
+      setAdding(false);
+    }
+  }
+
   return (
     <div className="flex flex-wrap gap-2 mt-1 pt-2 border-t border-m3-outline-variant/10">
       {Object.entries(LESSON_TYPE_CONFIG).map(([type, cfg]) => {
@@ -271,6 +297,16 @@ function AddLessonPills({
           </button>
         );
       })}
+      <button
+        type="button"
+        disabled={adding}
+        onClick={handleAddQuiz}
+        className={ADD_PILL_CLS}
+      >
+        <HelpCircle className="h-3.5 w-3.5" />
+        <Plus className="h-3 w-3 -ml-0.5" />
+        Quiz
+      </button>
     </div>
   );
 }
@@ -291,18 +327,19 @@ function ModuleItemRow({
   const lesson = item.lesson;
   const quiz = item.quiz;
   const interview = item.interview;
+  const lessonType = item.target?.lesson_type ?? lesson?.lesson_type ?? "video";
   const cfg = item.item_type === "lesson"
-    ? LESSON_TYPE_CONFIG[lesson?.lesson_type ?? "video"]
+    ? (LESSON_TYPE_CONFIG[lessonType] ?? LESSON_TYPE_CONFIG["video"])
     : item.item_type === "quiz"
     ? QUIZ_ITEM_CONFIG
     : INTERVIEW_ITEM_CONFIG;
   const Icon = cfg?.icon ?? BookOpen;
-  const title = lesson?.title ?? quiz?.title ?? interview?.title ?? "Untitled";
-  const status = lesson?.status ?? quiz?.status ?? interview?.status;
   const rawLabel = cfg?.label ?? item.item_type;
   const label = item.item_type === "lesson"
     ? (cfg?.label ?? t("teacher_common.lesson_fallback"))
     : (rawLabel.startsWith("teacher_common.") ? t(rawLabel) : rawLabel);
+  const title = item.target?.title ?? lesson?.title ?? quiz?.title ?? interview?.title ?? label;
+  const status = lesson?.status ?? quiz?.status ?? interview?.status;
 
   return (
     <div
@@ -323,9 +360,41 @@ function ModuleItemRow({
       <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center shrink-0", cfg?.badge ?? "bg-slate-50 text-slate-500")}>
         <Icon className="h-3.5 w-3.5" />
       </div>
-      <span className="flex-1 text-xs font-medium text-m3-on-surface truncate">
-        {title}
-      </span>
+      {item.item_type === "lesson" && item.lesson_id ? (
+        <Link
+          to="/teacher/courses/$courseId/lessons/$lessonId"
+          params={{ courseId, lessonId: item.lesson_id }}
+          draggable={false}
+          onClick={(e) => e.stopPropagation()}
+          className="flex-1 text-xs font-medium text-m3-on-surface truncate hover:text-m3-primary transition-colors cursor-pointer"
+        >
+          {title}
+        </Link>
+      ) : item.item_type === "quiz" && item.quiz_id ? (
+        <Link
+          to="/teacher/courses/$courseId/quizzes/$quizId"
+          params={{ courseId, quizId: item.quiz_id }}
+          draggable={false}
+          onClick={(e) => e.stopPropagation()}
+          className="flex-1 text-xs font-medium text-m3-on-surface truncate hover:text-m3-primary transition-colors cursor-pointer"
+        >
+          {title}
+        </Link>
+      ) : item.item_type === "interview" && item.interview_config_id ? (
+        <Link
+          to="/teacher/courses/$courseId/interview-configs/$configId"
+          params={{ courseId, configId: item.interview_config_id }}
+          draggable={false}
+          onClick={(e) => e.stopPropagation()}
+          className="flex-1 text-xs font-medium text-m3-on-surface truncate hover:text-m3-primary transition-colors cursor-pointer"
+        >
+          {title}
+        </Link>
+      ) : (
+        <span className="flex-1 text-xs font-medium text-m3-on-surface truncate">
+          {title}
+        </span>
+      )}
       <Badge className={cn("text-[10px] border-0 shrink-0", cfg?.badge ?? "bg-slate-100 text-slate-500")}>
         {label}
       </Badge>
@@ -335,10 +404,10 @@ function ModuleItemRow({
         </Badge>
       )}
       <div className="flex items-center gap-1 text-m3-on-surface-variant">
-        {lesson && (
+        {item.item_type === "lesson" && item.lesson_id && (
           <Link
             to="/teacher/courses/$courseId/lessons/$lessonId"
-            params={{ courseId, lessonId: lesson.id }}
+            params={{ courseId, lessonId: item.lesson_id }}
             onClick={(e) => e.stopPropagation()}
           >
             <Button variant="ghost" size="icon" className="h-6 w-6 hover:text-m3-on-surface">
@@ -346,10 +415,10 @@ function ModuleItemRow({
             </Button>
           </Link>
         )}
-        {quiz && (
+        {item.item_type === "quiz" && item.quiz_id && (
           <Link
             to="/teacher/courses/$courseId/quizzes/$quizId"
-            params={{ courseId, quizId: quiz.id }}
+            params={{ courseId, quizId: item.quiz_id }}
             onClick={(e) => e.stopPropagation()}
           >
             <Button variant="ghost" size="icon" className="h-6 w-6 hover:text-m3-on-surface">
@@ -357,10 +426,10 @@ function ModuleItemRow({
             </Button>
           </Link>
         )}
-        {interview && (
+        {item.item_type === "interview" && item.interview_config_id && (
           <Link
             to="/teacher/courses/$courseId/interview-configs/$configId"
-            params={{ courseId, configId: interview.id }}
+            params={{ courseId, configId: item.interview_config_id }}
             onClick={(e) => e.stopPropagation()}
           >
             <Button variant="ghost" size="icon" className="h-6 w-6 hover:text-m3-on-surface">
@@ -482,6 +551,19 @@ function ModuleAccordion({
           </span>
         )}
 
+        <Link
+          to="/teacher/courses/$courseId/modules/$moduleId"
+          params={{ courseId, moduleId: module.id }}
+          title="Edit module"
+          onClick={(e) => e.stopPropagation()}
+          className="shrink-0"
+        >
+          <Button variant="outline" size="sm" className="gap-1.5 h-7 px-2.5 text-xs border-m3-outline-variant/30">
+            <ExternalLink className="h-3 w-3" />
+            <span className="hidden sm:inline">Edit</span>
+          </Button>
+        </Link>
+
         {/* Status badge — click to toggle */}
         <button
           type="button"
@@ -504,17 +586,6 @@ function ModuleAccordion({
           {quizCount > 0 && ` · ${quizCount}Q`}
           {interviewCount > 0 && ` · ${interviewCount}I`}
         </span>
-
-        {/* Manage link */}
-        <Link
-          to="/teacher/courses/$courseId/modules/$moduleId"
-          params={{ courseId, moduleId: module.id }}
-          title="Manage module"
-          onClick={(e) => e.stopPropagation()}
-          className="shrink-0 p-1 rounded-lg text-m3-on-surface-variant hover:bg-m3-surface-container-high hover:text-m3-secondary transition-colors"
-        >
-          <ExternalLink className="h-3.5 w-3.5" />
-        </Link>
 
         {/* Pencil to edit title */}
         <button
@@ -568,6 +639,7 @@ function ModuleAccordion({
               moduleId={module.id}
               courseId={courseId}
               nextPosition={(module.items ?? []).length + 1}
+              itemCount={(module.items ?? []).length}
             />
           </div>
         </div>

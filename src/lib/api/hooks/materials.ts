@@ -138,10 +138,8 @@ export function useTeacherRequestUploadUrl() {
 }
 
 /**
- * @deprecated Legacy `POST /courses/.../materials` — replaced by the
- * direct-upload flow (`useInitMaterialUpload` + `useCompleteMaterialUpload`).
- * Retained only while lesson-resource uploads still create a sibling
- * material via this hook; W4.4 will remove it.
+ * Link an existing storage object to the AI Material Hub for a lesson.
+ * No upload flow, no AI processing triggered.
  */
 export function useCreateMaterial(courseId: string, moduleId: string, lessonId: string) {
   const qc = useQueryClient();
@@ -154,7 +152,7 @@ export function useCreateMaterial(courseId: string, moduleId: string, lessonId: 
       visible_to_students?: boolean;
     }) =>
       apiPost<LearningMaterial>(
-        `/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/materials`,
+        `/teacher/lessons/${lessonId}/materials/link`,
         payload,
       ),
     onSuccess: () => {
