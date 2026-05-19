@@ -140,6 +140,43 @@
       "regen_failed": "Couldn't regenerate recovery codes."
     }
   },
+  "management_career_paths": {
+    "title": "Manage career paths",
+    "subtitle": "Create, publish, and archive career paths.",
+    "create_button": "New career path",
+    "include_archived": "Show archived",
+    "list_load_failed": "Couldn't load career paths",
+    "empty_title": "No career paths yet.",
+    "empty_body": "Click <strong>New career path</strong> to start.",
+    "no_permission": "You do not have permission to access this page",
+    "status": {
+      "draft": "Draft",
+      "published": "Published",
+      "archived": "Archived"
+    },
+    "create_dialog": {
+      "title": "Create career path",
+      "intro_pre": "The path will be created as",
+      "intro_status": "Draft",
+      "intro_post": ".",
+      "name": "Name",
+      "name_placeholder": "e.g. Software Engineer Path",
+      "slug": "Slug",
+      "slug_placeholder": "software-engineer-path",
+      "slug_help": "Used in the URL. Must be unique within your organization.",
+      "description": "Description",
+      "description_placeholder": "Short description of the path…",
+      "cancel": "Cancel",
+      "submit": "Create",
+      "errors": {
+        "need_name_slug": "Please enter a name and slug",
+        "create_failed": "Couldn't create the path"
+      },
+      "success": {
+        "created": "Career path created"
+      }
+    }
+  },
   "career_paths_page": {
     "chip": "CAREER PATHS",
     "title": "Shape your future.",

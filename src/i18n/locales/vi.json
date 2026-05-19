@@ -140,6 +140,43 @@
       "regen_failed": "Không thể tạo lại mã khôi phục."
     }
   },
+  "management_career_paths": {
+    "title": "Quản lý lộ trình",
+    "subtitle": "Tạo, xuất bản và lưu trữ lộ trình nghề nghiệp.",
+    "create_button": "Tạo lộ trình mới",
+    "include_archived": "Hiện đã lưu trữ",
+    "list_load_failed": "Không thể tải danh sách lộ trình",
+    "empty_title": "Chưa có lộ trình nào.",
+    "empty_body": "Bấm <strong>Tạo lộ trình mới</strong> để bắt đầu.",
+    "no_permission": "Không có quyền truy cập",
+    "status": {
+      "draft": "Bản nháp",
+      "published": "Đã xuất bản",
+      "archived": "Đã lưu trữ"
+    },
+    "create_dialog": {
+      "title": "Tạo lộ trình mới",
+      "intro_pre": "Lộ trình sẽ được tạo dưới trạng thái",
+      "intro_status": "Bản nháp",
+      "intro_post": ".",
+      "name": "Tên",
+      "name_placeholder": "ví dụ: Lộ trình Kỹ sư Phần mềm",
+      "slug": "Slug",
+      "slug_placeholder": "vi-du-lo-trinh-ky-su-phan-mem",
+      "slug_help": "Dùng trong URL của lộ trình. Phải là duy nhất trong tổ chức.",
+      "description": "Mô tả",
+      "description_placeholder": "Mô tả ngắn về lộ trình…",
+      "cancel": "Huỷ",
+      "submit": "Tạo",
+      "errors": {
+        "need_name_slug": "Hãy nhập tên và slug",
+        "create_failed": "Tạo lộ trình thất bại"
+      },
+      "success": {
+        "created": "Đã tạo lộ trình mới"
+      }
+    }
+  },
   "career_paths_page": {
     "chip": "LỘ TRÌNH NGHỀ NGHIỆP",
     "title": "Định hình tương lai.",

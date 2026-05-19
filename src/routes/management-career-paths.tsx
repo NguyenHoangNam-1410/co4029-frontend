@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { Trans, useTranslation } from "react-i18next";
 import {
   ArrowLeft,
   ArrowRight,
@@ -17,12 +18,6 @@ import {
 } from "@/lib/api/hooks/career-paths";
 import type { CareerPathAuthoring } from "@/lib/api/types";
 
-const STATUS_LABEL: Record<string, string> = {
-  draft: "Bản nháp",
-  published: "Đã xuất bản",
-  archived: "Đã lưu trữ",
-};
-
 const STATUS_COLOR: Record<string, string> = {
   draft: "bg-amber-100 text-amber-700",
   published: "bg-emerald-100 text-emerald-700",
@@ -30,8 +25,9 @@ const STATUS_COLOR: Record<string, string> = {
 };
 
 function StatusBadge({ status }: { status: string }) {
+  const { t } = useTranslation();
   const cls = STATUS_COLOR[status] ?? "bg-slate-100 text-slate-700";
-  const label = STATUS_LABEL[status] ?? status;
+  const label = t(`management_career_paths.status.${status}`, { defaultValue: status });
   return (
     <span
       className={`inline-block px-2 py-0.5 text-[11px] font-semibold rounded-md ${cls}`}
@@ -74,6 +70,7 @@ function CreateDialog({
   organizationId: string;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const create = useCreateCareerPath();
   const [name, setName] = useState("");
@@ -97,7 +94,7 @@ function CreateDialog({
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim() || !slug.trim()) {
-      toast.error("Hãy nhập tên và slug");
+      toast.error(t("management_career_paths.create_dialog.errors.need_name_slug"));
       return;
     }
     create.mutate(
@@ -109,14 +106,17 @@ function CreateDialog({
       },
       {
         onSuccess: (path) => {
-          toast.success("Đã tạo lộ trình mới");
+          toast.success(t("management_career_paths.create_dialog.success.created"));
           void navigate({
             to: "/management/career-paths/$id",
             params: { id: path.id },
           });
         },
         onError: (err) =>
-          toast.error((err as Error).message || "Tạo lộ trình thất bại"),
+          toast.error(
+            (err as Error).message ||
+              t("management_career_paths.create_dialog.errors.create_failed"),
+          ),
       },
     );
   }
@@ -133,21 +133,28 @@ function CreateDialog({
       >
         <div>
           <h2 className="text-lg font-headline font-bold text-m3-on-surface">
-            Tạo lộ trình mới
+            {t("management_career_paths.create_dialog.title")}
           </h2>
           <p className="text-xs text-m3-on-surface-variant mt-1">
-            Lộ trình sẽ được tạo dưới trạng thái <strong>Bản nháp</strong>.
+            <Trans
+              i18nKey="management_career_paths.create_dialog.intro_pre"
+              t={t}
+            />{" "}
+            <strong>
+              {t("management_career_paths.create_dialog.intro_status")}
+            </strong>
+            {t("management_career_paths.create_dialog.intro_post")}
           </p>
         </div>
 
         <div className="space-y-1.5">
           <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">
-            Tên <span className="text-red-600">*</span>
+            {t("management_career_paths.create_dialog.name")} <span className="text-red-600">*</span>
           </label>
           <Input
             value={name}
             onChange={(e) => handleNameChange(e.target.value)}
-            placeholder="ví dụ: Lộ trình Kỹ sư Phần mềm"
+            placeholder={t("management_career_paths.create_dialog.name_placeholder")}
             required
             autoFocus
           />
@@ -155,29 +162,29 @@ function CreateDialog({
 
         <div className="space-y-1.5">
           <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">
-            Slug <span className="text-red-600">*</span>
+            {t("management_career_paths.create_dialog.slug")} <span className="text-red-600">*</span>
           </label>
           <Input
             value={slug}
             onChange={(e) => setSlug(e.target.value)}
-            placeholder="vi-du-lo-trinh-ky-su-phan-mem"
+            placeholder={t("management_career_paths.create_dialog.slug_placeholder")}
             className="font-mono text-sm"
             required
           />
           <p className="text-[11px] text-m3-on-surface-variant">
-            Dùng trong URL của lộ trình. Phải là duy nhất trong tổ chức.
+            {t("management_career_paths.create_dialog.slug_help")}
           </p>
         </div>
 
         <div className="space-y-1.5">
           <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">
-            Mô tả
+            {t("management_career_paths.create_dialog.description")}
           </label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
-            placeholder="Mô tả ngắn về lộ trình…"
+            placeholder={t("management_career_paths.create_dialog.description_placeholder")}
             className="w-full px-3 py-2 text-sm bg-m3-surface-container-low border border-m3-outline-variant/30 rounded-xl text-m3-on-surface focus:outline-none focus:ring-2 focus:ring-m3-primary/30 placeholder:text-m3-on-surface-variant/40"
           />
         </div>
@@ -190,7 +197,7 @@ function CreateDialog({
             onClick={onClose}
             disabled={create.isPending}
           >
-            Huỷ
+            {t("management_career_paths.create_dialog.cancel")}
           </Button>
           <Button
             type="submit"
@@ -199,7 +206,7 @@ function CreateDialog({
             className="gap-2"
           >
             {create.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-            Tạo
+            {t("management_career_paths.create_dialog.submit")}
           </Button>
         </div>
       </form>
@@ -210,6 +217,7 @@ function CreateDialog({
 const FALLBACK_ORG_ID = "00000000-0000-0000-0000-000000000001";
 
 export default function ManagementCareerPathsPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const me = useMe();
   const permissions = useMyPermissions();
@@ -222,10 +230,10 @@ export default function ManagementCareerPathsPage() {
   useEffect(() => {
     if (permissions.isLoading) return;
     if (!canManage) {
-      toast.error("Không có quyền truy cập");
+      toast.error(t("management_career_paths.no_permission"));
       void navigate({ to: "/dashboard", replace: true });
     }
-  }, [permissions.isLoading, canManage, navigate]);
+  }, [permissions.isLoading, canManage, navigate, t]);
 
   const meAny = me.data as { organization_id?: string } | undefined;
   const organizationId = meAny?.organization_id ?? FALLBACK_ORG_ID;
@@ -256,7 +264,7 @@ export default function ManagementCareerPathsPage() {
   const paths = list.data ?? [];
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-16 space-y-6">
+    <div className="max-w-4xl mx-auto pb-16 space-y-6">
       <div className="flex items-center gap-3 pt-2">
         <Link to="/dashboard">
           <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -265,10 +273,10 @@ export default function ManagementCareerPathsPage() {
         </Link>
         <div className="flex-1 min-w-0">
           <h1 className="font-headline font-black text-2xl sm:text-3xl text-m3-on-surface tracking-tight">
-            Quản lý lộ trình
+            {t("management_career_paths.title")}
           </h1>
           <p className="text-xs text-m3-on-surface-variant mt-0.5">
-            Tạo, xuất bản và lưu trữ lộ trình nghề nghiệp.
+            {t("management_career_paths.subtitle")}
           </p>
         </div>
         <Button
@@ -277,7 +285,7 @@ export default function ManagementCareerPathsPage() {
           className="gap-2 shrink-0"
         >
           <Plus className="h-4 w-4" />
-          Tạo lộ trình mới
+          {t("management_career_paths.create_button")}
         </Button>
       </div>
 
@@ -289,7 +297,7 @@ export default function ManagementCareerPathsPage() {
           className="h-4 w-4 rounded border-m3-outline-variant accent-m3-primary cursor-pointer"
         />
         <span className="text-m3-on-surface font-medium">
-          Hiện đã lưu trữ
+          {t("management_career_paths.include_archived")}
         </span>
       </label>
 
@@ -307,7 +315,7 @@ export default function ManagementCareerPathsPage() {
       {list.isError && (
         <div className="rounded-xl bg-m3-error-container border border-m3-error/20 p-6 text-center">
           <p className="text-m3-on-error-container text-sm font-semibold">
-            Không thể tải danh sách lộ trình
+            {t("management_career_paths.list_load_failed")}
           </p>
         </div>
       )}
@@ -316,10 +324,14 @@ export default function ManagementCareerPathsPage() {
         <div className="rounded-xl bg-m3-surface-container-lowest ghost-border p-10 text-center">
           <GraduationCap className="h-8 w-8 mx-auto mb-3 text-m3-outline" />
           <p className="text-sm font-medium text-m3-on-surface">
-            Chưa có lộ trình nào.
+            {t("management_career_paths.empty_title")}
           </p>
           <p className="text-xs text-m3-on-surface-variant mt-1">
-            Bấm <strong>Tạo lộ trình mới</strong> để bắt đầu.
+            <Trans
+              i18nKey="management_career_paths.empty_body"
+              t={t}
+              components={{ strong: <strong /> }}
+            />
           </p>
         </div>
       )}
