@@ -270,6 +270,81 @@
         "retry_failed": "Không thể thử lại"
       }
     },
+    "courses_list": {
+      "title": "Quản lý khóa học",
+      "subtitle": "Danh sách tất cả khóa học (bao gồm bản nháp + đã xóa).",
+      "include_deleted": "Bao gồm đã xóa",
+      "load_failed": "Không thể tải danh sách khóa học.",
+      "empty_title": "Chưa có khóa học nào",
+      "empty_body": "Khi giảng viên tạo khóa học, danh sách sẽ xuất hiện tại đây.",
+      "back_to_admin": "Quay lại quản trị",
+      "row_status": {
+        "draft": "Bản nháp",
+        "published": "Đã xuất bản",
+        "archived": "Đã lưu trữ",
+        "deleted": "Đã xóa"
+      }
+    },
+    "course_detail": {
+      "title": "Audit AI khoá học",
+      "back_to_list": "Quay lại danh sách",
+      "restore": "Khôi phục khoá học",
+      "restoring": "Đang khôi phục…",
+      "audit_load_failed": "Không thể tải dữ liệu audit.",
+      "jobs_load_failed": "Không thể tải danh sách job.",
+      "no_jobs": "Chưa có job xử lý nào cho khoá học này.",
+      "recent_jobs": "Job xử lý gần đây",
+      "stats": {
+        "total_cost": "Tổng chi phí AI",
+        "tokens": "Tokens (in + out)",
+        "calls": "Số lần gọi",
+        "pipeline_runs": "Pipeline runs",
+        "input_tokens": "Input tokens",
+        "output_tokens": "Output tokens",
+        "first_call": "Lần gọi đầu tiên",
+        "last_call": "Lần gọi gần nhất"
+      },
+      "cols": {
+        "job_type": "Loại job",
+        "entity": "Đối tượng",
+        "status": "Trạng thái",
+        "progress": "Tiến độ",
+        "retries": "Thử lại",
+        "updated": "Cập nhật"
+      },
+      "toasts": {
+        "restored": "Đã khôi phục khoá học",
+        "restore_failed": "Không thể khôi phục"
+      }
+    },
+    "processing_job": {
+      "back_to_queue": "Quay lại hàng đợi",
+      "title": "Chi tiết job",
+      "load_failed": "Không thể tải chi tiết job.",
+      "stats": {
+        "status": "Trạng thái",
+        "progress": "Tiến độ",
+        "retries": "Số lần thử",
+        "duration": "Thời lượng"
+      },
+      "fields": {
+        "job_type": "Loại job",
+        "entity_type": "Loại đối tượng",
+        "entity_id": "ID đối tượng",
+        "created_at": "Thời điểm tạo",
+        "started_at": "Bắt đầu",
+        "completed_at": "Hoàn thành",
+        "error": "Lỗi"
+      }
+    },
+    "stats": {
+      "title_overview": "Tổng quan",
+      "title_active_users": "Người dùng đang hoạt động",
+      "title_content": "Thống kê nội dung",
+      "title_health": "Tình trạng hệ thống",
+      "load_failed": "Không thể tải thống kê.",
+      "empty": "Chưa có dữ liệu."
+    },
     "ai_costs": {
       "title": "Chi phí AI",
       "subtitle": "Theo dõi mức tiêu thụ token và chi phí của các pipeline AI.",

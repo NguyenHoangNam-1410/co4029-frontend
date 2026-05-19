@@ -270,6 +270,81 @@
         "retry_failed": "Couldn't retry"
       }
     },
+    "courses_list": {
+      "title": "Course management",
+      "subtitle": "All courses including drafts and deleted.",
+      "include_deleted": "Include deleted",
+      "load_failed": "Couldn't load courses.",
+      "empty_title": "No courses yet",
+      "empty_body": "When instructors create courses, they will appear here.",
+      "back_to_admin": "Back to admin",
+      "row_status": {
+        "draft": "Draft",
+        "published": "Published",
+        "archived": "Archived",
+        "deleted": "Deleted"
+      }
+    },
+    "course_detail": {
+      "title": "Course AI audit",
+      "back_to_list": "Back to list",
+      "restore": "Restore course",
+      "restoring": "Restoring…",
+      "audit_load_failed": "Couldn't load audit data.",
+      "jobs_load_failed": "Couldn't load jobs.",
+      "no_jobs": "No processing jobs for this course yet.",
+      "recent_jobs": "Recent processing jobs",
+      "stats": {
+        "total_cost": "Total AI cost",
+        "tokens": "Tokens (in + out)",
+        "calls": "Total calls",
+        "pipeline_runs": "Pipeline runs",
+        "input_tokens": "Input tokens",
+        "output_tokens": "Output tokens",
+        "first_call": "First call",
+        "last_call": "Last call"
+      },
+      "cols": {
+        "job_type": "Job type",
+        "entity": "Entity",
+        "status": "Status",
+        "progress": "Progress",
+        "retries": "Retries",
+        "updated": "Updated"
+      },
+      "toasts": {
+        "restored": "Course restored",
+        "restore_failed": "Couldn't restore"
+      }
+    },
+    "processing_job": {
+      "back_to_queue": "Back to queue",
+      "title": "Job detail",
+      "load_failed": "Couldn't load job details.",
+      "stats": {
+        "status": "Status",
+        "progress": "Progress",
+        "retries": "Retries",
+        "duration": "Duration"
+      },
+      "fields": {
+        "job_type": "Job type",
+        "entity_type": "Entity type",
+        "entity_id": "Entity ID",
+        "created_at": "Created at",
+        "started_at": "Started at",
+        "completed_at": "Completed at",
+        "error": "Error"
+      }
+    },
+    "stats": {
+      "title_overview": "Overview",
+      "title_active_users": "Active users",
+      "title_content": "Content stats",
+      "title_health": "System health stats",
+      "load_failed": "Couldn't load stats.",
+      "empty": "No data yet."
+    },
     "ai_costs": {
       "title": "AI costs",
       "subtitle": "Track token consumption and costs across AI pipelines.",
