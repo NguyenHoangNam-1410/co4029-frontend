@@ -102,13 +102,14 @@ export default function AppShell({ children, navItems }: AppShellProps) {
 
       <main
         className={cn(
-          "min-h-screen transition-all duration-300",
+          "relative min-h-screen transition-all duration-300 bg-white",
           "ml-16",
           !collapsed && "md:ml-64"
         )}
       >
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgb(0_0_0/0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgb(0_0_0/0.03)_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
         <ContentTopBar />
-        <div className="px-4 sm:px-6 lg:px-10 py-6">
+        <div className="relative px-4 sm:px-6 lg:px-10 py-6">
           {children}
         </div>
       </main>

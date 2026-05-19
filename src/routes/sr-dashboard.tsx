@@ -171,7 +171,7 @@ export default function SrDashboardPage() {
   const { items: courses, isLoading: coursesLoading } = useMyCourses(20);
 
   return (
-    <div className="min-h-screen bg-m3-surface pb-12">
+    <div className="min-h-screen pb-12">
       <div className="max-w-6xl mx-auto space-y-8">
         <header className="space-y-2">
           <div className="flex items-center gap-2 text-m3-primary text-xs font-bold uppercase tracking-widest">

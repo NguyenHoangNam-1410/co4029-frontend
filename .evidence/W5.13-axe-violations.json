@@ -1,6 +1,51 @@
 {
+  "dashboard": {
+    "url": "/dashboard",
+    "violations": [],
+    "criticalOrSerious": []
+  },
+  "courses-list": {
+    "url": "/courses",
+    "violations": [],
+    "criticalOrSerious": []
+  },
   "notifications": {
     "url": "/notifications",
+    "violations": [],
+    "criticalOrSerious": []
+  },
+  "settings-profile": {
+    "url": "/settings/profile",
+    "violations": [],
+    "criticalOrSerious": []
+  },
+  "study-cards-due": {
+    "url": "/study/cards-due",
+    "violations": [],
+    "criticalOrSerious": []
+  },
+  "sr-dashboard": {
+    "url": "/dashboard/sr",
+    "violations": [],
+    "criticalOrSerious": []
+  },
+  "admin-stats": {
+    "url": "/admin/stats",
+    "violations": [],
+    "criticalOrSerious": []
+  },
+  "admin-users": {
+    "url": "/admin/users",
+    "violations": [],
+    "criticalOrSerious": []
+  },
+  "admin-ai-costs": {
+    "url": "/admin/ai-costs",
+    "violations": [],
+    "criticalOrSerious": []
+  },
+  "teacher-courses": {
+    "url": "/teacher/courses",
     "violations": [],
     "criticalOrSerious": []
   }

@@ -300,14 +300,10 @@
 /* ── Custom utility classes ── */
 @layer utilities {
   .glass {
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: rgb(255, 255, 255);
   }
   .glass-dark {
-    background: rgba(15, 23, 42, 0.85);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: rgb(15, 23, 42);
   }
   .gradient-primary {
     background: linear-gradient(135deg, #1e40af, #1d4ed8);

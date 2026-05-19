@@ -114,7 +114,7 @@ export default function CoursesListPage() {
   }
 
   return (
-    <div className="relative min-h-screen bg-m3-surface pb-28">
+    <div className="relative min-h-screen pb-28">
       <div className="max-w-6xl mx-auto space-y-8">
 
         <header className="pt-2">
@@ -129,7 +129,7 @@ export default function CoursesListPage() {
           </p>
         </header>
 
-        <div className="sticky top-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 bg-m3-surface/90 backdrop-blur-lg border-b border-m3-outline-variant/20">
+        <div className="sticky top-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 border-b border-m3-outline-variant/20">
           <div className="flex flex-col sm:flex-row gap-3 max-w-4xl">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-m3-outline pointer-events-none" />

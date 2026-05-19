@@ -69,7 +69,7 @@ export default function LandingPage() {
     <>
       <TopNavBar />
 
-      <main className="pt-16 bg-m3-surface">
+      <main className="pt-16">
         {/* 1. HERO */}
         <section className="relative overflow-hidden gradient-hero min-h-[92vh] flex items-center">
           <div className="absolute inset-0 pointer-events-none">

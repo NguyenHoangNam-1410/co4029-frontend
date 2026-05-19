@@ -61,7 +61,7 @@ export default function TeacherSrStudentDetailPage() {
   const reviews = data?.recent_reviews ?? [];
 
   return (
-    <div className="min-h-screen bg-m3-surface pb-12">
+    <div className="min-h-screen pb-12">
       <div className="max-w-5xl mx-auto pb-6 space-y-6">
         <Breadcrumbs
           items={[

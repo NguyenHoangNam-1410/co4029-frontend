@@ -87,8 +87,8 @@ export default function CourseDetailPage() {
 
   if (courseQuery.isLoading) {
     return (
-      <div className="min-h-screen bg-m3-surface pb-28">
-        <div className="h-72 bg-gradient-to-br from-m3-primary via-m3-primary-container to-m3-secondary animate-pulse" />
+    <div className="min-h-screen pb-28">
+        <div className="h-72 bg-m3-surface-container animate-pulse" />
         <div className="max-w-6xl mx-auto space-y-6">
           <SkeletonBlock className="h-48" />
           <SkeletonBlock className="h-72" />
@@ -99,7 +99,7 @@ export default function CourseDetailPage() {
 
   if (courseUnavailable || !course) {
     return (
-      <div className="min-h-screen bg-m3-surface flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-4 max-w-md px-6">
           <p className="text-m3-on-surface font-headline font-bold text-xl">
             {t("course_detail.unavailable_title")}
@@ -130,37 +130,36 @@ export default function CourseDetailPage() {
   );
 
   return (
-    <div className="min-h-screen bg-m3-surface pb-28">
+    <div className="min-h-screen pb-28">
 
-      <div className="relative overflow-hidden bg-gradient-to-br from-m3-primary via-m3-primary-container to-m3-secondary">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJub2lzZSI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9IjAuNjUiIG51bU9jdGF2ZXM9IjMiIHN0aXRjaFRpbGVzPSJzdGl0Y2giLz48ZmVCbGVuZCBtb2RlPSJzY3JlZW4iLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsdGVyPSJ1cmwoI25vaXNlKSIgb3BhY2l0eT0iMC4wNSIvPjwvc3ZnPg==')] opacity-20 pointer-events-none" />
+      <div className="relative overflow-hidden border-b border-m3-outline-variant/20 pb-10 pt-2">
         <div className="max-w-6xl mx-auto">
-          <nav className="flex items-center gap-2 text-xs text-white/60 mb-6">
-            <Link to="/courses" className="hover:text-white transition-colors">{t("course_detail.breadcrumb_courses")}</Link>
+          <nav className="flex items-center gap-2 text-xs text-m3-on-surface-variant mb-6">
+            <Link to="/courses" className="hover:text-m3-primary transition-colors">{t("course_detail.breadcrumb_courses")}</Link>
             <span>/</span>
-            <span className="text-white/90 truncate">{course.title}</span>
+            <span className="text-m3-on-surface truncate">{course.title}</span>
           </nav>
 
-          <div className="flex flex-col lg:flex-row gap-8 items-start">
+          <div className="flex flex-col lg:flex-row gap-10 items-start">
             <div className="flex-1 space-y-5">
               <div className="flex flex-wrap items-center gap-2">
-                <AIInsightChip className="bg-white/10 text-white border-0">
+                <AIInsightChip className="bg-m3-primary/10 text-m3-primary border-0">
                   <Sparkles className="h-2.5 w-2.5 mr-1" />
                   {t("course_detail.ai_enhanced")}
                 </AIInsightChip>
               </div>
 
-              <h1 className="font-headline font-extrabold text-3xl sm:text-4xl lg:text-5xl text-white leading-tight tracking-tight">
+              <h1 className="font-headline font-extrabold text-3xl sm:text-4xl lg:text-5xl text-m3-on-surface leading-tight tracking-tight">
                 {course.title}
               </h1>
 
               {course.description && (
-                <p className="text-white/75 text-base sm:text-lg leading-relaxed max-w-2xl">
+                <p className="text-m3-on-surface-variant text-base sm:text-lg leading-relaxed max-w-2xl">
                   {course.description}
                 </p>
               )}
 
-              <div className="flex flex-wrap items-center gap-5 text-sm text-white/80">
+              <div className="flex flex-wrap items-center gap-5 text-sm text-m3-on-surface-variant">
                 {moduleCount > 0 && (
                   <span className="flex items-center gap-1.5">
                     <GraduationCap className="h-4 w-4" />
@@ -176,7 +175,7 @@ export default function CourseDetailPage() {
                   {tags.map((tag) => (
                     <span
                       key={tag.id}
-                      className="px-3 py-1 rounded-full bg-white/10 border border-white/20 text-white/80 text-xs font-medium"
+                      className="px-3 py-1 rounded-full bg-m3-primary/8 border border-m3-primary/15 text-m3-primary text-xs font-medium"
                     >
                       {tag.name}
                     </span>
@@ -273,9 +272,9 @@ function InstructorLine({ instructor }: { instructor: InstructorRead | null }) {
   const { t } = useTranslation();
   if (!instructor) {
     return (
-      <div className="flex items-center gap-2.5 text-sm text-white/70">
+      <div className="flex items-center gap-2.5 text-sm text-m3-on-surface-variant">
         <Avatar className="h-7 w-7">
-          <AvatarFallback className="bg-white/10 text-white/70 text-xs font-bold">
+          <AvatarFallback className="bg-m3-surface-container text-m3-on-surface-variant text-xs font-bold">
             ?
           </AvatarFallback>
         </Avatar>
@@ -285,7 +284,7 @@ function InstructorLine({ instructor }: { instructor: InstructorRead | null }) {
   }
 
   return (
-    <div className="flex items-center gap-2.5 text-sm text-white/70">
+    <div className="flex items-center gap-2.5 text-sm text-m3-on-surface-variant">
       <Avatar className="h-7 w-7">
         {instructor.avatar_url ? (
           <AvatarImage src={instructor.avatar_url} alt={instructor.display_name} />
@@ -296,9 +295,9 @@ function InstructorLine({ instructor }: { instructor: InstructorRead | null }) {
       </Avatar>
       <span>
         {t("course_detail.created_by")}{" "}
-        <span className="text-white font-semibold">{instructor.display_name}</span>
+        <span className="text-m3-on-surface font-semibold">{instructor.display_name}</span>
         {instructor.headline && (
-          <span className="text-white/60"> · {instructor.headline}</span>
+          <span className="text-m3-on-surface-variant/60"> · {instructor.headline}</span>
         )}
       </span>
     </div>

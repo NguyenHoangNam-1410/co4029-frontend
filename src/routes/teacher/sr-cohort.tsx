@@ -177,7 +177,7 @@ export default function TeacherSrCohortPage() {
     cohort?.histogram?.reduce((acc, b) => acc + b.count, 0) ?? 0;
 
   return (
-    <div className="min-h-screen bg-m3-surface pb-12">
+    <div className="min-h-screen pb-12">
       <div className="max-w-6xl mx-auto space-y-6">
         <Breadcrumbs
           items={[
