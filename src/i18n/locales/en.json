@@ -169,7 +169,45 @@
     "quiz": "Quiz",
     "interview": "AI mock interview"
   },
+  "teacher_interview_config_new": {
+    "title": "New AI interview",
+    "subtitle": "Basic config — you can fine-tune details and generate questions after creating the draft.",
+    "fields": {
+      "title": "Title",
+      "title_placeholder": "e.g., Data Structures module interview",
+      "module": "Module",
+      "module_placeholder": "— Select module —",
+      "no_modules": "This course has no modules yet. Add a module before creating an interview.",
+      "persona": "Persona",
+      "persona_neutral": "Neutral",
+      "persona_strict": "Strict",
+      "persona_supportive": "Supportive",
+      "modes": "Mode",
+      "mode_hybrid": "Text + voice",
+      "mode_text": "Text only",
+      "mode_voice": "Voice only",
+      "duration": "Duration (minutes)",
+      "duration_placeholder": "e.g., 30",
+      "max_attempts": "Max attempts",
+      "max_attempts_placeholder": "Leave empty = unlimited",
+      "supplementary": "Supplementary instructions (for AI question generation)",
+      "supplementary_placeholder": "e.g., Focus on real-world scenarios, avoid rote-memorization questions…",
+      "lock_quiz_ef": "Lock quiz EF advancement until passed",
+      "lock_quiz_ef_help": "Students must pass this interview before spaced repetition increases review intervals."
+    },
+    "submit": "Create interview",
+    "submitting": "Creating…",
+    "errors": {
+      "title_required": "Please enter a title",
+      "module_required": "Please select a module",
+      "create_failed": "Couldn't create interview"
+    },
+    "success": {
+      "created": "Interview question set created"
+    }
+  },
   "teacher_common": {
+    "back_to_course": "Back to course",
     "breadcrumb_teaching": "Teaching",
     "breadcrumb_course": "Course",
     "lesson_fallback": "Lesson",

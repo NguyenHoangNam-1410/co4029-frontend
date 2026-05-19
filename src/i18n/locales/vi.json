@@ -169,7 +169,45 @@
     "quiz": "Bài kiểm tra",
     "interview": "Phỏng vấn AI"
   },
+  "teacher_interview_config_new": {
+    "title": "Tạo phỏng vấn AI mới",
+    "subtitle": "Cấu hình cơ bản — bạn có thể chỉnh chi tiết và sinh câu hỏi sau khi tạo bản nháp.",
+    "fields": {
+      "title": "Tiêu đề",
+      "title_placeholder": "VD: Phỏng vấn module Cấu trúc dữ liệu",
+      "module": "Module",
+      "module_placeholder": "— Chọn module —",
+      "no_modules": "Khoá học chưa có module. Hãy thêm module trước khi tạo phỏng vấn.",
+      "persona": "Phong cách",
+      "persona_neutral": "Trung lập",
+      "persona_strict": "Nghiêm khắc",
+      "persona_supportive": "Hỗ trợ",
+      "modes": "Hình thức",
+      "mode_hybrid": "Văn bản + giọng nói",
+      "mode_text": "Chỉ văn bản",
+      "mode_voice": "Chỉ giọng nói",
+      "duration": "Thời lượng (phút)",
+      "duration_placeholder": "VD: 30",
+      "max_attempts": "Số lần thử tối đa",
+      "max_attempts_placeholder": "Để trống = không giới hạn",
+      "supplementary": "Hướng dẫn bổ sung (cho AI sinh câu hỏi)",
+      "supplementary_placeholder": "VD: Tập trung vào tình huống thực tế, tránh câu hỏi học thuộc lòng…",
+      "lock_quiz_ef": "Khoá nâng cấp EF của quiz cho đến khi đạt",
+      "lock_quiz_ef_help": "Học viên phải vượt phỏng vấn trước khi spaced repetition tăng khoảng cách ôn tập."
+    },
+    "submit": "Tạo phỏng vấn",
+    "submitting": "Đang tạo…",
+    "errors": {
+      "title_required": "Vui lòng nhập tiêu đề",
+      "module_required": "Vui lòng chọn module",
+      "create_failed": "Tạo phỏng vấn thất bại"
+    },
+    "success": {
+      "created": "Đã tạo bộ câu hỏi phỏng vấn"
+    }
+  },
   "teacher_common": {
+    "back_to_course": "Quay lại khóa học",
     "breadcrumb_teaching": "Giảng dạy",
     "breadcrumb_course": "Khóa học",
     "lesson_fallback": "Bài học",

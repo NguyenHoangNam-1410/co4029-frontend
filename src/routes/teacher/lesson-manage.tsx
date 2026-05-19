@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useParams } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import {
   ArrowLeft, ArrowRight, Play, FileText, Download, Trash2, Plus,
   Paperclip, Bold, Italic, List, Link as LinkIcon, Code, Image,
@@ -302,6 +303,7 @@ function ReadingContent({ notes, setNotes, notesRef }: {
    Main page
    ════════════════════════════════════════ */
 export default function LessonManagePage() {
+  const { t } = useTranslation();
   const params = useParams({ strict: false }) as { courseId: string; lessonId: string };
   const { courseId, lessonId } = params;
 
@@ -434,7 +436,7 @@ export default function LessonManagePage() {
       await Promise.all(saves);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
-      toast.success("Đã lưu bài học");
+      toast.success(t("teacher_common.lesson_saved"));
     } catch (err: unknown) {
       toast.error((err as Error).message || "Save failed");
     } finally {
@@ -475,7 +477,7 @@ export default function LessonManagePage() {
         material_type: "video",
       });
       if (init.mode !== "single" || !init.upload_url) {
-        toast.error("Video > 100MB chưa được hỗ trợ ở trang này. Hãy dùng tab Tài liệu & AI Hub.");
+        toast.error(t("teacher_common.video_too_large"));
         return;
       }
       const buf = await file.arrayBuffer();
@@ -501,12 +503,12 @@ export default function LessonManagePage() {
         },
       });
       await updateLesson.mutateAsync({ primary_material_id: init.material_id });
-      toast.success("Đã tải video");
+      toast.success(t("teacher_common.video_uploaded"));
     } catch (err: unknown) {
       if (err instanceof TypeError) {
-        toast.error("Cấu hình lưu trữ chưa sẵn sàng. Vui lòng liên hệ admin.");
+        toast.error(t("teacher_common.storage_unavailable"));
       } else {
-        toast.error((err as Error).message || "Tải lên thất bại");
+        toast.error((err as Error).message || t("teacher_common.upload_failed"));
       }
     } finally {
       setUploadingVideo(false);
@@ -592,7 +594,7 @@ export default function LessonManagePage() {
     );
   }
 
-  const typeLabel = LESSON_TYPE_OPTIONS.find((t) => t.value === lessonType)?.label ?? "Bài học";
+  const typeLabel = LESSON_TYPE_OPTIONS.find((t) => t.value === lessonType)?.label ?? t("teacher_common.lesson_fallback");
 
   return (
     <div className="max-w-[1440px] mx-auto pb-20">
@@ -600,21 +602,21 @@ export default function LessonManagePage() {
       <div className="pt-4 pb-2 px-4 sm:px-6 lg:px-10">
         <Breadcrumbs
           items={[
-            { label: "Giảng dạy", to: "/teacher/courses" },
+            { label: t("teacher_common.breadcrumb_teaching"), to: "/teacher/courses" },
             {
-              label: course?.title ?? "Khóa học",
+              label: course?.title ?? t("teacher_common.breadcrumb_course"),
               to: "/teacher/courses/$courseId",
             },
-            { label: title || lesson?.title || "Bài học" },
+            { label: title || lesson?.title || t("teacher_common.lesson_fallback") },
           ]}
         />
       </div>
 
-      <div className="sticky top-16 z-10 -mx-4 sm:-mx-6 lg:-mx-10 px-4 sm:px-6 lg:px-10 py-3 mb-8 bg-m3-surface/80 backdrop-blur-md border-b border-m3-outline-variant/20 flex items-center justify-between gap-3">
+      <div className="sticky top-16 z-10 -mx-4 sm:-mx-6 lg:-mx-10 px-4 sm:px-6 lg:px-10 py-3 mb-8 border-b border-m3-outline-variant/20 flex items-center justify-between gap-3">
         <Link to="/teacher/courses/$courseId" params={{ courseId }}>
           <Button variant="ghost" size="sm" className="gap-2 text-m3-on-surface-variant">
             <ArrowLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">Quay lại khóa học</span>
+            <span className="hidden sm:inline">{t("teacher_common.back_to_course")}</span>
           </Button>
         </Link>
         <div className="flex items-center gap-2">
@@ -636,7 +638,7 @@ export default function LessonManagePage() {
             )}
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-            <span className="hidden sm:inline">{saved ? "Đã lưu ✓" : "Lưu thay đổi"}</span>
+            <span className="hidden sm:inline">{saved ? t("teacher_common.saved_check") : t("teacher_common.save_changes")}</span>
           </Button>
         </div>
       </div>
@@ -856,7 +858,7 @@ export default function LessonManagePage() {
                     value={prereqSearch}
                     onChange={(e) => setPrereqSearch(e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Escape") { setPrereqOpen(false); setPrereqSearch(""); } }}
-                    placeholder="Tìm bài học…"
+                    placeholder={t("teacher_common.search_lessons")}
                     className="w-full pl-9 pr-3 py-2.5 text-sm rounded-xl border border-m3-outline-variant/20 bg-surface-elev focus:outline-none focus:ring-2 focus:ring-m3-secondary/20"
                   />
                 </div>

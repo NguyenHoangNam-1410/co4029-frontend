@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
@@ -13,6 +14,7 @@ type SupportedMode = NonNullable<InterviewConfigCreate["supported_modes"]>;
 type Persona = NonNullable<InterviewConfigCreate["persona"]>;
 
 export default function InterviewConfigNewPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { courseId } = useParams({ strict: false }) as { courseId: string };
 
@@ -36,11 +38,11 @@ export default function InterviewConfigNewPage() {
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     if (!form.title.trim()) {
-      toast.error("Vui lòng nhập tiêu đề");
+      toast.error(t("teacher_interview_config_new.errors.title_required"));
       return;
     }
     if (!form.module_id) {
-      toast.error("Vui lòng chọn module");
+      toast.error(t("teacher_interview_config_new.errors.module_required"));
       return;
     }
 
@@ -59,13 +61,16 @@ export default function InterviewConfigNewPage() {
         supplementary_instructions:
           form.supplementary_instructions.trim() || null,
       });
-      toast.success("Đã tạo bộ câu hỏi phỏng vấn");
+      toast.success(t("teacher_interview_config_new.success.created"));
       void navigate({
         to: "/teacher/courses/$courseId/interview-configs/$configId",
         params: { courseId, configId: config.id },
       });
     } catch (err: unknown) {
-      toast.error((err as Error).message || "Tạo phỏng vấn thất bại");
+      toast.error(
+        (err as Error).message ||
+          t("teacher_interview_config_new.errors.create_failed"),
+      );
     }
   }
 
@@ -78,12 +83,11 @@ export default function InterviewConfigNewPage() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-xl font-headline font-bold text-m3-on-surface">
-            Tạo phỏng vấn AI mới
+          <h1 className="text-2xl font-headline font-bold text-m3-on-surface">
+            {t("teacher_interview_config_new.title")}
           </h1>
           <p className="text-xs text-m3-on-surface-variant mt-0.5">
-            Cấu hình cơ bản — bạn có thể chỉnh chi tiết và sinh câu hỏi sau khi
-            tạo bản nháp.
+            {t("teacher_interview_config_new.subtitle")}
           </p>
         </div>
       </div>
@@ -91,11 +95,11 @@ export default function InterviewConfigNewPage() {
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="space-y-1.5">
           <label className="text-sm font-medium text-m3-on-surface">
-            Tiêu đề *
+            {t("teacher_interview_config_new.fields.title")} *
           </label>
           <Input
             required
-            placeholder="VD: Phỏng vấn module Cấu trúc dữ liệu"
+            placeholder={t("teacher_interview_config_new.fields.title_placeholder")}
             value={form.title}
             onChange={(e) =>
               setForm((f) => ({ ...f, title: e.target.value }))
@@ -105,7 +109,7 @@ export default function InterviewConfigNewPage() {
 
         <div className="space-y-1.5">
           <label className="text-sm font-medium text-m3-on-surface">
-            Module *
+            {t("teacher_interview_config_new.fields.module")} *
           </label>
           <select
             className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-60"
@@ -115,7 +119,7 @@ export default function InterviewConfigNewPage() {
             }
             disabled={contentLoading || modules.length === 0}
           >
-            <option value="">— Chọn module —</option>
+            <option value="">{t("teacher_interview_config_new.fields.module_placeholder")}</option>
             {modules.map((m) => (
               <option key={m.id} value={m.id}>
                 {m.title}
@@ -124,7 +128,7 @@ export default function InterviewConfigNewPage() {
           </select>
           {modules.length === 0 && !contentLoading && (
             <p className="text-[11px] text-amber-700">
-              Khoá học chưa có module. Hãy thêm module trước khi tạo phỏng vấn.
+              {t("teacher_interview_config_new.fields.no_modules")}
             </p>
           )}
         </div>
@@ -132,7 +136,7 @@ export default function InterviewConfigNewPage() {
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-m3-on-surface">
-              Phong cách
+              {t("teacher_interview_config_new.fields.persona")}
             </label>
             <select
               className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
@@ -141,15 +145,15 @@ export default function InterviewConfigNewPage() {
                 setForm((f) => ({ ...f, persona: e.target.value as Persona }))
               }
             >
-              <option value="neutral">Trung lập</option>
-              <option value="strict">Nghiêm khắc</option>
-              <option value="supportive">Hỗ trợ</option>
+              <option value="neutral">{t("teacher_interview_config_new.fields.persona_neutral")}</option>
+              <option value="strict">{t("teacher_interview_config_new.fields.persona_strict")}</option>
+              <option value="supportive">{t("teacher_interview_config_new.fields.persona_supportive")}</option>
             </select>
           </div>
 
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-m3-on-surface">
-              Hình thức
+              {t("teacher_interview_config_new.fields.modes")}
             </label>
             <select
               className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
@@ -161,9 +165,9 @@ export default function InterviewConfigNewPage() {
                 }))
               }
             >
-              <option value="hybrid">Văn bản + giọng nói</option>
-              <option value="text">Chỉ văn bản</option>
-              <option value="voice">Chỉ giọng nói</option>
+              <option value="hybrid">{t("teacher_interview_config_new.fields.mode_hybrid")}</option>
+              <option value="text">{t("teacher_interview_config_new.fields.mode_text")}</option>
+              <option value="voice">{t("teacher_interview_config_new.fields.mode_voice")}</option>
             </select>
           </div>
         </div>
@@ -171,12 +175,12 @@ export default function InterviewConfigNewPage() {
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-m3-on-surface">
-              Thời lượng (phút)
+              {t("teacher_interview_config_new.fields.duration")}
             </label>
             <Input
               type="number"
               min="1"
-              placeholder="VD: 30"
+              placeholder={t("teacher_interview_config_new.fields.duration_placeholder")}
               value={form.time_limit_minutes}
               onChange={(e) =>
                 setForm((f) => ({
@@ -188,12 +192,12 @@ export default function InterviewConfigNewPage() {
           </div>
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-m3-on-surface">
-              Số lần thử tối đa
+              {t("teacher_interview_config_new.fields.max_attempts")}
             </label>
             <Input
               type="number"
               min="1"
-              placeholder="Để trống = không giới hạn"
+              placeholder={t("teacher_interview_config_new.fields.max_attempts_placeholder")}
               value={form.max_attempts}
               onChange={(e) =>
                 setForm((f) => ({ ...f, max_attempts: e.target.value }))
@@ -204,11 +208,11 @@ export default function InterviewConfigNewPage() {
 
         <div className="space-y-1.5">
           <label className="text-sm font-medium text-m3-on-surface">
-            Hướng dẫn bổ sung (cho AI sinh câu hỏi)
+            {t("teacher_interview_config_new.fields.supplementary")}
           </label>
           <textarea
             className="w-full min-h-[80px] rounded-xl border border-input bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring"
-            placeholder="VD: Tập trung vào tình huống thực tế, tránh câu hỏi học thuộc lòng…"
+            placeholder={t("teacher_interview_config_new.fields.supplementary_placeholder")}
             value={form.supplementary_instructions}
             onChange={(e) =>
               setForm((f) => ({
@@ -233,11 +237,10 @@ export default function InterviewConfigNewPage() {
           />
           <span className="text-sm">
             <span className="block font-medium text-m3-on-surface">
-              Khoá nâng cấp EF của quiz cho đến khi đạt
+              {t("teacher_interview_config_new.fields.lock_quiz_ef")}
             </span>
             <span className="block text-xs text-m3-on-surface-variant mt-0.5">
-              Học viên phải vượt phỏng vấn trước khi spaced repetition tăng
-              khoảng cách ôn tập.
+              {t("teacher_interview_config_new.fields.lock_quiz_ef_help")}
             </span>
           </span>
         </label>
@@ -249,11 +252,13 @@ export default function InterviewConfigNewPage() {
               createConfig.isPending || !form.title.trim() || !form.module_id
             }
           >
-            {createConfig.isPending ? "Đang tạo…" : "Tạo phỏng vấn"}
+            {createConfig.isPending
+              ? t("teacher_interview_config_new.submitting")
+              : t("teacher_interview_config_new.submit")}
           </Button>
           <Link to="/teacher/courses/$courseId" params={{ courseId }}>
             <Button type="button" variant="outline">
-              Huỷ
+              {t("common.cancel")}
             </Button>
           </Link>
         </div>
