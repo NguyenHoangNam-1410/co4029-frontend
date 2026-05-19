@@ -1,5 +1,6 @@
 import { type FormEvent, useState } from "react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { useMe, useUpdateProfile } from "@/lib/api/hooks/auth";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,6 +15,7 @@ interface FieldErrors {
 }
 
 export default function SettingsProfilePage() {
+  const { t } = useTranslation();
   const { data: me } = useMe();
   const updateProfile = useUpdateProfile();
   const [errors, setErrors] = useState<FieldErrors>({});
@@ -26,21 +28,21 @@ export default function SettingsProfilePage() {
     const bio = (form.get("bio") as string)?.trim() ?? "";
 
     if (!displayName || displayName.length < 1) {
-      errs.display_name = "Tên hiển thị không được để trống.";
+      errs.display_name = t("settings_profile.errors.display_name_required");
     } else if (displayName.length > 100) {
-      errs.display_name = "Tên hiển thị tối đa 100 ký tự.";
+      errs.display_name = t("settings_profile.errors.display_name_max");
     }
 
     if (givenName.length > 100) {
-      errs.given_name = "Tên tối đa 100 ký tự.";
+      errs.given_name = t("settings_profile.errors.given_name_max");
     }
 
     if (familyName.length > 100) {
-      errs.family_name = "Họ tối đa 100 ký tự.";
+      errs.family_name = t("settings_profile.errors.family_name_max");
     }
 
     if (bio.length > 1000) {
-      errs.bio = "Giới thiệu tối đa 1000 ký tự.";
+      errs.bio = t("settings_profile.errors.bio_max");
     }
 
     return Object.keys(errs).length > 0 ? errs : null;
@@ -67,27 +69,27 @@ export default function SettingsProfilePage() {
       },
       {
         onSuccess: () => {
-          toast.success("Đã lưu hồ sơ");
+          toast.success(t("settings_profile.toasts.saved"));
         },
         onError: () => {
-          toast.error("Không thể lưu hồ sơ. Vui lòng thử lại.");
+          toast.error(t("settings_profile.toasts.save_failed"));
         },
       },
     );
   }
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8">
+    <div className="mx-auto max-w-2xl">
       <Card>
         <CardHeader>
-          <CardTitle>Hồ sơ của bạn</CardTitle>
-          <CardDescription>Cập nhật thông tin hiển thị công khai.</CardDescription>
+          <CardTitle>{t("settings_profile.title")}</CardTitle>
+          <CardDescription>{t("settings_profile.subtitle")}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             <div className="flex flex-col gap-1.5">
               <label htmlFor="display_name" className="text-sm font-medium text-foreground">
-                Tên hiển thị <span className="text-destructive">*</span>
+                {t("settings_profile.fields.display_name")} <span className="text-destructive">*</span>
               </label>
               <Input
                 id="display_name"
@@ -108,7 +110,7 @@ export default function SettingsProfilePage() {
 
             <div className="flex flex-col gap-1.5">
               <label htmlFor="given_name" className="text-sm font-medium text-foreground">
-                Tên
+                {t("settings_profile.fields.given_name")}
               </label>
               <Input
                 id="given_name"
@@ -127,7 +129,7 @@ export default function SettingsProfilePage() {
 
             <div className="flex flex-col gap-1.5">
               <label htmlFor="family_name" className="text-sm font-medium text-foreground">
-                Họ
+                {t("settings_profile.fields.family_name")}
               </label>
               <Input
                 id="family_name"
@@ -146,7 +148,7 @@ export default function SettingsProfilePage() {
 
             <div className="flex flex-col gap-1.5">
               <label htmlFor="bio" className="text-sm font-medium text-foreground">
-                Giới thiệu
+                {t("settings_profile.fields.bio")}
               </label>
               <textarea
                 id="bio"
@@ -191,10 +193,10 @@ export default function SettingsProfilePage() {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                       />
                     </svg>
-                    Đang lưu...
+                    {t("settings_profile.saving")}
                   </span>
                 ) : (
-                  "Lưu hồ sơ"
+                  t("settings_profile.save")
                 )}
               </Button>
             </div>

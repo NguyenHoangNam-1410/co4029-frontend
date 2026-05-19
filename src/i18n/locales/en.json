@@ -140,6 +140,29 @@
       "regen_failed": "Couldn't regenerate recovery codes."
     }
   },
+  "settings_profile": {
+    "title": "Your profile",
+    "subtitle": "Update your publicly visible information.",
+    "fields": {
+      "display_name": "Display name",
+      "given_name": "First name",
+      "family_name": "Last name",
+      "bio": "Bio"
+    },
+    "save": "Save profile",
+    "saving": "Saving…",
+    "errors": {
+      "display_name_required": "Display name cannot be empty.",
+      "display_name_max": "Display name must be at most 100 characters.",
+      "given_name_max": "First name must be at most 100 characters.",
+      "family_name_max": "Last name must be at most 100 characters.",
+      "bio_max": "Bio must be at most 1000 characters."
+    },
+    "toasts": {
+      "saved": "Profile saved",
+      "save_failed": "Couldn't save your profile. Please try again."
+    }
+  },
   "notifications": {
     "title": "Notifications",
     "subtitle": "Course updates, quiz reminders, and interview results.",

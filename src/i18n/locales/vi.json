@@ -140,6 +140,29 @@
       "regen_failed": "Không thể tạo lại mã khôi phục."
     }
   },
+  "settings_profile": {
+    "title": "Hồ sơ của bạn",
+    "subtitle": "Cập nhật thông tin hiển thị công khai.",
+    "fields": {
+      "display_name": "Tên hiển thị",
+      "given_name": "Tên",
+      "family_name": "Họ",
+      "bio": "Giới thiệu"
+    },
+    "save": "Lưu hồ sơ",
+    "saving": "Đang lưu...",
+    "errors": {
+      "display_name_required": "Tên hiển thị không được để trống.",
+      "display_name_max": "Tên hiển thị tối đa 100 ký tự.",
+      "given_name_max": "Tên tối đa 100 ký tự.",
+      "family_name_max": "Họ tối đa 100 ký tự.",
+      "bio_max": "Giới thiệu tối đa 1000 ký tự."
+    },
+    "toasts": {
+      "saved": "Đã lưu hồ sơ",
+      "save_failed": "Không thể lưu hồ sơ. Vui lòng thử lại."
+    }
+  },
   "notifications": {
     "title": "Thông báo",
     "subtitle": "Cập nhật khóa học, nhắc bài kiểm tra, kết quả phỏng vấn.",
