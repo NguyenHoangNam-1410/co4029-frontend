@@ -108,7 +108,7 @@ export default function AppShell({ children, navItems }: AppShellProps) {
         )}
       >
         <ContentTopBar />
-        <div className="px-4 sm:px-6 lg:px-10">
+        <div className="px-4 sm:px-6 lg:px-10 py-6">
           {children}
         </div>
       </main>
