@@ -42,8 +42,6 @@ export default function CourseNewPage() {
 
     try {
       const course = await createCourse.mutateAsync({
-        organization_id: "00000000-0000-0000-0000-000000000001",
-        owner_user_id: me.id,
         title: form.title,
         slug: form.slug || slugify(form.title),
         description: form.description || undefined,

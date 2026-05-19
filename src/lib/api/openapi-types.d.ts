@@ -3669,18 +3669,8 @@ export interface components {
         };
         /** CourseCreate */
         CourseCreate: {
-            /**
-             * Organization Id
-             * Format: uuid
-             */
-            organization_id: string;
             /** Org Unit Id */
             org_unit_id?: string | null;
-            /**
-             * Owner User Id
-             * Format: uuid
-             */
-            owner_user_id: string;
             /** Slug */
             slug: string;
             /** Title */
