@@ -5,6 +5,7 @@ import {
   useParams,
 } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
   GraduationCap,
@@ -31,13 +32,6 @@ import type {
 
 const UUID_RX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-const ENROLLMENT_LABEL: Record<string, string> = {
-  active: "Đang học",
-  completed: "Hoàn thành",
-  dropped: "Đã bỏ",
-  pending: "Chờ duyệt",
-};
 
 const ENROLLMENT_COLOR: Record<string, string> = {
   active: "bg-emerald-100 text-emerald-700",
@@ -92,22 +86,20 @@ function TeacherRow({
   courseId: string;
   canManage: boolean;
 }) {
+  const { t } = useTranslation();
   const remove = useRemoveTeacher(courseId);
 
   const handleRemove = () => {
-    if (
-      !window.confirm(
-        `Gỡ giảng viên ${assignment.display_name || assignment.primary_email}?`,
-      )
-    ) {
+    const name = assignment.display_name || assignment.primary_email;
+    if (!window.confirm(t("dept_course_detail.remove_confirm", { name }))) {
       return;
     }
     remove.mutate(assignment.user_id, {
-      onSuccess: () => toast.success("Đã gỡ phân công"),
+      onSuccess: () => toast.success(t("dept_course_detail.success.removed")),
       onError: (err) => {
         const detail =
           err instanceof ApiError ? err.body || err.message : String(err);
-        toast.error(`Không thể gỡ giảng viên: ${detail}`);
+        toast.error(t("dept_course_detail.errors.remove_failed", { detail }));
       },
     });
   };
@@ -119,7 +111,7 @@ function TeacherRow({
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-text-strong truncate">
-          {assignment.display_name || "(Chưa đặt tên)"}
+          {assignment.display_name || t("dept_course_detail.no_name")}
         </p>
         <p className="text-xs text-text-muted flex items-center gap-1.5 mt-0.5">
           <Mail className="h-3 w-3" />
@@ -135,7 +127,7 @@ function TeacherRow({
           disabled={remove.isPending}
         >
           <Trash2 className="h-3.5 w-3.5" />
-          Gỡ
+          {t("dept_course_detail.remove")}
         </Button>
       )}
     </div>
@@ -143,6 +135,7 @@ function TeacherRow({
 }
 
 function AssignTeacherForm({ courseId }: { courseId: string }) {
+  const { t } = useTranslation();
   const [userId, setUserId] = useState("");
   const assign = useAssignTeacher(courseId);
 
@@ -150,20 +143,20 @@ function AssignTeacherForm({ courseId }: { courseId: string }) {
     e.preventDefault();
     const trimmed = userId.trim();
     if (!UUID_RX.test(trimmed)) {
-      toast.error("Vui lòng nhập user_id dạng UUID hợp lệ");
+      toast.error(t("dept_course_detail.errors.invalid_uuid"));
       return;
     }
     assign.mutate(
       { user_id: trimmed },
       {
         onSuccess: () => {
-          toast.success("Đã phân công giảng viên");
+          toast.success(t("dept_course_detail.success.assigned"));
           setUserId("");
         },
         onError: (err) => {
           const detail =
             err instanceof ApiError ? err.body || err.message : String(err);
-          toast.error(`Không thể phân công: ${detail}`);
+          toast.error(t("dept_course_detail.errors.assign_failed", { detail }));
         },
       },
     );
@@ -175,7 +168,7 @@ function AssignTeacherForm({ courseId }: { courseId: string }) {
       className="bg-surface-elev border border-border rounded-lg p-4 mb-4"
     >
       <label className="block text-xs font-semibold text-text-muted mb-2">
-        Phân công giảng viên (user_id UUID)
+        {t("dept_course_detail.assign_label")}
       </label>
       <div className="flex gap-2">
         <Input
@@ -188,22 +181,25 @@ function AssignTeacherForm({ courseId }: { courseId: string }) {
         />
         <Button type="submit" disabled={assign.isPending || !userId.trim()}>
           <UserPlus className="h-3.5 w-3.5" />
-          Thêm
+          {t("dept_course_detail.assign_button")}
         </Button>
       </div>
       <p className="text-[11px] text-text-muted mt-2">
-        Nhập user_id của giảng viên. Tính năng tìm kiếm theo email/tên sẽ được
-        bổ sung ở Wave 5.
+        {t("dept_course_detail.assign_help")}
       </p>
     </form>
   );
 }
 
 function StudentRow({ entry }: { entry: RosterEntry }) {
+  const { t, i18n } = useTranslation();
+  const locale = (i18n.resolvedLanguage ?? i18n.language ?? "en") === "vi" ? "vi-VN" : "en-US";
   const cls =
     ENROLLMENT_COLOR[entry.status] ?? "bg-slate-100 text-slate-700";
-  const label = ENROLLMENT_LABEL[entry.status] ?? entry.status;
-  const enrolled = new Date(entry.enrolled_at).toLocaleDateString("vi-VN");
+  const label = t(`dept_course_detail.enrollment_status.${entry.status}`, {
+    defaultValue: entry.status,
+  });
+  const enrolled = new Date(entry.enrolled_at).toLocaleDateString(locale);
 
   return (
     <div className="flex items-center gap-4 bg-surface-elev border border-border rounded-lg p-4 mb-2">
@@ -225,13 +221,16 @@ function StudentRow({ entry }: { entry: RosterEntry }) {
         >
           {label}
         </span>
-        <p className="text-[11px] text-text-muted mt-1">Đăng ký: {enrolled}</p>
+        <p className="text-[11px] text-text-muted mt-1">
+          {t("dept_course_detail.enrolled_at", { date: enrolled })}
+        </p>
       </div>
     </div>
   );
 }
 
 export default function DeptCourseDetailPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { courseId } = useParams({ strict: false }) as { courseId: string };
 
@@ -245,10 +244,10 @@ export default function DeptCourseDetailPage() {
   useEffect(() => {
     if (permissions.isLoading) return;
     if (!canRead) {
-      toast.error("Không có quyền truy cập");
+      toast.error(t("dept_course_detail.no_permission"));
       void navigate({ to: "/dashboard", replace: true });
     }
-  }, [permissions.isLoading, canRead, navigate]);
+  }, [permissions.isLoading, canRead, navigate, t]);
 
   const enabled = !permissions.isLoading && canRead;
 
@@ -281,10 +280,10 @@ export default function DeptCourseDetailPage() {
           className="inline-flex items-center gap-1.5 text-xs text-text-muted hover:text-m3-primary transition-colors mb-2"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
-          Quản lý đội ngũ
+          {t("dept_course_detail.back")}
         </Link>
-        <h1 className="text-xl font-headline font-bold text-text-strong">
-          {course?.title ?? "Khóa học"}
+        <h1 className="text-2xl font-headline font-bold text-text-strong">
+          {course?.title ?? t("dept_course_detail.course_fallback")}
         </h1>
         {course?.slug && (
           <p className="text-sm text-text-muted mt-1">{course.slug}</p>
@@ -297,14 +296,14 @@ export default function DeptCourseDetailPage() {
           onClick={() => setTab("teachers")}
           count={teachers.data?.length}
         >
-          Giảng viên
+          {t("dept_course_detail.tabs.teachers")}
         </TabButton>
         <TabButton
           active={tab === "students"}
           onClick={() => setTab("students")}
           count={roster.data?.length}
         >
-          Sinh viên
+          {t("dept_course_detail.tabs.students")}
         </TabButton>
       </div>
 
@@ -324,27 +323,27 @@ export default function DeptCourseDetailPage() {
           ) : teachers.isError ? (
             <div className="bg-surface-elev border border-border rounded-lg p-5">
               <p className="text-sm text-danger">
-                Không thể tải danh sách giảng viên.
+                {t("dept_course_detail.load_failed_teachers")}
               </p>
             </div>
           ) : (teachers.data ?? []).length === 0 ? (
             <div className="bg-surface-elev border border-border rounded-lg p-10 text-center">
               <GraduationCap className="h-10 w-10 mx-auto mb-3 text-text-subtle" />
               <p className="text-sm font-medium text-text-strong">
-                Chưa có giảng viên nào được phân công.
+                {t("dept_course_detail.empty_teachers_title")}
               </p>
               {canAssign && (
                 <p className="text-xs text-text-muted mt-1">
-                  Sử dụng biểu mẫu phía trên để thêm giảng viên.
+                  {t("dept_course_detail.empty_teachers_body")}
                 </p>
               )}
             </div>
           ) : (
             <div>
-              {(teachers.data ?? []).map((t) => (
+              {(teachers.data ?? []).map((teacher) => (
                 <TeacherRow
-                  key={t.user_id}
-                  assignment={t}
+                  key={teacher.user_id}
+                  assignment={teacher}
                   courseId={courseId}
                   canManage={canAssign}
                 />
@@ -368,14 +367,14 @@ export default function DeptCourseDetailPage() {
           ) : roster.isError ? (
             <div className="bg-surface-elev border border-border rounded-lg p-5">
               <p className="text-sm text-danger">
-                Không thể tải danh sách sinh viên.
+                {t("dept_course_detail.load_failed_students")}
               </p>
             </div>
           ) : (roster.data ?? []).length === 0 ? (
             <div className="bg-surface-elev border border-border rounded-lg p-10 text-center">
               <Users className="h-10 w-10 mx-auto mb-3 text-text-subtle" />
               <p className="text-sm font-medium text-text-strong">
-                Chưa có sinh viên nào đăng ký khóa học này.
+                {t("dept_course_detail.empty_students_title")}
               </p>
             </div>
           ) : (

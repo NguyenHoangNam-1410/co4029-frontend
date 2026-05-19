@@ -140,6 +140,42 @@
       "regen_failed": "Couldn't regenerate recovery codes."
     }
   },
+  "dept_course_detail": {
+    "back": "Team management",
+    "course_fallback": "Course",
+    "no_permission": "You do not have permission to access this page",
+    "tabs": {
+      "teachers": "Instructors",
+      "students": "Students"
+    },
+    "no_name": "(no name yet)",
+    "remove": "Remove",
+    "remove_confirm": "Remove instructor {{name}}?",
+    "assign_label": "Assign instructor (user_id UUID)",
+    "assign_button": "Add",
+    "assign_help": "Enter the instructor's user_id. Search by email/name will arrive in Wave 5.",
+    "enrolled_at": "Enrolled: {{date}}",
+    "load_failed_teachers": "Couldn't load instructors.",
+    "load_failed_students": "Couldn't load students.",
+    "empty_teachers_title": "No instructors assigned yet.",
+    "empty_teachers_body": "Use the form above to add an instructor.",
+    "empty_students_title": "No students enrolled in this course yet.",
+    "enrollment_status": {
+      "active": "Active",
+      "completed": "Completed",
+      "dropped": "Dropped",
+      "pending": "Pending"
+    },
+    "errors": {
+      "invalid_uuid": "Please enter a valid UUID user_id",
+      "remove_failed": "Couldn't remove instructor: {{detail}}",
+      "assign_failed": "Couldn't assign: {{detail}}"
+    },
+    "success": {
+      "assigned": "Instructor assigned",
+      "removed": "Assignment removed"
+    }
+  },
   "dept_courses": {
     "title": "Team management",
     "subtitle": "Assign instructors and view class rosters.",
