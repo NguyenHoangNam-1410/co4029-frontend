@@ -6,7 +6,6 @@ import {
   studentNavItems,
   teacherNavItems,
 } from "@/lib/navigation";
-import { useMyPermissions } from "@/lib/api/hooks/auth";
 
 const DESKTOP_FIRST_PREFIXES = [
   "/admin",
@@ -17,12 +16,6 @@ const DESKTOP_FIRST_PREFIXES = [
 
 export default function AuthenticatedLayout() {
   const location = useLocation();
-  const permissions = useMyPermissions();
-
-  const perms = permissions.data?.permissions ?? [];
-  const isAdmin = perms.includes("system.administer");
-  const canTeach =
-    perms.includes("course.create") || perms.includes("lesson.manage");
 
   const onAdminPath = location.pathname.startsWith("/admin");
   const onTeacherPath =
@@ -30,9 +23,9 @@ export default function AuthenticatedLayout() {
     location.pathname.startsWith("/dept") ||
     location.pathname.startsWith("/management");
 
-  const navItems = isAdmin && (onAdminPath || !onTeacherPath)
+  const navItems = onAdminPath
     ? adminNavItems
-    : canTeach && onTeacherPath
+    : onTeacherPath
       ? teacherNavItems
       : studentNavItems;
 

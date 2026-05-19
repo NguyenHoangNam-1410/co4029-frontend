@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { getAuthDisplayName, getAuthUserInitials } from "@/lib/auth";
 import LanguageSwitcher from "./LanguageSwitcher";
+import SectionSwitcher from "./SectionSwitcher";
 
 export default function ContentTopBar() {
   const { logout, user } = useAuth();
@@ -31,8 +32,10 @@ export default function ContentTopBar() {
   }
 
   return (
-    <header className="w-full sticky top-0 z-20 bg-surface/85 backdrop-blur-md border-b border-border flex items-center justify-end px-8 h-16">
-      <div className="flex items-center gap-2">
+    <header className="w-full sticky top-0 z-20 bg-surface/85 backdrop-blur-md border-b border-border flex items-center justify-between gap-4 px-8 h-16">
+      <SectionSwitcher />
+
+      <div className="flex items-center gap-2 ml-auto">
         <LanguageSwitcher />
 
         <button
