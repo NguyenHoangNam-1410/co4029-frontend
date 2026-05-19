@@ -1,7 +1,7 @@
 import { Link, useParams } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
-  ArrowRight,
   Brain,
   CheckCircle2,
   Clock,
@@ -15,39 +15,39 @@ import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import type { StudentSrDetailLesson } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
 
-const STATUS_META: Record<
-  StudentSrDetailLesson["status"],
-  { label: string; badge: string }
-> = {
-  mature: {
-    label: "Đã thuần thục",
-    badge: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  },
-  learning: {
-    label: "Đang học",
-    badge: "bg-amber-50 text-amber-700 border-amber-200",
-  },
-  locked: {
-    label: "Đã khóa",
-    badge: "bg-slate-100 text-slate-600 border-slate-200",
-  },
+const STATUS_KEY: Record<StudentSrDetailLesson["status"], string> = {
+  mature: "sr_dashboard.status.mature",
+  learning: "sr_dashboard.status.learning",
+  locked: "sr_dashboard.status.locked",
 };
 
-function formatRelative(iso: string): string {
-  const now = Date.now();
-  const t = new Date(iso).getTime();
-  const diff = now - t;
-  if (diff < 60_000) return "Vừa xong";
-  const minutes = Math.round(diff / 60_000);
-  if (minutes < 60) return `${minutes} phút trước`;
-  const hours = Math.round(minutes / 60);
-  if (hours < 24) return `${hours} giờ trước`;
-  const days = Math.round(hours / 24);
-  if (days < 30) return `${days} ngày trước`;
-  return new Date(iso).toLocaleDateString("vi-VN");
+const STATUS_BADGE: Record<StudentSrDetailLesson["status"], string> = {
+  mature: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  learning: "bg-amber-50 text-amber-700 border-amber-200",
+  locked: "bg-slate-100 text-slate-600 border-slate-200",
+};
+
+function useFormatRelative() {
+  const { t, i18n } = useTranslation();
+  const locale = (i18n.resolvedLanguage ?? i18n.language ?? "en") === "vi" ? "vi-VN" : "en-US";
+  return (iso: string): string => {
+    const now = Date.now();
+    const ts = new Date(iso).getTime();
+    const diff = now - ts;
+    if (diff < 60_000) return t("teacher_sr_student_detail.just_now");
+    const minutes = Math.round(diff / 60_000);
+    if (minutes < 60) return t("teacher_sr_student_detail.minutes_ago", { count: minutes });
+    const hours = Math.round(minutes / 60);
+    if (hours < 24) return t("teacher_sr_student_detail.hours_ago", { count: hours });
+    const days = Math.round(hours / 24);
+    if (days < 30) return t("teacher_sr_student_detail.days_ago", { count: days });
+    return new Date(iso).toLocaleDateString(locale);
+  };
 }
 
 export default function TeacherSrStudentDetailPage() {
+  const { t } = useTranslation();
+  const formatRelative = useFormatRelative();
   const { courseId, studentId } = useParams({ strict: false }) as {
     courseId: string;
     studentId: string;
@@ -62,13 +62,19 @@ export default function TeacherSrStudentDetailPage() {
 
   return (
     <div className="min-h-screen bg-m3-surface pb-12">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      <div className="max-w-5xl mx-auto pb-6 space-y-6">
         <Breadcrumbs
           items={[
-            { label: "Giảng dạy", to: "/teacher/courses" },
-            { label: course?.title ?? "Khóa học", to: "/teacher/courses/$courseId" },
-            { label: "Sinh viên cần hỗ trợ", to: "/teacher/courses/$courseId/at-risk" },
-            { label: data?.name ?? "Chi tiết" },
+            { label: t("teacher_sr_cohort.breadcrumb_teaching"), to: "/teacher/courses" },
+            {
+              label: course?.title ?? t("teacher_sr_cohort.breadcrumb_course"),
+              to: "/teacher/courses/$courseId",
+            },
+            {
+              label: t("teacher_sr_at_risk.breadcrumb_at_risk"),
+              to: "/teacher/courses/$courseId/at-risk",
+            },
+            { label: data?.name ?? t("teacher_sr_student_detail.breadcrumb_detail") },
           ]}
         />
 
@@ -77,13 +83,13 @@ export default function TeacherSrStudentDetailPage() {
             to="/teacher/courses/$courseId/at-risk"
             params={{ courseId }}
             className="p-2 rounded-xl hover:bg-m3-surface-container-high text-m3-on-surface-variant transition-colors cursor-pointer"
-            aria-label="Quay lại"
+            aria-label={t("teacher_sr_cohort.back")}
           >
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <SectionHeader
-            title={data?.name ?? "Đang tải..."}
-            subtitle="Tiến độ ôn tập theo bài và lịch sử gần đây"
+            title={data?.name ?? t("common.loading")}
+            subtitle={t("teacher_sr_student_detail.subtitle")}
           />
         </div>
 
@@ -91,10 +97,10 @@ export default function TeacherSrStudentDetailPage() {
           <div className="px-6 py-4 border-b border-m3-outline-variant/20">
             <h2 className="font-heading font-bold text-base text-m3-on-surface flex items-center gap-2">
               <Brain className="h-4 w-4 text-m3-secondary" />
-              Tiến độ theo bài học
+              {t("teacher_sr_student_detail.lessons_title")}
             </h2>
             <p className="text-xs text-m3-on-surface-variant mt-0.5">
-              KR ước tính, số thẻ và trạng thái cho từng bài
+              {t("teacher_sr_student_detail.lessons_subtitle")}
             </p>
           </div>
 
@@ -111,30 +117,30 @@ export default function TeacherSrStudentDetailPage() {
             <div className="px-6 py-12 flex flex-col items-center gap-3 text-center">
               <Lock className="h-8 w-8 text-m3-on-surface-variant opacity-40" />
               <p className="text-sm font-semibold text-m3-on-surface">
-                Sinh viên chưa bắt đầu ôn tập bài nào
+                {t("teacher_sr_student_detail.empty_lessons")}
               </p>
             </div>
           ) : (
             <div className="divide-y divide-m3-outline-variant/10">
               <div className="hidden sm:grid grid-cols-[1fr_120px_120px_120px_120px] gap-3 px-6 py-2.5 bg-m3-surface-container-low">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-m3-on-surface-variant">
-                  Bài học
+                  {t("teacher_sr_student_detail.cols.lesson")}
                 </span>
                 <span className="text-[10px] font-bold uppercase tracking-widest text-m3-on-surface-variant">
                   KR
                 </span>
                 <span className="text-[10px] font-bold uppercase tracking-widest text-m3-on-surface-variant">
-                  Tổng thẻ
+                  {t("teacher_sr_student_detail.cols.cards_total")}
                 </span>
                 <span className="text-[10px] font-bold uppercase tracking-widest text-m3-on-surface-variant">
-                  Cần ôn
+                  {t("teacher_sr_student_detail.cols.cards_due")}
                 </span>
                 <span className="text-[10px] font-bold uppercase tracking-widest text-m3-on-surface-variant">
-                  Trạng thái
+                  {t("teacher_sr_student_detail.cols.status")}
                 </span>
               </div>
               {lessons.map((lesson) => {
-                const meta = STATUS_META[lesson.status];
+                const badge = STATUS_BADGE[lesson.status];
                 return (
                   <div
                     key={lesson.lesson_id}
@@ -162,10 +168,10 @@ export default function TeacherSrStudentDetailPage() {
                     <span
                       className={cn(
                         "text-[10px] font-bold px-2.5 py-1 rounded-full border w-fit",
-                        meta.badge,
+                        badge,
                       )}
                     >
-                      {meta.label}
+                      {t(STATUS_KEY[lesson.status])}
                     </span>
                   </div>
                 );
@@ -178,12 +184,12 @@ export default function TeacherSrStudentDetailPage() {
           <div className="px-6 py-4 border-b border-m3-outline-variant/20">
             <h2 className="font-heading font-bold text-base text-m3-on-surface flex items-center gap-2">
               <Clock className="h-4 w-4 text-m3-secondary" />
-              Lịch sử ôn tập gần đây
+              {t("teacher_sr_student_detail.recent_title")}
             </h2>
             <p className="text-xs text-m3-on-surface-variant mt-0.5">
               {reviews.length > 0
-                ? `${reviews.length} lượt ôn tập gần nhất`
-                : "Chưa có lịch sử"}
+                ? t("teacher_sr_student_detail.recent_count", { count: reviews.length })
+                : t("teacher_sr_student_detail.no_history")}
             </p>
           </div>
 
@@ -200,7 +206,7 @@ export default function TeacherSrStudentDetailPage() {
             <div className="px-6 py-10 flex flex-col items-center gap-2 text-center">
               <Clock className="h-7 w-7 text-m3-on-surface-variant opacity-40" />
               <p className="text-sm text-m3-on-surface-variant">
-                Sinh viên chưa có hoạt động ôn tập nào.
+                {t("teacher_sr_student_detail.empty_reviews")}
               </p>
             </div>
           ) : (
@@ -232,7 +238,7 @@ export default function TeacherSrStudentDetailPage() {
                   </div>
                   <div className="text-right shrink-0">
                     <p className="text-xs text-m3-on-surface-variant">
-                      Q gần nhất
+                      {t("teacher_sr_student_detail.cols.q_recent")}
                     </p>
                     <p className="text-sm font-bold text-m3-primary">
                       {review.q_derived}
@@ -240,7 +246,7 @@ export default function TeacherSrStudentDetailPage() {
                   </div>
                   <div className="text-right shrink-0 hidden sm:block">
                     <p className="text-xs text-m3-on-surface-variant">
-                      EF sau
+                      {t("teacher_sr_student_detail.cols.ef_after")}
                     </p>
                     <p className="text-sm font-bold text-m3-on-surface">
                       {review.ef_after.toFixed(2)}

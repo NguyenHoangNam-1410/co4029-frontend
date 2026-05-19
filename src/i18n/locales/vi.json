@@ -140,6 +140,29 @@
       "regen_failed": "Không thể tạo lại mã khôi phục."
     }
   },
+  "teacher_sr_student_detail": {
+    "breadcrumb_detail": "Chi tiết",
+    "subtitle": "Tiến độ ôn tập theo bài và lịch sử gần đây",
+    "just_now": "Vừa xong",
+    "minutes_ago": "{{count}} phút trước",
+    "hours_ago": "{{count}} giờ trước",
+    "days_ago": "{{count}} ngày trước",
+    "lessons_title": "Tiến độ theo bài học",
+    "lessons_subtitle": "KR ước tính, số thẻ và trạng thái cho từng bài",
+    "empty_lessons": "Sinh viên chưa bắt đầu ôn tập bài nào",
+    "cols": {
+      "lesson": "Bài học",
+      "cards_total": "Tổng thẻ",
+      "cards_due": "Cần ôn",
+      "status": "Trạng thái",
+      "q_recent": "Q gần nhất",
+      "ef_after": "EF sau"
+    },
+    "recent_title": "Lịch sử ôn tập gần đây",
+    "recent_count": "{{count}} lượt ôn tập gần nhất",
+    "no_history": "Chưa có lịch sử",
+    "empty_reviews": "Sinh viên chưa có hoạt động ôn tập nào."
+  },
   "teacher_sr_at_risk": {
     "breadcrumb_at_risk": "Sinh viên cần hỗ trợ",
     "title": "Sinh viên cần hỗ trợ",

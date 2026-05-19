@@ -140,6 +140,32 @@
       "regen_failed": "Couldn't regenerate recovery codes."
     }
   },
+  "teacher_sr_student_detail": {
+    "breadcrumb_detail": "Detail",
+    "subtitle": "Per-lesson review progress and recent history",
+    "just_now": "Just now",
+    "minutes_ago": "{{count}} min ago",
+    "minutes_ago_plural": "{{count}} mins ago",
+    "hours_ago": "{{count}} hour ago",
+    "hours_ago_plural": "{{count}} hours ago",
+    "days_ago": "{{count}} day ago",
+    "days_ago_plural": "{{count}} days ago",
+    "lessons_title": "Lesson progress",
+    "lessons_subtitle": "Estimated KR, card counts, and status per lesson",
+    "empty_lessons": "Student hasn't started any lesson yet",
+    "cols": {
+      "lesson": "Lesson",
+      "cards_total": "Total cards",
+      "cards_due": "Due now",
+      "status": "Status",
+      "q_recent": "Recent Q",
+      "ef_after": "EF after"
+    },
+    "recent_title": "Recent review history",
+    "recent_count": "{{count}} most recent reviews",
+    "no_history": "No history yet",
+    "empty_reviews": "Student has no review activity yet."
+  },
   "teacher_sr_at_risk": {
     "breadcrumb_at_risk": "At-risk students",
     "title": "Students who need help",
