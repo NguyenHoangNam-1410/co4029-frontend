@@ -140,6 +140,50 @@
       "regen_failed": "Không thể tạo lại mã khôi phục."
     }
   },
+  "dept_courses": {
+    "title": "Quản lý đội ngũ",
+    "subtitle": "Phân công giảng viên và xem danh sách lớp.",
+    "no_permission": "Không có quyền truy cập",
+    "load_failed": "Không thể tải danh sách khóa học.",
+    "empty_title": "Bạn chưa được phân công khóa học nào để quản lý.",
+    "empty_body": "Khi quản trị viên gán khóa học vào phạm vi của bạn, danh sách sẽ xuất hiện tại đây.",
+    "status": {
+      "draft": "Bản nháp",
+      "published": "Đã xuất bản",
+      "archived": "Đã lưu trữ"
+    }
+  },
+  "google_callback": {
+    "in_progress": "Đang hoàn tất đăng nhập Google...",
+    "success_redirecting": "Signed in successfully. Redirecting...",
+    "mfa_redirect": "Đăng nhập thành công. Đang chuyển sang xác thực hai bước...",
+    "exchange_default": "Securely exchanging your Google authorization code with aBridgeAI.",
+    "cancelled_title": "Google sign-in was cancelled.",
+    "missing_code_title": "Google did not return an authorization code.",
+    "missing_code_detail": "Start the sign-in flow again from the login page.",
+    "state_mismatch_title": "Unable to verify the Google sign-in response.",
+    "state_mismatch_detail": "The sign-in state did not match. Please try again.",
+    "exchange_failed_title": "Unable to finish Google sign-in.",
+    "exchange_failed_detail": "Please try again.",
+    "toast_failed": "Đăng nhập thất bại. Vui lòng thử lại."
+  },
+  "login_mfa": {
+    "title": "Xác thực hai bước",
+    "subtitle": "Nhập mã 6 chữ số từ ứng dụng xác thực, hoặc một mã khôi phục.",
+    "tab_totp": "Mã TOTP",
+    "tab_recovery": "Mã khôi phục",
+    "totp_label": "Mã 6 chữ số",
+    "recovery_label": "Mã khôi phục",
+    "verify": "Xác thực",
+    "verifying": "Đang xác thực...",
+    "creating_challenge": "Đang tạo phiên xác thực...",
+    "errors": {
+      "challenge_failed": "Không thể bắt đầu xác thực hai bước. Vui lòng thử lại.",
+      "session_not_ready": "Phiên xác thực chưa sẵn sàng. Vui lòng đợi trong giây lát.",
+      "invalid_code": "Mã không hợp lệ"
+    },
+    "success": "Xác thực thành công"
+  },
   "me_career_paths": {
     "title": "Lộ trình của tôi",
     "subtitle": "Theo dõi tiến độ học tập trên các lộ trình bạn đã đăng ký.",

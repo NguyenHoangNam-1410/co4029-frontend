@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { AlertCircle, Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -10,6 +11,7 @@ import {
 import { useGoogleCallback } from "@/lib/api/hooks/auth";
 
 export default function GoogleCallbackPage() {
+  const { t } = useTranslation();
   const search = useSearch({ strict: false }) as {
     code?: string | null;
     state?: string | null;
@@ -19,7 +21,7 @@ export default function GoogleCallbackPage() {
   const navigate = useNavigate();
   const googleCallback = useGoogleCallback();
 
-  const [status, setStatus] = useState("Đang hoàn tất đăng nhập Google...");
+  const [status, setStatus] = useState(t("google_callback.in_progress"));
   const [details, setDetails] = useState<string | null>(null);
   const [hasFailed, setHasFailed] = useState(false);
   const hasProcessed = useRef(false);
@@ -34,7 +36,7 @@ export default function GoogleCallbackPage() {
       setHasFailed(true);
       setStatus(message);
       setDetails(detail);
-      toast.error("Đăng nhập thất bại. Vui lòng thử lại.");
+      toast.error(t("google_callback.toast_failed"));
       void navigate({
         to: "/login",
         search: { error: "oauth" } as never,
@@ -44,14 +46,14 @@ export default function GoogleCallbackPage() {
 
     async function finishLogin() {
       if (error) {
-        fail("Google sign-in was cancelled.", error);
+        fail(t("google_callback.cancelled_title"), error);
         return;
       }
 
       if (!code) {
         fail(
-          "Google did not return an authorization code.",
-          "Start the sign-in flow again from the login page.",
+          t("google_callback.missing_code_title"),
+          t("google_callback.missing_code_detail"),
         );
         return;
       }
@@ -63,8 +65,8 @@ export default function GoogleCallbackPage() {
 
       if (!state || !expectedState || state !== expectedState) {
         fail(
-          "Unable to verify the Google sign-in response.",
-          "The sign-in state did not match. Please try again.",
+          t("google_callback.state_mismatch_title"),
+          t("google_callback.state_mismatch_detail"),
         );
         return;
       }
@@ -75,23 +77,23 @@ export default function GoogleCallbackPage() {
 
         if (tokenResponse.requires_mfa) {
           const next = consumePostLoginRedirect();
-          setStatus("Đăng nhập thành công. Đang chuyển sang xác thực hai bước...");
+          setStatus(t("google_callback.mfa_redirect"));
           window.location.replace(`/login/mfa?next=${encodeURIComponent(next)}`);
           return;
         }
 
-        setStatus("Signed in successfully. Redirecting...");
+        setStatus(t("google_callback.success_redirecting"));
         window.location.replace(consumePostLoginRedirect());
       } catch (err) {
         fail(
-          "Unable to finish Google sign-in.",
-          err instanceof Error ? err.message : "Please try again.",
+          t("google_callback.exchange_failed_title"),
+          err instanceof Error ? err.message : t("google_callback.exchange_failed_detail"),
         );
       }
     }
 
     void finishLogin();
-  }, [search, googleCallback, navigate]);
+  }, [search, googleCallback, navigate, t]);
 
   return (
     <main className="min-h-screen bg-m3-surface-bright px-6 py-10 flex items-center justify-center">
@@ -109,8 +111,7 @@ export default function GoogleCallbackPage() {
         </h1>
 
         <p className="mt-4 text-sm font-medium leading-relaxed text-m3-on-surface-variant">
-          {details ??
-            "Securely exchanging your Google authorization code with aBridgeAI."}
+          {details ?? t("google_callback.exchange_default")}
         </p>
 
         {!hasFailed && (

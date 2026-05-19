@@ -140,6 +140,50 @@
       "regen_failed": "Couldn't regenerate recovery codes."
     }
   },
+  "dept_courses": {
+    "title": "Team management",
+    "subtitle": "Assign instructors and view class rosters.",
+    "no_permission": "You do not have permission to access this page",
+    "load_failed": "Couldn't load courses.",
+    "empty_title": "You have no courses assigned to manage yet.",
+    "empty_body": "When an admin assigns courses to your scope, they will appear here.",
+    "status": {
+      "draft": "Draft",
+      "published": "Published",
+      "archived": "Archived"
+    }
+  },
+  "google_callback": {
+    "in_progress": "Finishing Google sign-in…",
+    "success_redirecting": "Signed in successfully. Redirecting…",
+    "mfa_redirect": "Signed in successfully. Continuing to two-factor authentication…",
+    "exchange_default": "Securely exchanging your Google authorization code with aBridgeAI.",
+    "cancelled_title": "Google sign-in was cancelled.",
+    "missing_code_title": "Google did not return an authorization code.",
+    "missing_code_detail": "Start the sign-in flow again from the login page.",
+    "state_mismatch_title": "Unable to verify the Google sign-in response.",
+    "state_mismatch_detail": "The sign-in state did not match. Please try again.",
+    "exchange_failed_title": "Unable to finish Google sign-in.",
+    "exchange_failed_detail": "Please try again.",
+    "toast_failed": "Sign-in failed. Please try again."
+  },
+  "login_mfa": {
+    "title": "Two-factor authentication",
+    "subtitle": "Enter the 6-digit code from your authenticator app, or a recovery code.",
+    "tab_totp": "TOTP code",
+    "tab_recovery": "Recovery code",
+    "totp_label": "6-digit code",
+    "recovery_label": "Recovery code",
+    "verify": "Verify",
+    "verifying": "Verifying…",
+    "creating_challenge": "Creating verification challenge…",
+    "errors": {
+      "challenge_failed": "Couldn't start two-factor verification. Please try again.",
+      "session_not_ready": "Verification session not ready. Please wait a moment.",
+      "invalid_code": "Invalid code"
+    },
+    "success": "Verification successful"
+  },
   "me_career_paths": {
     "title": "My career paths",
     "subtitle": "Track your progress on the paths you're enrolled in.",

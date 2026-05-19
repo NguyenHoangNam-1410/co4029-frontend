@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { Loader2, ShieldCheck, ArrowRight, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 
@@ -15,6 +16,7 @@ import { clearMfaRequired } from "@/lib/auth";
 type Mode = "totp" | "recovery";
 
 export default function LoginMfaPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const search = useSearch({ strict: false }) as { next?: string };
   const { isAuthenticated, requiresMfa } = useAuth();
@@ -47,16 +49,16 @@ export default function LoginMfaPage() {
         setChallengeId(response.challenge_id);
       },
       onError: () => {
-        toast.error("Không thể bắt đầu xác thực hai bước. Vui lòng thử lại.");
+        toast.error(t("login_mfa.errors.challenge_failed"));
       },
     });
-  }, [isAuthenticated, requiresMfa, search.next, navigate, challenge]);
+  }, [isAuthenticated, requiresMfa, search.next, navigate, challenge, t]);
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!challengeId) {
-      toast.error("Phiên xác thực chưa sẵn sàng. Vui lòng đợi trong giây lát.");
+      toast.error(t("login_mfa.errors.session_not_ready"));
       return;
     }
 
@@ -71,12 +73,12 @@ export default function LoginMfaPage() {
     verify.mutate(body, {
       onSuccess: () => {
         clearMfaRequired();
-        toast.success("Xác thực thành công");
+        toast.success(t("login_mfa.success"));
         const next = search.next ?? "/dashboard";
         window.location.replace(next);
       },
       onError: () => {
-        toast.error("Mã không hợp lệ");
+        toast.error(t("login_mfa.errors.invalid_code"));
         setCode("");
       },
     });
@@ -103,10 +105,10 @@ export default function LoginMfaPage() {
             <ShieldCheck className="h-6 w-6" />
           </div>
           <h1 className="font-headline text-3xl font-extrabold tracking-tight text-m3-on-surface">
-            Xác thực hai bước
+            {t("login_mfa.title")}
           </h1>
           <p className="mt-2 text-sm font-medium text-m3-on-surface-variant">
-            Nhập mã 6 chữ số từ ứng dụng xác thực, hoặc một mã khôi phục.
+            {t("login_mfa.subtitle")}
           </p>
         </header>
 
@@ -128,7 +130,7 @@ export default function LoginMfaPage() {
                 : "text-m3-on-surface-variant hover:text-m3-on-surface"
             }`}
           >
-            Mã TOTP
+            {t("login_mfa.tab_totp")}
           </button>
           <button
             type="button"
@@ -144,7 +146,7 @@ export default function LoginMfaPage() {
                 : "text-m3-on-surface-variant hover:text-m3-on-surface"
             }`}
           >
-            Mã khôi phục
+            {t("login_mfa.tab_recovery")}
           </button>
         </div>
 
@@ -154,7 +156,7 @@ export default function LoginMfaPage() {
               htmlFor="mfa-code"
               className="text-sm font-semibold text-m3-on-surface"
             >
-              {mode === "totp" ? "Mã 6 chữ số" : "Mã khôi phục"}
+              {mode === "totp" ? t("login_mfa.totp_label") : t("login_mfa.recovery_label")}
             </label>
             <Input
               id="mfa-code"
@@ -180,7 +182,7 @@ export default function LoginMfaPage() {
             ) : (
               <KeyRound className="h-5 w-5" />
             )}
-            <span>{isVerifying ? "Đang xác thực..." : "Xác thực"}</span>
+            <span>{isVerifying ? t("login_mfa.verifying") : t("login_mfa.verify")}</span>
             {!isVerifying && <ArrowRight className="h-5 w-5" />}
           </Button>
         </form>
@@ -188,7 +190,7 @@ export default function LoginMfaPage() {
         {isLoadingChallenge && (
           <p className="flex items-center justify-center gap-2 text-xs font-medium text-m3-on-surface-variant">
             <Loader2 className="h-4 w-4 animate-spin" />
-            Đang tạo phiên xác thực...
+            {t("login_mfa.creating_challenge")}
           </p>
         )}
       </section>
