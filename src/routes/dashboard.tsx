@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useMyCourses } from "@/lib/api/hooks/courses";
 import { useNotifications } from "@/lib/api/hooks/notifications";
@@ -27,16 +28,18 @@ import {
 } from "lucide-react";
 
 function CourseProgressCard({ course }: { course: Course }) {
+  const { t } = useTranslation();
   return (
     <div className="bg-m3-surface-container-lowest rounded-xl shadow-editorial ghost-border p-6 flex flex-col gap-4 hover:-translate-y-0.5 transition-transform duration-200">
       <div className="relative h-32 rounded-xl overflow-hidden bg-gradient-to-br from-m3-primary to-m3-secondary flex items-center justify-center">
         <GraduationCap className="h-10 w-10 text-white/60" />
         <div className="absolute top-3 right-3">
           <Badge className="bg-m3-secondary-fixed text-m3-on-secondary-fixed border-0 text-xs font-medium">
-            Đã ghi danh
+            {t("dashboard.enrolled_badge")}
           </Badge>
         </div>
-      </div>      <div className="space-y-2 flex-1">
+      </div>
+      <div className="space-y-2 flex-1">
         <h3 className="font-headline font-semibold text-m3-on-surface text-base leading-snug">
           {course.title}
         </h3>
@@ -52,7 +55,7 @@ function CourseProgressCard({ course }: { course: Course }) {
         params={{ slug: course.slug }}
         className="inline-flex items-center gap-2 gradient-primary text-white rounded-xl font-semibold px-4 py-2 text-sm shadow-glass hover:opacity-90 transition-opacity self-start"
       >
-        Mở khóa học
+        {t("dashboard.open_course")}
         <ArrowRight className="h-4 w-4" />
       </Link>
     </div>
@@ -60,16 +63,17 @@ function CourseProgressCard({ course }: { course: Course }) {
 }
 
 function EmptyCourses() {
+  const { t } = useTranslation();
   return (
     <div className="col-span-full">
       <EmptyState
         icon={BookOpen}
-        title="Bạn chưa được đăng ký khóa học nào"
-        description="Liên hệ giảng viên hoặc bộ phận đào tạo để được đăng ký khóa học phù hợp với lộ trình của bạn."
+        title={t("dashboard.empty_courses_title")}
+        description={t("dashboard.empty_courses_body")}
         cta={
           <Link to="/courses">
             <Button variant="default" className="gap-2 font-semibold">
-              Khám phá khóa học
+              {t("dashboard.discover_courses")}
               <ArrowRight className="h-4 w-4" />
             </Button>
           </Link>
@@ -113,6 +117,7 @@ function NotificationItem({ notification }: {
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [fabHovered, setFabHovered] = useState(false);
   const carouselRef = useRef<HTMLDivElement>(null);
 
@@ -152,45 +157,47 @@ export default function DashboardPage() {
                   {initials}
                 </AvatarFallback>
               </Avatar>
-              <AIInsightChip pulse={false} className="ai-pulse">Phiên đang hoạt động</AIInsightChip>
+              <AIInsightChip pulse={false} className="ai-pulse">
+                {t("dashboard.active_session")}
+              </AIInsightChip>
             </div>
             <h1 className="font-headline font-bold text-4xl text-m3-primary leading-tight">
-              Chào mừng trở lại, {firstName}.
+              {t("dashboard.welcome", { name: firstName })}
             </h1>
             <p className="text-m3-on-surface-variant text-base">
               {enrolledCount > 0
-                ? `Bạn đang theo học ${enrolledCount} khóa học.`
-                : "Khám phá thư viện khóa học để bắt đầu hành trình học tập."}
+                ? t("dashboard.enrolled_count", { count: enrolledCount })
+                : t("dashboard.explore_intro")}
             </p>
           </div>
         </header>
 
         <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <StatCard
-            label="Đã đăng ký"
+            label={t("dashboard.stats.enrolled")}
             value={coursesLoading ? "—" : enrolledCount}
-            sublabel="Khóa học đang theo"
+            sublabel={t("dashboard.stats.enrolled_sub")}
             icon={BookOpen}
             variant="primary"
           />
           <StatCard
-            label="Thông báo"
+            label={t("dashboard.stats.notifications")}
             value={notificationsLoading ? "—" : unreadCount}
-            sublabel="Chưa đọc"
+            sublabel={t("dashboard.stats.notifications_sub")}
             icon={Bell}
             variant="surface"
           />
           <StatCard
-            label="Bài kiểm tra"
+            label={t("dashboard.stats.quizzes")}
             value="—"
-            sublabel="Đang chờ chấm"
+            sublabel={t("dashboard.stats.quizzes_sub")}
             icon={FileText}
             variant="surface"
           />
           <StatCard
-            label="Phỏng vấn"
+            label={t("dashboard.stats.interviews")}
             value="—"
-            sublabel="Đã lên lịch"
+            sublabel={t("dashboard.stats.interviews_sub")}
             icon={Mic}
             variant="surface"
           />
@@ -198,14 +205,17 @@ export default function DashboardPage() {
 
         <section className="space-y-5">
           <div className="flex items-center justify-between">
-            <SectionHeader title="Khóa học của bạn" subtitle="Tiếp tục từ nơi bạn đã dừng" />
+            <SectionHeader
+              title={t("dashboard.your_courses")}
+              subtitle={t("dashboard.your_courses_sub")}
+            />
             <div className="flex items-center gap-2 shrink-0">
               {enrolledCount > 8 && (
                 <Link
                   to="/courses"
                   className="text-xs font-semibold text-m3-secondary hover:underline"
                 >
-                  Xem tất cả
+                  {t("dashboard.view_all")}
                 </Link>
               )}
               {enrolledCount > 3 && (
@@ -215,7 +225,7 @@ export default function DashboardPage() {
                     size="icon"
                     onClick={() => scrollCarousel("left")}
                     className="rounded-xl border-m3-outline-variant hover:bg-m3-surface-container-low"
-                    aria-label="Cuộn trái"
+                    aria-label={t("dashboard.scroll_left")}
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
@@ -224,7 +234,7 @@ export default function DashboardPage() {
                     size="icon"
                     onClick={() => scrollCarousel("right")}
                     className="rounded-xl border-m3-outline-variant hover:bg-m3-surface-container-low"
-                    aria-label="Cuộn phải"
+                    aria-label={t("dashboard.scroll_right")}
                   >
                     <ChevronRight className="h-4 w-4" />
                   </Button>
@@ -266,8 +276,12 @@ export default function DashboardPage() {
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <SectionHeader
-              title="Thông báo"
-              subtitle={unreadCount > 0 ? `${unreadCount} chưa đọc` : "Bạn đã xem hết"}
+              title={t("dashboard.notifications_section")}
+              subtitle={
+                unreadCount > 0
+                  ? t("dashboard.unread_n", { count: unreadCount })
+                  : t("dashboard.all_caught_up")
+              }
             />
           </div>
 
@@ -281,8 +295,8 @@ export default function DashboardPage() {
             ) : notifications.length === 0 ? (
               <EmptyState
                 icon={Bell}
-                title="Chưa có thông báo nào"
-                description="Khi có bài kiểm tra, phỏng vấn hoặc cập nhật khóa học, thông báo sẽ xuất hiện ở đây."
+                title={t("dashboard.empty_notifications_title")}
+                description={t("dashboard.empty_notifications_body")}
               />
             ) : (
               <div className="p-3 space-y-1 max-h-72 overflow-y-auto">
@@ -298,28 +312,28 @@ export default function DashboardPage() {
           <div className="pointer-events-none absolute -bottom-10 -right-10 w-48 h-48 rounded-full opacity-20 blur-2xl" style={{ background: "#1d4ed8" }} />
 
           <AIInsightChip className="self-start bg-white/15 text-white border-0">
-            Hỗ trợ bởi AI
+            {t("dashboard.ai_chip")}
           </AIInsightChip>
 
           <div className="space-y-2">
             <h3 className="font-headline font-bold text-2xl text-white leading-snug">
-              Sẵn sàng cho thử thách kế tiếp?
+              {t("dashboard.ready_title")}
             </h3>
             <p className="text-white/70 text-sm leading-relaxed max-w-lg">
-              Hoàn thành các khóa học đã đăng ký, làm bài kiểm tra do AI tạo và luyện tập các kịch bản phỏng vấn thực tế — tất cả đều được theo dõi và cá nhân hóa theo lộ trình học của bạn.
+              {t("dashboard.ready_body")}
             </p>
           </div>
 
           <div className="flex flex-wrap gap-3">
             <Link to="/courses">
               <Button className="bg-white text-m3-primary hover:bg-white/90 rounded-xl font-semibold gap-2 transition-colors">
-                Khám phá khóa học
+                {t("dashboard.discover_courses")}
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
             <Link to="/dashboard/sr">
               <Button variant="outline" className="bg-white/10 border-white/25 text-white hover:bg-white/20 rounded-xl font-semibold">
-                Xem tiến độ
+                {t("dashboard.view_progress")}
               </Button>
             </Link>
           </div>
@@ -334,7 +348,7 @@ export default function DashboardPage() {
           }`}
         >
           <div className="bg-m3-on-surface text-white text-xs font-medium px-3 py-1.5 rounded-lg shadow-editorial whitespace-nowrap">
-            Hỏi trợ lý AI
+            {t("dashboard.ask_ai")}
           </div>
         </div>
 
@@ -344,7 +358,7 @@ export default function DashboardPage() {
           onFocus={() => setFabHovered(true)}
           onBlur={() => setFabHovered(false)}
           className="cursor-pointer gradient-primary text-white w-14 h-14 rounded-xl flex items-center justify-center shadow-ai-glow hover:opacity-90 active:scale-95 transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-m3-secondary"
-          aria-label="Hỏi trợ lý AI"
+          aria-label={t("dashboard.ask_ai")}
         >
           <Bot className="h-6 w-6" />
         </button>

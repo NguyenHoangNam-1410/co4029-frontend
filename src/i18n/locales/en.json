@@ -117,6 +117,43 @@
       }
     }
   },
+  "dashboard": {
+    "active_session": "Active session",
+    "welcome": "Welcome back, {{name}}.",
+    "enrolled_count": "You are enrolled in {{count}} course.",
+    "enrolled_count_plural": "You are enrolled in {{count}} courses.",
+    "explore_intro": "Explore the catalog to start your learning journey.",
+    "stats": {
+      "enrolled": "Enrolled",
+      "enrolled_sub": "Active courses",
+      "notifications": "Notifications",
+      "notifications_sub": "Unread",
+      "quizzes": "Quizzes",
+      "quizzes_sub": "Awaiting grade",
+      "interviews": "Interviews",
+      "interviews_sub": "Scheduled"
+    },
+    "your_courses": "Your courses",
+    "your_courses_sub": "Pick up where you left off",
+    "view_all": "View all",
+    "scroll_left": "Scroll left",
+    "scroll_right": "Scroll right",
+    "notifications_section": "Notifications",
+    "unread_n": "{{count}} unread",
+    "all_caught_up": "All caught up",
+    "empty_notifications_title": "No notifications yet",
+    "empty_notifications_body": "When quizzes, interviews, or course updates arrive, they will appear here.",
+    "empty_courses_title": "You are not enrolled in any course yet",
+    "empty_courses_body": "Contact your instructor or training office to be enrolled in a course that matches your path.",
+    "discover_courses": "Discover courses",
+    "open_course": "Open course",
+    "enrolled_badge": "Enrolled",
+    "ready_title": "Ready for the next challenge?",
+    "ready_body": "Finish your enrolled courses, take AI-generated quizzes, and practice realistic interview scenarios — everything is tracked and personalized to your learning path.",
+    "view_progress": "View progress",
+    "ask_ai": "Ask the AI assistant",
+    "ai_chip": "AI-powered"
+  },
   "languages": {
     "en": "English",
     "vi": "Tiếng Việt",

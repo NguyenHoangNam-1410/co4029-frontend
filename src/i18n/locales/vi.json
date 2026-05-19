@@ -117,6 +117,43 @@
       }
     }
   },
+  "dashboard": {
+    "active_session": "Phiên đang hoạt động",
+    "welcome": "Chào mừng trở lại, {{name}}.",
+    "enrolled_count": "Bạn đang theo học {{count}} khóa học.",
+    "enrolled_count_plural": "Bạn đang theo học {{count}} khóa học.",
+    "explore_intro": "Khám phá thư viện khóa học để bắt đầu hành trình học tập.",
+    "stats": {
+      "enrolled": "Đã đăng ký",
+      "enrolled_sub": "Khóa học đang theo",
+      "notifications": "Thông báo",
+      "notifications_sub": "Chưa đọc",
+      "quizzes": "Bài kiểm tra",
+      "quizzes_sub": "Đang chờ chấm",
+      "interviews": "Phỏng vấn",
+      "interviews_sub": "Đã lên lịch"
+    },
+    "your_courses": "Khóa học của bạn",
+    "your_courses_sub": "Tiếp tục từ nơi bạn đã dừng",
+    "view_all": "Xem tất cả",
+    "scroll_left": "Cuộn trái",
+    "scroll_right": "Cuộn phải",
+    "notifications_section": "Thông báo",
+    "unread_n": "{{count}} chưa đọc",
+    "all_caught_up": "Bạn đã xem hết",
+    "empty_notifications_title": "Chưa có thông báo nào",
+    "empty_notifications_body": "Khi có bài kiểm tra, phỏng vấn hoặc cập nhật khóa học, thông báo sẽ xuất hiện ở đây.",
+    "empty_courses_title": "Bạn chưa được đăng ký khóa học nào",
+    "empty_courses_body": "Liên hệ giảng viên hoặc bộ phận đào tạo để được đăng ký khóa học phù hợp với lộ trình của bạn.",
+    "discover_courses": "Khám phá khóa học",
+    "open_course": "Mở khóa học",
+    "enrolled_badge": "Đã ghi danh",
+    "ready_title": "Sẵn sàng cho thử thách kế tiếp?",
+    "ready_body": "Hoàn thành các khóa học đã đăng ký, làm bài kiểm tra do AI tạo và luyện tập các kịch bản phỏng vấn thực tế — tất cả đều được theo dõi và cá nhân hóa theo lộ trình học của bạn.",
+    "view_progress": "Xem tiến độ",
+    "ask_ai": "Hỏi trợ lý AI",
+    "ai_chip": "Hỗ trợ bởi AI"
+  },
   "languages": {
     "en": "English",
     "vi": "Tiếng Việt",
