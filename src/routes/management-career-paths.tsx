@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useMe, useMyPermissions } from "@/lib/api/hooks/auth";
+import { useMyPermissions } from "@/lib/api/hooks/auth";
 import {
   useCreateCareerPath,
   useListManagedCareerPaths,
@@ -64,10 +64,8 @@ function PathRow({ path }: { path: CareerPathAuthoring }) {
 }
 
 function CreateDialog({
-  organizationId,
   onClose,
 }: {
-  organizationId: string;
   onClose: () => void;
 }) {
   const { t } = useTranslation();
@@ -99,7 +97,6 @@ function CreateDialog({
     }
     create.mutate(
       {
-        organization_id: organizationId,
         name: name.trim(),
         slug: slug.trim(),
         description: description.trim() || undefined,
@@ -214,12 +211,9 @@ function CreateDialog({
   );
 }
 
-const FALLBACK_ORG_ID = "00000000-0000-0000-0000-000000000001";
-
 export default function ManagementCareerPathsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const me = useMe();
   const permissions = useMyPermissions();
 
   const perms = permissions.data?.permissions ?? [];
@@ -235,15 +229,11 @@ export default function ManagementCareerPathsPage() {
     }
   }, [permissions.isLoading, canManage, navigate, t]);
 
-  const meAny = me.data as { organization_id?: string } | undefined;
-  const organizationId = meAny?.organization_id ?? FALLBACK_ORG_ID;
-
   const [includeArchived, setIncludeArchived] = useState(false);
   const [creating, setCreating] = useState(false);
 
   const enabled = !permissions.isLoading && canManage;
   const list = useListManagedCareerPaths({
-    organizationId,
     includeArchived,
     enabled,
   });
@@ -346,7 +336,6 @@ export default function ManagementCareerPathsPage() {
 
       {creating && (
         <CreateDialog
-          organizationId={organizationId}
           onClose={() => setCreating(false)}
         />
       )}

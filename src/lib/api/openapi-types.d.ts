@@ -3426,11 +3426,6 @@ export interface components {
         };
         /** CareerPathCreate */
         CareerPathCreate: {
-            /**
-             * Organization Id
-             * Format: uuid
-             */
-            organization_id: string;
             /** Org Unit Id */
             org_unit_id?: string | null;
             /** Slug */
@@ -12024,8 +12019,8 @@ export interface operations {
     };
     list_career_paths_api_v1_management_career_paths_get: {
         parameters: {
-            query: {
-                organization_id: string;
+            query?: {
+                organization_id?: string;
                 include_archived?: boolean;
             };
             header?: never;

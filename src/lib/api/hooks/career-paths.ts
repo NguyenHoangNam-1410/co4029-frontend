@@ -82,25 +82,26 @@ export function useCreateCareerPath() {
 }
 
 export function useListManagedCareerPaths(opts: {
-  organizationId: string;
+  organizationId?: string;
   includeArchived?: boolean;
   enabled?: boolean;
 }) {
   const { organizationId, includeArchived, enabled = true } = opts;
   return useQuery({
     queryKey: queryKeys.careerPaths.managementList(
-      organizationId,
+      organizationId ?? "",
       includeArchived,
     ),
     queryFn: () => {
       const params = new URLSearchParams();
-      params.set("organization_id", organizationId);
+      if (organizationId) params.set("organization_id", organizationId);
       if (includeArchived) params.set("include_archived", "true");
+      const qs = params.toString();
       return apiFetch<CareerPathAuthoring[]>(
-        `/management/career-paths?${params.toString()}`,
+        qs ? `/management/career-paths?${qs}` : `/management/career-paths`,
       );
     },
-    enabled: enabled && !!organizationId,
+    enabled,
     staleTime: 1000 * 60 * 2,
   });
 }
