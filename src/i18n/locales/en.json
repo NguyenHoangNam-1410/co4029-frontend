@@ -43,7 +43,10 @@
   "admin": {
     "users": {
       "title": "Users",
-      "list_title": "User list",
+      "list_title": "User management",
+      "list_subtitle": "List of users within your permission scope.",
+      "empty_title": "No users yet",
+      "empty_body": "When users are registered, they will appear here.",
       "back_to_list": "Back to list",
       "status": {
         "active": "Active",

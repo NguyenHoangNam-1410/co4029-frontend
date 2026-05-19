@@ -2,28 +2,24 @@ import { useEffect } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Mail, Search, Users } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { InfiniteList } from "@/components/ui/InfiniteList";
 import { useUsersList } from "@/lib/api/hooks/admin";
 import { useMyPermissions } from "@/lib/api/hooks/auth";
 import type { User } from "@/lib/api/types";
 
-const STATUS_LABEL: Record<string, string> = {
-  active: "Đang hoạt động",
-  invited: "Đã mời",
-  disabled: "Vô hiệu hoá",
-  pending: "Chờ duyệt",
-};
-
-const STATUS_COLOR: Record<string, string> = {
-  active: "bg-emerald-100 text-emerald-700",
-  invited: "bg-amber-100 text-amber-700",
-  disabled: "bg-red-100 text-red-700",
-  pending: "bg-slate-100 text-slate-700",
-};
-
 function StatusBadge({ status }: { status: string }) {
+  const { t } = useTranslation();
+  const STATUS_COLOR: Record<string, string> = {
+    active: "bg-emerald-100 text-emerald-700",
+    invited: "bg-amber-100 text-amber-700",
+    disabled: "bg-red-100 text-red-700",
+    inactive: "bg-red-100 text-red-700",
+    pending: "bg-slate-100 text-slate-700",
+    suspended: "bg-red-100 text-red-700",
+  };
   const cls = STATUS_COLOR[status] ?? "bg-slate-100 text-slate-700";
-  const label = STATUS_LABEL[status] ?? status;
+  const label = t(`admin.users.status.${status}`, { defaultValue: status });
   return (
     <span
       className={`inline-block px-2 py-0.5 text-[11px] font-semibold rounded-md ${cls}`}
@@ -64,6 +60,7 @@ function UserRow({ user }: { user: User }) {
 
 export default function AdminUsersPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const permissions = useMyPermissions();
   const canAdmin =
     permissions.data?.permissions.includes("system.administer") ?? false;
@@ -71,10 +68,10 @@ export default function AdminUsersPage() {
   useEffect(() => {
     if (permissions.isLoading) return;
     if (!canAdmin) {
-      toast.error("Không có quyền truy cập");
+      toast.error(t("admin.users.roles.errors.no_permission"));
       void navigate({ to: "/dashboard", replace: true });
     }
-  }, [permissions.isLoading, canAdmin, navigate]);
+  }, [permissions.isLoading, canAdmin, navigate, t]);
 
   const enabled = !permissions.isLoading && canAdmin;
   const list = useUsersList(20);
@@ -99,11 +96,13 @@ export default function AdminUsersPage() {
   return (
     <div className="space-y-6 pb-12">
       <div>
-        <h1 className="text-xl font-headline font-bold text-text-strong">
-          Quản lý người dùng
+        <h1 className="text-2xl font-headline font-bold text-text-strong">
+          {t("admin.users.list_title")}
         </h1>
         <p className="text-sm text-text-muted mt-1">
-          Danh sách người dùng theo phạm vi quyền của bạn.
+          {t("admin.users.list_subtitle", {
+            defaultValue: "List of users within your permission scope.",
+          })}
         </p>
       </div>
 
@@ -119,7 +118,7 @@ export default function AdminUsersPage() {
       ) : list.isError ? (
         <div className="bg-surface-elev border border-border rounded-lg p-5">
           <p className="text-sm text-danger">
-            Không thể tải danh sách người dùng.
+            {t("admin.users.roles.errors.load_failed")}
           </p>
         </div>
       ) : (
@@ -134,10 +133,15 @@ export default function AdminUsersPage() {
             <div className="bg-surface-elev border border-border rounded-lg p-10 text-center">
               <Search className="h-10 w-10 mx-auto mb-3 text-text-subtle" />
               <p className="text-sm font-medium text-text-strong">
-                Chưa có người dùng nào
+                {t("admin.users.empty_title", {
+                  defaultValue: "No users yet",
+                })}
               </p>
               <p className="text-xs text-text-muted mt-1">
-                Khi có người dùng đăng ký, danh sách sẽ xuất hiện tại đây.
+                {t("admin.users.empty_body", {
+                  defaultValue:
+                    "When users are registered, they will appear here.",
+                })}
               </p>
             </div>
           }

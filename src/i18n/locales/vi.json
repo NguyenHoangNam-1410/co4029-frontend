@@ -43,7 +43,10 @@
   "admin": {
     "users": {
       "title": "Người dùng",
-      "list_title": "Danh sách người dùng",
+      "list_title": "Quản lý người dùng",
+      "list_subtitle": "Danh sách người dùng theo phạm vi quyền của bạn.",
+      "empty_title": "Chưa có người dùng nào",
+      "empty_body": "Khi có người dùng đăng ký, danh sách sẽ xuất hiện tại đây.",
       "back_to_list": "Quay lại danh sách",
       "status": {
         "active": "Đang hoạt động",
