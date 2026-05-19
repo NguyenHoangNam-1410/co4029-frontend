@@ -18,9 +18,9 @@ export default defineConfig(({ mode }) => {
     server: {
       host: "0.0.0.0",
       port: 5173,
-      allowedHosts: ["abridgeai.hcmut.app", "abridgeai.tech"],
+      allowedHosts: ["abridgeai.tech", "abridgeai.hcmut.app"],
       hmr: {
-        host: "abridgeai.hcmut.app",
+        host: "abridgeai.tech",
         protocol: "wss",
         clientPort: 443,
       },
