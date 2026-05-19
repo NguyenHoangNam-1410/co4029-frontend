@@ -13,8 +13,8 @@
 /* ── Tailwind v4 Theme ── */
 @theme inline {
   /* Fonts */
-  --font-sans: "Atkinson Hyperlegible", system-ui, -apple-system, sans-serif;
-  --font-heading: "Inter", system-ui, -apple-system, sans-serif;
+ --font-sans: "Be Vietnam Pro", system-ui, -apple-system, sans-serif;
+ --font-heading: "Newsreader", Georgia, serif;
   --font-headline: var(--font-heading);
   --font-body: var(--font-sans);
 
@@ -280,17 +280,17 @@
   body {
     background-color: var(--surface);
     color: var(--text-body);
-    font-family: "Atkinson Hyperlegible", system-ui, -apple-system, sans-serif;
+    font-family: "Be Vietnam Pro", system-ui, -apple-system, sans-serif;
     font-size: 14px;
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
   html {
-    font-family: "Atkinson Hyperlegible", system-ui, -apple-system, sans-serif;
+    font-family: "Be Vietnam Pro", system-ui, -apple-system, sans-serif;
   }
   h1, h2, h3, h4, h5, h6 {
-    font-family: "Inter", system-ui, -apple-system, sans-serif;
+    font-family: "Newsreader", Georgia, serif;
     font-weight: 600;
     color: var(--text-strong);
     letter-spacing: -0.01em;
