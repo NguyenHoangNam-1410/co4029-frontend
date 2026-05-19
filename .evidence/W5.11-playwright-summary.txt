@@ -1,0 +1,22 @@
+
+> abridgeai-frontend@0.1.0 test:e2e
+> playwright test --grep wave-5-smoke
+
+
+Running 12 tests using 1 worker
+
+  -   1 [chromium] › tests/e2e/wave-5-smoke.spec.ts:74:3 › wave-5-smoke › 01 quiz authoring page renders
+  -   2 [chromium] › tests/e2e/wave-5-smoke.spec.ts:93:3 › wave-5-smoke › 02 bulk-set-expected-time form renders
+  ✓   3 [chromium] › tests/e2e/wave-5-smoke.spec.ts:123:3 › wave-5-smoke › 03 interview gap report or config-new route renders (1.4s)
+  ✓   4 [chromium] › tests/e2e/wave-5-smoke.spec.ts:158:3 › wave-5-smoke › 04 SR student dashboard renders (1.4s)
+  ✓   5 [chromium] › tests/e2e/wave-5-smoke.spec.ts:167:3 › wave-5-smoke › 05 cards-due infinite-scroll list renders (1.3s)
+  ✓   6 [chromium] › tests/e2e/wave-5-smoke.spec.ts:180:3 › wave-5-smoke › 06 cohort KR histogram renders (1.3s)
+  ✓   7 [chromium] › tests/e2e/wave-5-smoke.spec.ts:198:3 › wave-5-smoke › 07 at-risk roster renders (1.3s)
+  ✓   8 [chromium] › tests/e2e/wave-5-smoke.spec.ts:214:3 › wave-5-smoke › 08 admin AI cost summary renders (1.4s)
+  ✓   9 [chromium] › tests/e2e/wave-5-smoke.spec.ts:230:3 › wave-5-smoke › 09 career paths list renders (1.3s)
+  -  10 [chromium] › tests/e2e/wave-5-smoke.spec.ts:239:3 › wave-5-smoke › 10 manager career paths CRUD route renders
+  ✓  11 [chromium] › tests/e2e/wave-5-smoke.spec.ts:260:3 › wave-5-smoke › 11 notification body Markdown link renders (1.5s)
+  ✓  12 [chromium] › tests/e2e/wave-5-smoke.spec.ts:312:3 › wave-5-smoke › 12 no legacy hook imports remain (8ms)
+
+  3 skipped
+  9 passed (15.2s)
