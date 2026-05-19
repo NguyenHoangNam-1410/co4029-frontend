@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { Bell, Loader2 } from "lucide-react";
 import { SectionHeader } from "@/components/ui/section-header";
 import {
@@ -12,18 +13,15 @@ import type {
   NotificationPreferenceRead,
 } from "@/lib/api/types";
 
-const CATEGORIES: { id: NotificationCategory; label: string }[] = [
-  { id: "spaced_repetition", label: "Ôn tập lặp lại" },
-  { id: "lesson_unlock", label: "Mở khóa bài học" },
-  { id: "interview_result", label: "Kết quả phỏng vấn" },
-  { id: "course_announcement", label: "Thông báo khóa học" },
-  { id: "system", label: "Hệ thống" },
+const CATEGORY_IDS: NotificationCategory[] = [
+  "spaced_repetition",
+  "lesson_unlock",
+  "interview_result",
+  "course_announcement",
+  "system",
 ];
 
-const CHANNELS: { id: NotificationChannel; label: string }[] = [
-  { id: "email", label: "Email" },
-  { id: "in_app", label: "Trong ứng dụng" },
-];
+const CHANNEL_IDS: NotificationChannel[] = ["email", "in_app"];
 
 function isEnabled(
   prefs: NotificationPreferenceRead[] | undefined,
@@ -70,20 +68,22 @@ function ToggleSwitch({
 }
 
 export default function SettingsNotificationsPage() {
+  const { t } = useTranslation();
   const { data: prefs, isLoading, isError, error } =
     useNotificationPreferences();
   const patch = usePatchNotificationPreference();
 
   const matrix = useMemo(
     () =>
-      CATEGORIES.map((cat) => ({
-        ...cat,
-        cells: CHANNELS.map((ch) => ({
-          channel: ch.id,
-          enabled: isEnabled(prefs, cat.id, ch.id),
+      CATEGORY_IDS.map((id) => ({
+        id,
+        label: t(`settings_notifications.category.${id}`),
+        cells: CHANNEL_IDS.map((ch) => ({
+          channel: ch,
+          enabled: isEnabled(prefs, id, ch),
         })),
       })),
-    [prefs],
+    [prefs, t],
   );
 
   function handleToggle(
@@ -96,7 +96,7 @@ export default function SettingsNotificationsPage() {
       {
         onError: (err) =>
           toast.error(
-            (err as Error).message || "Không thể cập nhật tùy chọn",
+            (err as Error).message || t("settings_notifications.errors.patch_failed"),
           ),
       },
     );
@@ -104,10 +104,10 @@ export default function SettingsNotificationsPage() {
 
   return (
     <div className="min-h-screen bg-m3-surface pb-16">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      <div className="max-w-3xl mx-auto pb-6 space-y-6">
         <SectionHeader
-          title="Tùy chọn thông báo"
-          subtitle="Bạn sẽ luôn nhận được thông báo trong ứng dụng. Tắt email cho từng loại nếu không muốn nhận."
+          title={t("settings_notifications.title")}
+          subtitle={t("settings_notifications.subtitle")}
         />
 
         <div className="bg-m3-surface-container-lowest rounded-xl shadow-editorial ghost-border overflow-hidden">
@@ -121,10 +121,10 @@ export default function SettingsNotificationsPage() {
                 <Bell className="h-6 w-6 text-m3-on-error-container" />
               </div>
               <p className="text-sm font-semibold text-m3-on-surface">
-                Không thể tải tùy chọn
+                {t("settings_notifications.load_failed")}
               </p>
               <p className="text-xs text-m3-on-surface-variant">
-                {(error as Error)?.message ?? "Vui lòng thử lại"}
+                {(error as Error)?.message ?? t("settings_notifications.retry_hint")}
               </p>
             </div>
           ) : (
@@ -134,14 +134,14 @@ export default function SettingsNotificationsPage() {
                   <thead className="bg-m3-surface-container-low">
                     <tr>
                       <th className="text-left text-xs font-semibold uppercase tracking-wide text-m3-on-surface-variant px-4 py-3">
-                        Loại thông báo
+                        {t("settings_notifications.category_col")}
                       </th>
-                      {CHANNELS.map((ch) => (
+                      {CHANNEL_IDS.map((ch) => (
                         <th
-                          key={ch.id}
+                          key={ch}
                           className="text-center text-xs font-semibold uppercase tracking-wide text-m3-on-surface-variant px-4 py-3 w-32"
                         >
-                          {ch.label}
+                          {t(`settings_notifications.channel.${ch}`)}
                         </th>
                       ))}
                     </tr>
@@ -164,10 +164,9 @@ export default function SettingsNotificationsPage() {
                                 onChange={(next) =>
                                   handleToggle(row.id, cell.channel, next)
                                 }
-                                ariaLabel={`${row.label} – ${
-                                  CHANNELS.find((c) => c.id === cell.channel)
-                                    ?.label
-                                }`}
+                                ariaLabel={`${row.label} – ${t(
+                                  `settings_notifications.channel.${cell.channel}`,
+                                )}`}
                               />
                             </div>
                           </td>
@@ -186,9 +185,9 @@ export default function SettingsNotificationsPage() {
                     </p>
                     <div className="space-y-2">
                       {row.cells.map((cell) => {
-                        const channelLabel =
-                          CHANNELS.find((c) => c.id === cell.channel)?.label ??
-                          cell.channel;
+                        const channelLabel = t(
+                          `settings_notifications.channel.${cell.channel}`,
+                        );
                         return (
                           <div
                             key={cell.channel}

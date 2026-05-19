@@ -140,6 +140,27 @@
       "regen_failed": "Không thể tạo lại mã khôi phục."
     }
   },
+  "settings_notifications": {
+    "title": "Tùy chọn thông báo",
+    "subtitle": "Bạn sẽ luôn nhận được thông báo trong ứng dụng. Tắt email cho từng loại nếu không muốn nhận.",
+    "load_failed": "Không thể tải tùy chọn",
+    "retry_hint": "Vui lòng thử lại",
+    "category_col": "Loại thông báo",
+    "category": {
+      "spaced_repetition": "Ôn tập lặp lại",
+      "lesson_unlock": "Mở khóa bài học",
+      "interview_result": "Kết quả phỏng vấn",
+      "course_announcement": "Thông báo khóa học",
+      "system": "Hệ thống"
+    },
+    "channel": {
+      "email": "Email",
+      "in_app": "Trong ứng dụng"
+    },
+    "errors": {
+      "patch_failed": "Không thể cập nhật tùy chọn"
+    }
+  },
   "settings_profile": {
     "title": "Hồ sơ của bạn",
     "subtitle": "Cập nhật thông tin hiển thị công khai.",

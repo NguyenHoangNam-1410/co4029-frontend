@@ -140,6 +140,27 @@
       "regen_failed": "Couldn't regenerate recovery codes."
     }
   },
+  "settings_notifications": {
+    "title": "Notification preferences",
+    "subtitle": "You'll always receive in-app notifications. Turn off email for any category you don't want.",
+    "load_failed": "Couldn't load preferences",
+    "retry_hint": "Please try again",
+    "category_col": "Category",
+    "category": {
+      "spaced_repetition": "Spaced repetition",
+      "lesson_unlock": "Lesson unlock",
+      "interview_result": "Interview result",
+      "course_announcement": "Course announcement",
+      "system": "System"
+    },
+    "channel": {
+      "email": "Email",
+      "in_app": "In-app"
+    },
+    "errors": {
+      "patch_failed": "Couldn't update preference"
+    }
+  },
   "settings_profile": {
     "title": "Your profile",
     "subtitle": "Update your publicly visible information.",
