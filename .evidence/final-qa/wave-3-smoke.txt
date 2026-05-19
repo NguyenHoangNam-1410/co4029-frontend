@@ -1,0 +1,16 @@
+
+> abridgeai-frontend@0.1.0 test:e2e
+> playwright test --grep wave-3-smoke
+
+
+Running 6 tests using 1 worker
+
+  -  1 [chromium] › tests/e2e/wave-3-smoke.spec.ts:73:3 › wave-3-smoke › mark single notification read decrements counter
+  -  2 [chromium] › tests/e2e/wave-3-smoke.spec.ts:108:3 › wave-3-smoke › mark-all-read zeroes counter
+  ✓  3 [chromium] › tests/e2e/wave-3-smoke.spec.ts:131:3 › wave-3-smoke › toggle email pref off + persists (2.1s)
+  -  4 [chromium] › tests/e2e/wave-3-smoke.spec.ts:161:3 › wave-3-smoke › update profile display name
+  ✓  5 [chromium] › tests/e2e/wave-3-smoke.spec.ts:199:3 › wave-3-smoke › TOTP enrollment modal renders secret + otpauth (1.8s)
+  -  6 [chromium] › tests/e2e/wave-3-smoke.spec.ts:239:3 › wave-3-smoke › login MFA challenge UI renders
+
+  4 skipped
+  2 passed (9.2s)

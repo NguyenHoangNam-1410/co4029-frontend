@@ -1,0 +1,8 @@
+Building project...
+Bundle size check:
+  Baseline total (gzip): 548.43 kB
+  Current total (gzip):  548.43 kB
+  Delta:                 0.00%
+  Budget:                +30% (max 712.96 kB)
+
+PASS: Bundle size within budget.

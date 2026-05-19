@@ -1,0 +1,19 @@
+
+> abridgeai-frontend@0.1.0 test:e2e
+> playwright test --grep wave-5-a11y
+
+
+Running 10 tests using 1 worker
+
+  ✓   1 [chromium] › tests/e2e/wave-5-a11y.spec.ts:49:5 › wave-5-a11y › axe scan: dashboard (/dashboard) (3.0s)
+  ✓   2 [chromium] › tests/e2e/wave-5-a11y.spec.ts:49:5 › wave-5-a11y › axe scan: courses-list (/courses) (2.9s)
+  ✓   3 [chromium] › tests/e2e/wave-5-a11y.spec.ts:49:5 › wave-5-a11y › axe scan: notifications (/notifications) (2.6s)
+  ✓   4 [chromium] › tests/e2e/wave-5-a11y.spec.ts:49:5 › wave-5-a11y › axe scan: settings-profile (/settings/profile) (2.6s)
+  ✓   5 [chromium] › tests/e2e/wave-5-a11y.spec.ts:49:5 › wave-5-a11y › axe scan: study-cards-due (/study/cards-due) (2.7s)
+  ✓   6 [chromium] › tests/e2e/wave-5-a11y.spec.ts:49:5 › wave-5-a11y › axe scan: sr-dashboard (/dashboard/sr) (2.7s)
+  ✓   7 [chromium] › tests/e2e/wave-5-a11y.spec.ts:49:5 › wave-5-a11y › axe scan: admin-stats (/admin/stats) (2.6s)
+  ✓   8 [chromium] › tests/e2e/wave-5-a11y.spec.ts:49:5 › wave-5-a11y › axe scan: admin-users (/admin/users) (2.8s)
+  ✓   9 [chromium] › tests/e2e/wave-5-a11y.spec.ts:49:5 › wave-5-a11y › axe scan: admin-ai-costs (/admin/ai-costs) (3.0s)
+  ✓  10 [chromium] › tests/e2e/wave-5-a11y.spec.ts:49:5 › wave-5-a11y › axe scan: teacher-courses (/teacher/courses) (3.2s)
+
+  10 passed (30.5s)

@@ -1,7 +1,7 @@
 {
-  "captured_at": "2026-05-18T00:00:00.000Z",
-  "main_gzip_kb": 328.89,
-  "total_gzip_kb": 377.59,
+  "captured_at": "2026-05-19T00:22:40.000Z",
+  "main_gzip_kb": 169.73,
+  "total_gzip_kb": 548.43,
   "budget_pct": 30,
-  "build_command": "bun run build"
+  "build_command": "npm run build"
 }

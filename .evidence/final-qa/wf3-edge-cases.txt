@@ -1,0 +1,16 @@
+
+> abridgeai-frontend@0.1.0 test:e2e
+> playwright test --grep wf3-edge-cases
+
+
+Running 7 tests using 1 worker
+
+  ✓  1 [chromium] › tests/e2e/wf3-edge-cases.spec.ts:7:3 › wf3-edge-cases › 01 empty student dashboard renders empty state (1.9s)
+  ✓  2 [chromium] › tests/e2e/wf3-edge-cases.spec.ts:24:3 › wf3-edge-cases › 02 empty teacher courses renders empty state or zero count (1.6s)
+  ✓  3 [chromium] › tests/e2e/wf3-edge-cases.spec.ts:48:3 › wf3-edge-cases › 03 empty notifications renders empty state (1.6s)
+  ✓  4 [chromium] › tests/e2e/wf3-edge-cases.spec.ts:74:3 › wf3-edge-cases › 04 quiz answer 429 cooldown surfaces CardCooldownBadge (1.7s)
+  ✓  5 [chromium] › tests/e2e/wf3-edge-cases.spec.ts:105:3 › wf3-edge-cases › 05 network failure on /api/* renders without crashing (1.6s)
+  ✓  6 [chromium] › tests/e2e/wf3-edge-cases.spec.ts:121:3 › wf3-edge-cases › 06 unknown route does not crash app (1.3s)
+  ✓  7 [chromium] › tests/e2e/wf3-edge-cases.spec.ts:132:3 › wf3-edge-cases › 07 prefers-reduced-motion is honored on admin/ai-costs (1.4s)
+
+  7 passed (13.5s)

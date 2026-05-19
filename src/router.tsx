@@ -2,6 +2,7 @@ import {
   createRootRoute,
   createRoute,
   createRouter,
+  lazyRouteComponent,
   redirect,
   Outlet,
 } from "@tanstack/react-router";
@@ -18,7 +19,6 @@ import GoogleCallbackPage from "@/routes/google-callback";
 import CoursesListPage from "@/routes/courses-list";
 import CourseDetailPage from "@/routes/course-detail";
 import CourseLearnPage from "@/routes/course-learn";
-import CourseInterviewPage from "@/routes/course-interview";
 import CourseQuizPage from "@/routes/course-quiz";
 import NotificationsPage from "@/routes/notifications";
 import SettingsNotificationsPage from "@/routes/settings-notifications";
@@ -26,44 +26,11 @@ import LoginMfaPage from "@/routes/login-mfa";
 import SettingsProfilePage from "@/routes/settings-profile";
 import SettingsSecurityPage from "@/routes/settings-security";
 import { ProgressPage, SettingsPage, InterviewPage } from "@/routes/placeholder";
-import TeacherDashboard from "@/routes/teacher/index";
-import TeacherCoursesPage from "@/routes/teacher/courses";
-import CourseNewPage from "@/routes/teacher/course-new";
-import CourseManagePage from "@/routes/teacher/course-manage";
-import LessonManagePage from "@/routes/teacher/lesson-manage";
-import LessonMaterialsPage from "@/routes/teacher/lesson-materials";
-import CourseStudentsPage from "@/routes/teacher/course-students";
-import CourseStudentDetailPage from "@/routes/teacher/course-student-detail";
-import ModuleManagePage from "@/routes/teacher/module-manage";
-import QuizManagePage from "@/routes/teacher/quiz-manage";
-import InterviewConfigNewPage from "@/routes/teacher/interview-config-new";
-import InterviewConfigPage from "@/routes/teacher/interview-config";
-import InterviewGapReportPage from "@/routes/teacher/interview-gap-report";
-import AdminHealthPage from "@/routes/admin/health";
-import AdminStatsPage from "@/routes/admin/stats";
-import AdminStatsActivePage from "@/routes/admin/stats-active";
-import AdminStatsContentPage from "@/routes/admin/stats-content";
-import AdminStatsHealthPage from "@/routes/admin/stats-health";
-import AdminUsersPage from "@/routes/admin/users";
-import AdminUserDetailPage from "@/routes/admin/user-detail";
-import AdminCoursesPage from "@/routes/admin/courses";
-import AdminCourseDetailPage from "@/routes/admin/course-detail";
-import AdminProcessingPage from "@/routes/admin/processing";
-import AdminProcessingJobPage from "@/routes/admin/processing-job";
-import AdminAiCostsPage from "@/routes/admin/ai-costs";
-import DeptCoursesPage from "@/routes/dept-courses";
-import DeptCourseDetailPage from "@/routes/dept-course-detail";
-import ManagementCourseEnrollmentsPage from "@/routes/management-course-enrollments";
 import CareerPathsPage from "@/routes/career-paths";
 import CareerPathDetailPage from "@/routes/career-path-detail";
 import MyCareerPathsPage from "@/routes/me-career-paths";
-import ManagementCareerPathsPage from "@/routes/management-career-paths";
-import ManagementCareerPathDetailPage from "@/routes/management-career-path-detail";
 import SrDashboardPage from "@/routes/sr-dashboard";
 import StudyCardsDuePage from "@/routes/study-cards-due";
-import TeacherSrCohortPage from "@/routes/teacher/sr-cohort";
-import TeacherSrAtRiskPage from "@/routes/teacher/sr-at-risk";
-import TeacherSrStudentDetailPage from "@/routes/teacher/sr-student-detail";
 
 /* ── Root layout ── */
 function Root() {
@@ -194,169 +161,185 @@ const notificationsRoute = createRoute({
 const teacherRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/teacher",
-  component: TeacherDashboard,
+  component: lazyRouteComponent(() => import("@/routes/teacher/index")),
 });
 
 const teacherCoursesRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/teacher/courses",
-  component: TeacherCoursesPage,
+  component: lazyRouteComponent(() => import("@/routes/teacher/courses")),
 });
 
 const teacherCourseNewRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/teacher/courses/new",
-  component: CourseNewPage,
+  component: lazyRouteComponent(() => import("@/routes/teacher/course-new")),
 });
 
 const teacherCourseManageRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/teacher/courses/$courseId",
-  component: CourseManagePage,
+  component: lazyRouteComponent(() => import("@/routes/teacher/course-manage")),
 });
 
 const teacherLessonManageRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/teacher/courses/$courseId/lessons/$lessonId",
-  component: LessonManagePage,
+  component: lazyRouteComponent(() => import("@/routes/teacher/lesson-manage")),
 });
 
 const teacherLessonMaterialsRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/teacher/courses/$courseId/lessons/$lessonId/materials",
-  component: LessonMaterialsPage,
+  component: lazyRouteComponent(
+    () => import("@/routes/teacher/lesson-materials"),
+  ),
 });
 
 const teacherModuleManageRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/teacher/courses/$courseId/modules/$moduleId",
-  component: ModuleManagePage,
+  component: lazyRouteComponent(() => import("@/routes/teacher/module-manage")),
 });
 
 const teacherQuizManageRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/teacher/courses/$courseId/quizzes/$quizId",
-  component: QuizManagePage,
+  component: lazyRouteComponent(() => import("@/routes/teacher/quiz-manage")),
 });
 
 const teacherInterviewConfigNewRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/teacher/courses/$courseId/interview-configs/new",
-  component: InterviewConfigNewPage,
+  component: lazyRouteComponent(
+    () => import("@/routes/teacher/interview-config-new"),
+  ),
 });
 
 const teacherInterviewConfigRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/teacher/courses/$courseId/interview-configs/$configId",
-  component: InterviewConfigPage,
+  component: lazyRouteComponent(
+    () => import("@/routes/teacher/interview-config"),
+  ),
 });
 
 const teacherInterviewGapReportRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/teacher/interview-sessions/$sessionId/gap-report",
-  component: InterviewGapReportPage,
+  component: lazyRouteComponent(
+    () => import("@/routes/teacher/interview-gap-report"),
+  ),
 });
 
 const teacherCourseStudentsRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/teacher/courses/$courseId/students",
-  component: CourseStudentsPage,
+  component: lazyRouteComponent(
+    () => import("@/routes/teacher/course-students"),
+  ),
 });
 
 const teacherCourseStudentDetailRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/teacher/courses/$courseId/students/$studentId",
-  component: CourseStudentDetailPage,
+  component: lazyRouteComponent(
+    () => import("@/routes/teacher/course-student-detail"),
+  ),
 });
 
 const adminHealthRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/admin/health",
-  component: AdminHealthPage,
+  component: lazyRouteComponent(() => import("@/routes/admin/health")),
 });
 
 const adminStatsRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/admin/stats",
-  component: AdminStatsPage,
+  component: lazyRouteComponent(() => import("@/routes/admin/stats")),
 });
 
 const adminStatsActiveRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/admin/stats/active",
-  component: AdminStatsActivePage,
+  component: lazyRouteComponent(() => import("@/routes/admin/stats-active")),
 });
 
 const adminStatsContentRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/admin/stats/content",
-  component: AdminStatsContentPage,
+  component: lazyRouteComponent(() => import("@/routes/admin/stats-content")),
 });
 
 const adminStatsHealthRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/admin/stats/health",
-  component: AdminStatsHealthPage,
+  component: lazyRouteComponent(() => import("@/routes/admin/stats-health")),
 });
 
 const adminUsersRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/admin/users",
-  component: AdminUsersPage,
+  component: lazyRouteComponent(() => import("@/routes/admin/users")),
 });
 
 const adminUserDetailRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/admin/users/$userId",
-  component: AdminUserDetailPage,
+  component: lazyRouteComponent(() => import("@/routes/admin/user-detail")),
 });
 
 const adminCoursesRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/admin/courses",
-  component: AdminCoursesPage,
+  component: lazyRouteComponent(() => import("@/routes/admin/courses")),
 });
 
 const adminCourseDetailRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/admin/courses/$courseId",
-  component: AdminCourseDetailPage,
+  component: lazyRouteComponent(() => import("@/routes/admin/course-detail")),
 });
 
 const adminProcessingRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/admin/processing",
-  component: AdminProcessingPage,
+  component: lazyRouteComponent(() => import("@/routes/admin/processing")),
 });
 
 const adminProcessingJobRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/admin/processing/$jobId",
-  component: AdminProcessingJobPage,
+  component: lazyRouteComponent(
+    () => import("@/routes/admin/processing-job"),
+  ),
 });
 
 const adminAiCostsRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/admin/ai-costs",
-  component: AdminAiCostsPage,
+  component: lazyRouteComponent(() => import("@/routes/admin/ai-costs")),
 });
 
 const deptCoursesRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/dept",
-  component: DeptCoursesPage,
+  component: lazyRouteComponent(() => import("@/routes/dept-courses")),
 });
 
 const deptCourseDetailRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/dept/courses/$courseId",
-  component: DeptCourseDetailPage,
+  component: lazyRouteComponent(() => import("@/routes/dept-course-detail")),
 });
 
 const managementCourseEnrollmentsRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/management/courses/$courseId/enrollments",
-  component: ManagementCourseEnrollmentsPage,
+  component: lazyRouteComponent(
+    () => import("@/routes/management-course-enrollments"),
+  ),
 });
 
 const careerPathsRoute = createRoute({
@@ -380,13 +363,17 @@ const myCareerPathsRoute = createRoute({
 const managementCareerPathsRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/management/career-paths",
-  component: ManagementCareerPathsPage,
+  component: lazyRouteComponent(
+    () => import("@/routes/management-career-paths"),
+  ),
 });
 
 const managementCareerPathDetailRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/management/career-paths/$id",
-  component: ManagementCareerPathDetailPage,
+  component: lazyRouteComponent(
+    () => import("@/routes/management-career-path-detail"),
+  ),
 });
 
 const srDashboardRoute = createRoute({
@@ -404,19 +391,21 @@ const studyCardsDueRoute = createRoute({
 const teacherSrCohortRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/teacher/courses/$courseId/sr-cohort",
-  component: TeacherSrCohortPage,
+  component: lazyRouteComponent(() => import("@/routes/teacher/sr-cohort")),
 });
 
 const teacherSrAtRiskRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/teacher/courses/$courseId/at-risk",
-  component: TeacherSrAtRiskPage,
+  component: lazyRouteComponent(() => import("@/routes/teacher/sr-at-risk")),
 });
 
 const teacherSrStudentDetailRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/teacher/courses/$courseId/students/$studentId/sr",
-  component: TeacherSrStudentDetailPage,
+  component: lazyRouteComponent(
+    () => import("@/routes/teacher/sr-student-detail"),
+  ),
 });
 
 const callbackRoute = createRoute({

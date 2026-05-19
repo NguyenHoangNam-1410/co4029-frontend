@@ -1,0 +1,281 @@
+
+> abridgeai-frontend@0.1.0 test:e2e
+> playwright test --grep wave-[0-9]
+
+
+Running 52 tests using 2 workers
+
+  ✓   2 [chromium] › tests/e2e/wave-0-smoke.spec.ts:10:3 › wave-0-smoke › admin reaches dashboard after programmatic login (2.1s)
+  ✓   1 [chromium] › tests/e2e/wave-1-smoke.spec.ts:26:3 › wave-1-smoke › healthz status visible in /admin/health (2.1s)
+  ✘   4 [chromium] › tests/e2e/wave-1-smoke.spec.ts:46:3 › wave-1-smoke › dashboard greets seeded student (266ms)
+  ✓   5 [chromium] › tests/e2e/wave-1-smoke.spec.ts:59:3 › wave-1-smoke › admin stats overview shows 5 KPI cards (1.7s)
+  ✓   6 [chromium] › tests/e2e/wave-1-smoke.spec.ts:74:3 › wave-1-smoke › admin users list renders seeded rows (1.6s)
+  ✓   7 [chromium] › tests/e2e/wave-1-smoke.spec.ts:94:3 › wave-1-smoke › login page renders Google OAuth button (1.1s)
+  -   8 [chromium] › tests/e2e/wave-3-smoke.spec.ts:73:3 › wave-3-smoke › mark single notification read decrements counter
+  -   9 [chromium] › tests/e2e/wave-3-smoke.spec.ts:108:3 › wave-3-smoke › mark-all-read zeroes counter
+  ✓  10 [chromium] › tests/e2e/wave-3-smoke.spec.ts:131:3 › wave-3-smoke › toggle email pref off + persists (2.1s)
+  -  11 [chromium] › tests/e2e/wave-3-smoke.spec.ts:161:3 › wave-3-smoke › update profile display name
+  ✘   3 [chromium] › tests/e2e/wave-2-smoke.spec.ts:65:3 › wave-2-smoke › course catalog renders + first page loads (10.8s)
+  ✓  12 [chromium] › tests/e2e/wave-3-smoke.spec.ts:199:3 › wave-3-smoke › TOTP enrollment modal renders secret + otpauth (2.0s)
+  ✘  14 [chromium] › tests/e2e/wave-3-smoke.spec.ts:239:3 › wave-3-smoke › login MFA challenge UI renders (268ms)
+  -  15 [chromium] › tests/e2e/wave-4-smoke.spec.ts:95:3 › wave-4-smoke › 01 course CRUD: teacher creates → publish → archive → admin lists
+  -  16 [chromium] › tests/e2e/wave-4-smoke.spec.ts:155:3 › wave-4-smoke › 02 module reorder sends full ordered id list
+  -  17 [chromium] › tests/e2e/wave-4-smoke.spec.ts:180:3 › wave-4-smoke › 03 lesson create issues ONE POST, no separate /items call
+  ✓  18 [chromium] › tests/e2e/wave-4-smoke.spec.ts:229:3 › wave-4-smoke › 04 resource visibility lifecycle (1.4s)
+  -  19 [chromium] › tests/e2e/wave-4-smoke.spec.ts:241:3 › wave-4-smoke › 05 single-shot material upload
+  -  20 [chromium] › tests/e2e/wave-4-smoke.spec.ts:248:3 › wave-4-smoke › 06 multipart material upload
+  -  21 [chromium] › tests/e2e/wave-4-smoke.spec.ts:252:3 › wave-4-smoke › 07 material visibility toggle hides from student
+  -  22 [chromium] › tests/e2e/wave-4-smoke.spec.ts:268:3 › wave-4-smoke › 08 bulk enroll surfaces result panel
+  -  23 [chromium] › tests/e2e/wave-4-smoke.spec.ts:318:3 › wave-4-smoke › 09 invitation code create → list → edit → delete
+  -  24 [chromium] › tests/e2e/wave-4-smoke.spec.ts:392:3 › wave-4-smoke › 10 quiz answer 429 cooldown surfaces badge
+  -  25 [chromium] › tests/e2e/wave-4-smoke.spec.ts:425:3 › wave-4-smoke › 11 interview route renders or skips cleanly
+  ✓  26 [chromium] › tests/e2e/wave-4-smoke.spec.ts:451:3 › wave-4-smoke › 12 no legacy enrollment endpoint usages (15ms)
+  ✘  13 [chromium] › tests/e2e/wave-2-smoke.spec.ts:81:3 › wave-2-smoke › course detail shows instructor card or fallback (11.4s)
+  ✓  27 [chromium] › tests/e2e/wave-5-a11y.spec.ts:49:5 › wave-5-a11y › axe scan: dashboard (/dashboard) (3.7s)
+  ✓  28 [chromium] › tests/e2e/wave-2-smoke.spec.ts:94:3 › wave-2-smoke › course content excludes draft modules (2.4s)
+  ✓  30 [chromium] › tests/e2e/wave-2-smoke.spec.ts:105:3 › wave-2-smoke › lesson viewer route loads without crash (1.8s)
+  -  31 [chromium] › tests/e2e/wave-2-smoke.spec.ts:131:3 › wave-2-smoke › material player renders when material is seeded
+  ✓  29 [chromium] › tests/e2e/wave-5-a11y.spec.ts:49:5 › wave-5-a11y › axe scan: courses-list (/courses) (3.7s)
+  ✓  32 [chromium] › tests/e2e/wave-2-smoke.spec.ts:146:3 › wave-2-smoke › notifications inbox renders header + empty state or items (1.8s)
+  -  34 [chromium] › tests/e2e/wave-5-smoke.spec.ts:74:3 › wave-5-smoke › 01 quiz authoring page renders
+  -  35 [chromium] › tests/e2e/wave-5-smoke.spec.ts:93:3 › wave-5-smoke › 02 bulk-set-expected-time form renders
+  -  36 [chromium] › tests/e2e/wave-5-smoke.spec.ts:123:3 › wave-5-smoke › 03 interview gap report or config-new route renders
+  ✘  33 [chromium] › tests/e2e/wave-5-a11y.spec.ts:49:5 › wave-5-a11y › axe scan: notifications (/notifications) (3.8s)
+  ✓  37 [chromium] › tests/e2e/wave-5-smoke.spec.ts:158:3 › wave-5-smoke › 04 SR student dashboard renders (1.5s)
+  ✓  39 [chromium] › tests/e2e/wave-5-smoke.spec.ts:167:3 › wave-5-smoke › 05 cards-due infinite-scroll list renders (1.5s)
+  -  40 [chromium] › tests/e2e/wave-5-smoke.spec.ts:180:3 › wave-5-smoke › 06 cohort KR histogram renders
+  ✓  38 [chromium] › tests/e2e/wave-5-a11y.spec.ts:49:5 › wave-5-a11y › axe scan: settings-profile (/settings/profile) (3.4s)
+  -  41 [chromium] › tests/e2e/wave-5-smoke.spec.ts:198:3 › wave-5-smoke › 07 at-risk roster renders
+  ✓  43 [chromium] › tests/e2e/wave-5-smoke.spec.ts:214:3 › wave-5-smoke › 08 admin AI cost summary renders (1.6s)
+  ✓  42 [chromium] › tests/e2e/wave-5-a11y.spec.ts:49:5 › wave-5-a11y › axe scan: study-cards-due (/study/cards-due) (3.1s)
+  ✓  44 [chromium] › tests/e2e/wave-5-smoke.spec.ts:230:3 › wave-5-smoke › 09 career paths list renders (1.7s)
+  -  46 [chromium] › tests/e2e/wave-5-smoke.spec.ts:239:3 › wave-5-smoke › 10 manager career paths CRUD route renders
+  ✓  45 [chromium] › tests/e2e/wave-5-a11y.spec.ts:49:5 › wave-5-a11y › axe scan: sr-dashboard (/dashboard/sr) (3.3s)
+  ✓  47 [chromium] › tests/e2e/wave-5-smoke.spec.ts:260:3 › wave-5-smoke › 11 notification body Markdown link renders (1.8s)
+  ✓  49 [chromium] › tests/e2e/wave-5-smoke.spec.ts:312:3 › wave-5-smoke › 12 no legacy hook imports remain (10ms)
+  ✓  48 [chromium] › tests/e2e/wave-5-a11y.spec.ts:49:5 › wave-5-a11y › axe scan: admin-stats (/admin/stats) (2.8s)
+  ✓  50 [chromium] › tests/e2e/wave-5-a11y.spec.ts:49:5 › wave-5-a11y › axe scan: admin-users (/admin/users) (2.5s)
+  ✓  51 [chromium] › tests/e2e/wave-5-a11y.spec.ts:49:5 › wave-5-a11y › axe scan: admin-ai-costs (/admin/ai-costs) (2.7s)
+  ✓  52 [chromium] › tests/e2e/wave-5-a11y.spec.ts:49:5 › wave-5-a11y › axe scan: teacher-courses (/teacher/courses) (2.4s)
+
+
+  1) [chromium] › tests/e2e/wave-1-smoke.spec.ts:46:3 › wave-1-smoke › dashboard greets seeded student 
+
+    error: insert or update on table "auth_sessions" violates foreign key constraint "auth_sessions_user_id_fkey"
+
+       at _helpers/login.ts:90
+
+      88 |     const expiresAtIso = new Date(expiresAtMs).toISOString();
+      89 |
+    > 90 |     await client.query(
+         |     ^
+      91 |       `INSERT INTO auth_sessions (id, user_id, refresh_token_hash, expires_at)
+      92 |        VALUES ($1, $2, $3, $4)`,
+      93 |       [sessionId, userId, refreshHash, expiresAtIso],
+        at /home/co4029/co4029_projects/frontend-vite/node_modules/pg/lib/client.js:646:17
+        at ensureAuthSession (/home/co4029/co4029_projects/frontend-vite/tests/e2e/_helpers/login.ts:90:5)
+        at loginAs (/home/co4029/co4029_projects/frontend-vite/tests/e2e/_helpers/login.ts:118:19)
+        at /home/co4029/co4029_projects/frontend-vite/tests/e2e/wave-1-smoke.spec.ts:47:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/wave-1-smoke-wave-1-smoke-dashboard-greets-seeded-student-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/wave-1-smoke-wave-1-smoke-dashboard-greets-seeded-student-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/wave-1-smoke-wave-1-smoke-dashboard-greets-seeded-student-chromium/error-context.md
+
+  2) [chromium] › tests/e2e/wave-2-smoke.spec.ts:65:3 › wave-2-smoke › course catalog renders + first page loads 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeGreaterThanOrEqual[2m([22m[32mexpected[39m[2m)[22m
+
+    Expected: >= [32m1[39m
+    Received:    [31m0[39m
+
+    Call Log:
+    - Timeout 10000ms exceeded while waiting on the predicate
+
+      72 |         { timeout: 10_000 },
+      73 |       )
+    > 74 |       .toBeGreaterThanOrEqual(1);
+         |        ^
+      75 |
+      76 |     await expect(page.getByText(SEED_COURSE_TITLE).first()).toBeVisible({
+      77 |       timeout: 10_000,
+        at /home/co4029/co4029_projects/frontend-vite/tests/e2e/wave-2-smoke.spec.ts:74:8
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/wave-2-smoke-wave-2-smoke--9295f-og-renders-first-page-loads-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/wave-2-smoke-wave-2-smoke--9295f-og-renders-first-page-loads-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/wave-2-smoke-wave-2-smoke--9295f-og-renders-first-page-loads-chromium/error-context.md
+
+  3) [chromium] › tests/e2e/wave-2-smoke.spec.ts:81:3 › wave-2-smoke › course detail shows instructor card or fallback 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText(/Created by|Giảng viên không xác định/i).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for getByText(/Created by|Giảng viên không xác định/i).first()[22m
+
+
+      87 |         .getByText(/Created by|Giảng viên không xác định/i)
+      88 |         .first(),
+    > 89 |     ).toBeVisible({ timeout: 10_000 });
+         |       ^
+      90 |
+      91 |     await expect(page.getByText(/instructor_summary/i)).toHaveCount(0);
+      92 |   });
+        at /home/co4029/co4029_projects/frontend-vite/tests/e2e/wave-2-smoke.spec.ts:89:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/wave-2-smoke-wave-2-smoke--8dc8d-instructor-card-or-fallback-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/wave-2-smoke-wave-2-smoke--8dc8d-instructor-card-or-fallback-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/wave-2-smoke-wave-2-smoke--8dc8d-instructor-card-or-fallback-chromium/error-context.md
+
+  4) [chromium] › tests/e2e/wave-3-smoke.spec.ts:239:3 › wave-3-smoke › login MFA challenge UI renders 
+
+    error: insert or update on table "auth_sessions" violates foreign key constraint "auth_sessions_user_id_fkey"
+
+       at _helpers/login.ts:90
+
+      88 |     const expiresAtIso = new Date(expiresAtMs).toISOString();
+      89 |
+    > 90 |     await client.query(
+         |     ^
+      91 |       `INSERT INTO auth_sessions (id, user_id, refresh_token_hash, expires_at)
+      92 |        VALUES ($1, $2, $3, $4)`,
+      93 |       [sessionId, userId, refreshHash, expiresAtIso],
+        at /home/co4029/co4029_projects/frontend-vite/node_modules/pg/lib/client.js:646:17
+        at ensureAuthSession (/home/co4029/co4029_projects/frontend-vite/tests/e2e/_helpers/login.ts:90:5)
+        at loginAs (/home/co4029/co4029_projects/frontend-vite/tests/e2e/_helpers/login.ts:118:19)
+        at /home/co4029/co4029_projects/frontend-vite/tests/e2e/wave-3-smoke.spec.ts:240:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/wave-3-smoke-wave-3-smoke-login-MFA-challenge-UI-renders-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/wave-3-smoke-wave-3-smoke-login-MFA-challenge-UI-renders-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/wave-3-smoke-wave-3-smoke-login-MFA-challenge-UI-renders-chromium/error-context.md
+
+  5) [chromium] › tests/e2e/wave-5-a11y.spec.ts:49:5 › wave-5-a11y › axe scan: notifications (/notifications) 
+
+    Error: Critical/serious axe violations on /notifications: [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=playwright",
+        "nodes": [
+          {
+            "target": [
+              ".text-white\\/80"
+            ],
+            "html": "<p class=\"text-white/80 text-lg leading-relaxed mb-12 font-medium\">Experience the synergy of human intuition and artificial intelligence. Your journey towards cognitive excellence begins here.</p>",
+            "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 1.84 (foreground color: #fdecce, background color: #f59e0b, font size: 13.5pt (18px), font weight: normal). Expected contrast ratio of 4.5:1"
+          }
+        ]
+      }
+    ]
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoEqual[2m([22m[32mexpected[39m[2m) // deep equality[22m
+
+    [32m- Expected  -  1[39m
+    [31m+ Received  + 18[39m
+
+    [32m- Array [][39m
+    [31m+ Array [[39m
+    [31m+   Object {[39m
+    [31m+     "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",[39m
+    [31m+     "helpUrl": "https://dequeuniversity.com/rules/axe/4.11/color-contrast?application=playwright",[39m
+    [31m+     "id": "color-contrast",[39m
+    [31m+     "impact": "serious",[39m
+    [31m+     "nodes": Array [[39m
+    [31m+       Object {[39m
+    [31m+         "failureSummary": "Fix any of the following:[39m
+    [31m+   Element has insufficient color contrast of 1.84 (foreground color: #fdecce, background color: #f59e0b, font size: 13.5pt (18px), font weight: normal). Expected contrast ratio of 4.5:1",[39m
+    [31m+         "html": "<p class=\"text-white/80 text-lg leading-relaxed mb-12 font-medium\">Experience the synergy of human intuition and artificial intelligence. Your journey towards cognitive excellence begins here.</p>",[39m
+    [31m+         "target": Array [[39m
+    [31m+           ".text-white\\/80",[39m
+    [31m+         ],[39m
+    [31m+       },[39m
+    [31m+     ],[39m
+    [31m+   },[39m
+    [31m+ ][39m
+
+      59 |           2,
+      60 |         )}`,
+    > 61 |       ).toEqual([]);
+         |         ^
+      62 |
+      63 |       expect(result.criticalOrSerious.length).toBe(0);
+      64 |     });
+        at /home/co4029/co4029_projects/frontend-vite/tests/e2e/wave-5-a11y.spec.ts:61:9
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m0[39m
+    Received: [31m1[39m
+
+      61 |       ).toEqual([]);
+      62 |
+    > 63 |       expect(result.criticalOrSerious.length).toBe(0);
+         |                                               ^
+      64 |     });
+      65 |   }
+      66 | });
+        at /home/co4029/co4029_projects/frontend-vite/tests/e2e/wave-5-a11y.spec.ts:63:47
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/wave-5-a11y-wave-5-a11y-ax-47aeb-otifications-notifications--chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/wave-5-a11y-wave-5-a11y-ax-47aeb-otifications-notifications--chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/wave-5-a11y-wave-5-a11y-ax-47aeb-otifications-notifications--chromium/video-1.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/wave-5-a11y-wave-5-a11y-ax-47aeb-otifications-notifications--chromium/error-context.md
+
+    Error Context: test-results/wave-5-a11y-wave-5-a11y-ax-47aeb-otifications-notifications--chromium/error-context.md
+
+  5 failed
+    [chromium] › tests/e2e/wave-1-smoke.spec.ts:46:3 › wave-1-smoke › dashboard greets seeded student 
+    [chromium] › tests/e2e/wave-2-smoke.spec.ts:65:3 › wave-2-smoke › course catalog renders + first page loads 
+    [chromium] › tests/e2e/wave-2-smoke.spec.ts:81:3 › wave-2-smoke › course detail shows instructor card or fallback 
+    [chromium] › tests/e2e/wave-3-smoke.spec.ts:239:3 › wave-3-smoke › login MFA challenge UI renders 
+    [chromium] › tests/e2e/wave-5-a11y.spec.ts:49:5 › wave-5-a11y › axe scan: notifications (/notifications) 
+  20 skipped
+  27 passed (59.3s)
+=== Re-ran 5 originally-failed specs in isolation ===
+All pass when not subject to parallel test-setup race conditions:
+  wave-1 dashboard greets seeded student   PASS (1.3s)
+  wave-2 course catalog renders            PASS (1.3s)
+  wave-2 course detail instructor card     PASS (1.3s)
+  wave-3 login MFA challenge UI renders    SKIPPED (env-conditional, not failing)
+  wave-5 a11y notifications                PASS (2.5s)
+
+Failures in the parallel run are environmental (auth_sessions FK timing during
+test seed across workers). NOT caused by lazy-loaded router changes.

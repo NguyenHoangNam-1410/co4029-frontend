@@ -1,0 +1,21 @@
+
+> abridgeai-frontend@0.1.0 test:e2e
+> playwright test --grep integration-flow
+
+
+Running 11 tests using 1 worker
+
+  ✓   1 [chromium] › tests/e2e/integration-flow.spec.ts:64:3 › integration-flow › 01 admin reaches dashboard (Wave 0/1) (1.4s)
+  -   2 [chromium] › tests/e2e/integration-flow.spec.ts:72:3 › integration-flow › 02 manager bulk-enrolls 3 students (Wave 4)
+  -   3 [chromium] › tests/e2e/integration-flow.spec.ts:122:3 › integration-flow › 03 teacher creates course (Wave 4)
+  -   4 [chromium] › tests/e2e/integration-flow.spec.ts:160:3 › integration-flow › 04 teacher uploads small material (Wave 4)
+  -   5 [chromium] › tests/e2e/integration-flow.spec.ts:167:3 › integration-flow › 05 teacher generates quiz UI renders (Wave 5)
+  ✓   6 [chromium] › tests/e2e/integration-flow.spec.ts:199:3 › integration-flow › 06 student logs in no MFA (Wave 1/3) (1.5s)
+  ✓   7 [chromium] › tests/e2e/integration-flow.spec.ts:209:3 › integration-flow › 07 student dashboard shows enrolled course (Wave 2) (1.5s)
+  -   8 [chromium] › tests/e2e/integration-flow.spec.ts:230:3 › integration-flow › 08 student answer 429 cooldown surfaces badge (Wave 4)
+  ✓   9 [chromium] › tests/e2e/integration-flow.spec.ts:259:3 › integration-flow › 09 student reviews due cards (Wave 5) (1.4s)
+  ✓  10 [chromium] › tests/e2e/integration-flow.spec.ts:268:3 › integration-flow › 10 teacher views at-risk roster (Wave 5) (1.3s)
+  ✓  11 [chromium] › tests/e2e/integration-flow.spec.ts:277:3 › integration-flow › 11 admin opens AI cost dashboard (Wave 5) (1.4s)
+
+  5 skipped
+  6 passed (15.5s)
