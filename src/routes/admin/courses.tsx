@@ -1,17 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { Archive, BookOpen, RotateCcw, Search } from "lucide-react";
 import { InfiniteList } from "@/components/ui/InfiniteList";
 import { useAdminCourses, useRestoreCourse } from "@/lib/api/hooks/admin";
 import { useMyPermissions } from "@/lib/api/hooks/auth";
 import type { CourseAuthoring } from "@/lib/api/types";
-
-const STATUS_LABEL: Record<string, string> = {
-  draft: "Bản nháp",
-  published: "Đã xuất bản",
-  archived: "Đã lưu trữ",
-};
 
 const STATUS_COLOR: Record<string, string> = {
   draft: "bg-amber-100 text-amber-700",
@@ -20,26 +15,32 @@ const STATUS_COLOR: Record<string, string> = {
 };
 
 function StatusBadge({ status }: { status: string }) {
+  const { t } = useTranslation();
   const cls = STATUS_COLOR[status] ?? "bg-slate-100 text-slate-700";
-  const label = STATUS_LABEL[status] ?? status;
   return (
     <span
       className={`inline-block px-2 py-0.5 text-[11px] font-semibold rounded-md ${cls}`}
     >
-      {label}
+      {t(`admin.courses_list.row_status.${status}`, { defaultValue: status })}
     </span>
   );
 }
 
-function formatDate(iso: string | null | undefined): string {
-  if (!iso) return "—";
-  return new Intl.DateTimeFormat("vi-VN", {
-    dateStyle: "short",
-    timeStyle: "short",
-  }).format(new Date(iso));
+function useFormatDate() {
+  const { i18n } = useTranslation();
+  const locale = (i18n.resolvedLanguage ?? i18n.language ?? "en") === "vi" ? "vi-VN" : "en-US";
+  return (iso: string | null | undefined): string => {
+    if (!iso) return "—";
+    return new Intl.DateTimeFormat(locale, {
+      dateStyle: "short",
+      timeStyle: "short",
+    }).format(new Date(iso));
+  };
 }
 
 function CourseRow({ course }: { course: CourseAuthoring }) {
+  const { t } = useTranslation();
+  const formatDate = useFormatDate();
   const restore = useRestoreCourse();
   const isDeleted = course.deleted_at != null;
   const instructorName =
@@ -49,8 +50,9 @@ function CourseRow({ course }: { course: CourseAuthoring }) {
     e.preventDefault();
     e.stopPropagation();
     restore.mutate(course.id, {
-      onSuccess: () => toast.success("Đã khôi phục khoá học"),
-      onError: (err) => toast.error((err as Error).message || "Không thể khôi phục"),
+      onSuccess: () => toast.success(t("admin.course_detail.toasts.restored")),
+      onError: (err) =>
+        toast.error((err as Error).message || t("admin.course_detail.toasts.restore_failed")),
     });
   };
 
@@ -73,13 +75,13 @@ function CourseRow({ course }: { course: CourseAuthoring }) {
             {isDeleted ? (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold rounded-md bg-red-100 text-red-700">
                 <Archive className="h-3 w-3" />
-                Đã xóa {formatDate(course.deleted_at)}
+                {t("admin.courses_list.row_status.deleted")} {formatDate(course.deleted_at)}
               </span>
             ) : null}
           </div>
           <p className="text-xs text-text-muted mt-1 truncate">{course.slug}</p>
           <p className="text-xs text-text-muted mt-0.5">
-            Giảng viên: <span className="text-text-strong">{instructorName}</span>
+            {t("course_detail.instructor_role")}: <span className="text-text-strong">{instructorName}</span>
           </p>
         </div>
         {isDeleted ? (
@@ -90,7 +92,7 @@ function CourseRow({ course }: { course: CourseAuthoring }) {
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md bg-m3-primary text-white hover:opacity-90 disabled:opacity-50 transition-opacity"
           >
             <RotateCcw className="h-3.5 w-3.5" />
-            {restore.isPending ? "Đang khôi phục..." : "Khôi phục"}
+            {restore.isPending ? t("admin.course_detail.restoring") : t("admin.course_detail.restore")}
           </button>
         ) : null}
       </div>
@@ -99,6 +101,7 @@ function CourseRow({ course }: { course: CourseAuthoring }) {
 }
 
 export default function AdminCoursesPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const permissions = useMyPermissions();
   const canAdmin =
@@ -108,10 +111,10 @@ export default function AdminCoursesPage() {
   useEffect(() => {
     if (permissions.isLoading) return;
     if (!canAdmin) {
-      toast.error("Không có quyền truy cập");
+      toast.error(t("admin.users.roles.errors.no_permission"));
       void navigate({ to: "/dashboard", replace: true });
     }
-  }, [permissions.isLoading, canAdmin, navigate]);
+  }, [permissions.isLoading, canAdmin, navigate, t]);
 
   const enabled = !permissions.isLoading && canAdmin;
   const list = useAdminCourses({ includeDeleted });
@@ -137,11 +140,11 @@ export default function AdminCoursesPage() {
     <div className="space-y-6 pb-12">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-headline font-bold text-text-strong">
-            Quản lý khoá học
+          <h1 className="text-2xl font-headline font-bold text-text-strong">
+            {t("admin.courses_list.title")}
           </h1>
           <p className="text-sm text-text-muted mt-1">
-            Toàn bộ khoá học, bao gồm cả những khoá đã lưu trữ.
+            {t("admin.courses_list.subtitle")}
           </p>
         </div>
         <label className="inline-flex items-center gap-2 text-sm text-text-strong select-none">
@@ -151,7 +154,7 @@ export default function AdminCoursesPage() {
             onChange={(e) => setIncludeDeleted(e.target.checked)}
             className="h-4 w-4 rounded border-border accent-m3-primary"
           />
-          Hiện đã xóa
+          {t("admin.courses_list.include_deleted")}
         </label>
       </div>
 
@@ -167,7 +170,7 @@ export default function AdminCoursesPage() {
       ) : list.isError ? (
         <div className="bg-surface-elev border border-border rounded-lg p-5">
           <p className="text-sm text-danger">
-            Không thể tải danh sách khoá học.
+            {t("admin.courses_list.load_failed")}
           </p>
         </div>
       ) : (
@@ -182,10 +185,10 @@ export default function AdminCoursesPage() {
             <div className="bg-surface-elev border border-border rounded-lg p-10 text-center">
               <Search className="h-10 w-10 mx-auto mb-3 text-text-subtle" />
               <p className="text-sm font-medium text-text-strong">
-                Chưa có khoá học nào
+                {t("admin.courses_list.empty_title")}
               </p>
               <p className="text-xs text-text-muted mt-1">
-                Khi giảng viên tạo khoá học, danh sách sẽ xuất hiện tại đây.
+                {t("admin.courses_list.empty_body")}
               </p>
             </div>
           }

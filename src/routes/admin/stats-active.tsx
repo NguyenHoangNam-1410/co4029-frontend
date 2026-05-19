@@ -1,33 +1,40 @@
 import { Activity, Calendar, CalendarDays, Users } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useActiveUsersStats } from "@/lib/api/hooks/admin";
 
-function formatCount(n: number | undefined): string {
-  if (n === undefined || n === null) return "—";
-  return new Intl.NumberFormat("vi-VN").format(n);
+function useFormatCount() {
+  const { i18n } = useTranslation();
+  const locale = (i18n.resolvedLanguage ?? i18n.language ?? "en") === "vi" ? "vi-VN" : "en-US";
+  return (n: number | undefined): string => {
+    if (n === undefined || n === null) return "—";
+    return new Intl.NumberFormat(locale).format(n);
+  };
 }
 
 export default function AdminStatsActivePage() {
+  const { t } = useTranslation();
+  const formatCount = useFormatCount();
   const { data, isLoading, isError } = useActiveUsersStats();
 
   const rows = [
     {
       key: "dau",
-      label: "Người dùng hoạt động hằng ngày (DAU)",
-      desc: "Số người dùng có hoạt động trong 24 giờ qua",
+      label: t("admin.stats.active.dau_label"),
+      desc: t("admin.stats.active.dau_desc"),
       value: data?.dau,
       icon: Activity,
     },
     {
       key: "wau",
-      label: "Người dùng hoạt động hằng tuần (WAU)",
-      desc: "Số người dùng có hoạt động trong 7 ngày qua",
+      label: t("admin.stats.active.wau_label"),
+      desc: t("admin.stats.active.wau_desc"),
       value: data?.wau,
       icon: Calendar,
     },
     {
       key: "mau",
-      label: "Người dùng hoạt động hằng tháng (MAU)",
-      desc: "Số người dùng có hoạt động trong 30 ngày qua",
+      label: t("admin.stats.active.mau_label"),
+      desc: t("admin.stats.active.mau_desc"),
       value: data?.mau,
       icon: CalendarDays,
     },
@@ -36,19 +43,17 @@ export default function AdminStatsActivePage() {
   return (
     <div className="space-y-6 pb-12">
       <div>
-        <h1 className="text-xl font-headline font-bold text-text-strong">
-          Người dùng hoạt động
+        <h1 className="text-2xl font-headline font-bold text-text-strong">
+          {t("admin.stats.title_active_users")}
         </h1>
         <p className="text-sm text-text-muted mt-1">
-          Phân tích DAU/WAU/MAU theo phạm vi quyền của bạn.
+          {t("admin.stats.subtitle_active_users")}
         </p>
       </div>
 
       {isError ? (
         <div className="bg-surface-elev border border-border rounded-lg p-5">
-          <p className="text-sm text-danger">
-            Không thể tải dữ liệu. Vui lòng thử lại sau.
-          </p>
+          <p className="text-sm text-danger">{t("admin.stats.load_failed")}</p>
         </div>
       ) : isLoading ? (
         <div className="space-y-3">
@@ -63,7 +68,7 @@ export default function AdminStatsActivePage() {
         <div className="bg-surface-elev border border-border rounded-lg p-10 text-center">
           <Users className="h-10 w-10 mx-auto mb-3 text-text-subtle" />
           <p className="text-sm font-medium text-text-strong">
-            Chưa có dữ liệu cho phạm vi này
+            {t("admin.stats.empty_in_scope")}
           </p>
         </div>
       ) : (
@@ -71,9 +76,9 @@ export default function AdminStatsActivePage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-surface-muted text-left text-xs uppercase tracking-wider text-text-muted">
-                <th className="px-5 py-3 font-semibold">Chỉ số</th>
-                <th className="px-5 py-3 font-semibold">Mô tả</th>
-                <th className="px-5 py-3 font-semibold text-right">Giá trị</th>
+                <th className="px-5 py-3 font-semibold">{t("admin.stats.labels.metric")}</th>
+                <th className="px-5 py-3 font-semibold">{t("admin.stats.labels.description")}</th>
+                <th className="px-5 py-3 font-semibold text-right">{t("admin.stats.labels.value")}</th>
               </tr>
             </thead>
             <tbody>

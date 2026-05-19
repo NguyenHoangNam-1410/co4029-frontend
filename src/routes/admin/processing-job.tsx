@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { ArrowLeft, RefreshCw } from "lucide-react";
 import {
   useProcessingJob,
@@ -30,12 +31,16 @@ function JobStatusBadge({ status }: { status: string }) {
   );
 }
 
-function formatDate(iso: string | null | undefined): string {
-  if (!iso) return "—";
-  return new Intl.DateTimeFormat("vi-VN", {
-    dateStyle: "short",
-    timeStyle: "short",
-  }).format(new Date(iso));
+function useFormatDate() {
+  const { i18n } = useTranslation();
+  const locale = (i18n.resolvedLanguage ?? i18n.language ?? "en") === "vi" ? "vi-VN" : "en-US";
+  return (iso: string | null | undefined): string => {
+    if (!iso) return "—";
+    return new Intl.DateTimeFormat(locale, {
+      dateStyle: "short",
+      timeStyle: "short",
+    }).format(new Date(iso));
+  };
 }
 
 function Field({
@@ -66,6 +71,8 @@ function Field({
 }
 
 export default function AdminProcessingJobPage() {
+  const { t } = useTranslation();
+  const formatDate = useFormatDate();
   const navigate = useNavigate();
   const params = useParams({ strict: false }) as { jobId?: string };
   const jobId = params.jobId ?? "";
@@ -77,10 +84,10 @@ export default function AdminProcessingJobPage() {
   useEffect(() => {
     if (permissions.isLoading) return;
     if (!canAdmin) {
-      toast.error("Không có quyền truy cập");
+      toast.error(t("admin.users.roles.errors.no_permission"));
       void navigate({ to: "/dashboard", replace: true });
     }
-  }, [permissions.isLoading, canAdmin, navigate]);
+  }, [permissions.isLoading, canAdmin, navigate, t]);
 
   const enabled = !permissions.isLoading && canAdmin && Boolean(jobId);
   const job = useProcessingJob(enabled ? jobId : "");
@@ -97,12 +104,12 @@ export default function AdminProcessingJobPage() {
 
   const handleRetry = () => {
     retry.mutate(jobId, {
-      onSuccess: () => toast.success("Đã đưa job vào hàng đợi"),
+      onSuccess: () => toast.success(t("admin.processing.toasts.queued")),
       onError: (err) => {
         if (err instanceof ApiError && err.status === 409) {
-          toast.error("Chỉ có thể thử lại các job đã thất bại");
+          toast.error(t("admin.processing.toasts.only_failed"));
         } else {
-          toast.error((err as Error).message || "Không thể thử lại");
+          toast.error((err as Error).message || t("admin.processing.toasts.retry_failed"));
         }
       },
     });
@@ -115,9 +122,9 @@ export default function AdminProcessingJobPage() {
     <div className="space-y-6 pb-12">
       <Breadcrumbs
         items={[
-          { label: "Quản trị", to: "/admin/stats" },
-          { label: "Hàng đợi xử lý", to: "/admin/processing" },
-          { label: data?.job_type ?? "Chi tiết job" },
+          { label: t("sections.admin"), to: "/admin/stats" },
+          { label: t("admin.processing.title"), to: "/admin/processing" },
+          { label: data?.job_type ?? t("admin.processing_job.title") },
         ]}
       />
       <Link
@@ -125,12 +132,12 @@ export default function AdminProcessingJobPage() {
         className="inline-flex items-center gap-2 text-sm text-text-muted hover:text-text-strong"
       >
         <ArrowLeft className="h-4 w-4" />
-        Quay lại hàng đợi
+        {t("admin.processing_job.back_to_queue")}
       </Link>
 
       {job.isError ? (
         <div className="bg-surface-elev border border-border rounded-lg p-5">
-          <p className="text-sm text-danger">Không thể tải chi tiết job.</p>
+          <p className="text-sm text-danger">{t("admin.processing_job.load_failed")}</p>
         </div>
       ) : job.isLoading ? (
         <div className="space-y-3">
@@ -143,7 +150,7 @@ export default function AdminProcessingJobPage() {
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h1 className="text-xl font-headline font-bold text-text-strong">
+                  <h1 className="text-2xl font-headline font-bold text-text-strong">
                     {data.job_type}
                   </h1>
                   <JobStatusBadge status={data.status} />
@@ -160,7 +167,9 @@ export default function AdminProcessingJobPage() {
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md bg-m3-primary text-white hover:opacity-90 disabled:opacity-50"
                 >
                   <RefreshCw className="h-3.5 w-3.5" />
-                  {retry.isPending ? "Đang xử lý..." : "Thử lại job"}
+                  {retry.isPending
+                    ? t("admin.users.actions.disabling")
+                    : t("admin.processing.retry")}
                 </button>
               ) : null}
             </div>
@@ -168,30 +177,40 @@ export default function AdminProcessingJobPage() {
 
           <div className="bg-surface-elev border border-border rounded-lg p-5">
             <h2 className="text-sm font-headline font-bold text-text-strong mb-4">
-              Chi tiết
+              {t("admin.processing_job.title")}
             </h2>
             <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
-              <Field label="Loại đối tượng" value={data.entity_type} />
-              <Field label="ID đối tượng" value={data.entity_id} mono />
               <Field
-                label="Tiến độ"
+                label={t("admin.processing_job.fields.entity_type")}
+                value={data.entity_type}
+              />
+              <Field
+                label={t("admin.processing_job.fields.entity_id")}
+                value={data.entity_id}
+                mono
+              />
+              <Field
+                label={t("admin.processing_job.stats.progress")}
                 value={`${data.progress_percent}%`}
               />
-              <Field label="Số lần thử lại" value={data.retry_count} />
               <Field
-                label="Bắt đầu"
+                label={t("admin.processing_job.stats.retries")}
+                value={data.retry_count}
+              />
+              <Field
+                label={t("admin.processing_job.fields.started_at")}
                 value={formatDate(data.started_at)}
               />
               <Field
-                label="Kết thúc"
+                label={t("admin.processing_job.fields.completed_at")}
                 value={formatDate(data.finished_at)}
               />
               <Field
-                label="Tạo lúc"
+                label={t("admin.processing_job.fields.created_at")}
                 value={formatDate(data.created_at)}
               />
               <Field
-                label="Cập nhật"
+                label={t("admin.course_detail.cols.updated")}
                 value={formatDate(data.updated_at)}
               />
             </dl>
@@ -200,7 +219,7 @@ export default function AdminProcessingJobPage() {
           {data.error_message ? (
             <div className="bg-red-50 border border-red-200 rounded-lg p-5">
               <h2 className="text-sm font-headline font-bold text-red-700 mb-2">
-                Lỗi
+                {t("admin.processing_job.fields.error")}
               </h2>
               <pre className="text-xs text-red-700 whitespace-pre-wrap break-all font-mono">
                 {data.error_message}

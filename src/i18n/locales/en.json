@@ -338,12 +338,60 @@
       }
     },
     "stats": {
-      "title_overview": "Overview",
+      "title_overview": "System overview",
+      "subtitle_overview": "Aggregate metrics within your permission scope.",
       "title_active_users": "Active users",
-      "title_content": "Content stats",
-      "title_health": "System health stats",
-      "load_failed": "Couldn't load stats.",
-      "empty": "No data yet."
+      "subtitle_active_users": "DAU/WAU/MAU breakdown for your scope.",
+      "title_content": "Content analytics",
+      "subtitle_content": "Content counts by status and type.",
+      "title_health": "System health",
+      "subtitle_health": "Track infrastructure health over time.",
+      "load_failed": "Couldn't load data. Please try again later.",
+      "empty_in_scope": "No data in this scope yet",
+      "empty_body": "When activity happens, metrics will appear here.",
+      "labels": {
+        "users": "Users",
+        "courses": "Courses",
+        "enrollments": "Enrollments",
+        "materials": "Materials",
+        "quiz_attempts": "Quiz attempts",
+        "metric": "Metric",
+        "description": "Description",
+        "value": "Value",
+        "count": "Count",
+        "status": "Status",
+        "type": "Type"
+      },
+      "active": {
+        "dau_label": "Daily active users (DAU)",
+        "dau_desc": "Users active in the last 24 hours",
+        "wau_label": "Weekly active users (WAU)",
+        "wau_desc": "Users active in the last 7 days",
+        "mau_label": "Monthly active users (MAU)",
+        "mau_desc": "Users active in the last 30 days"
+      },
+      "health": {
+        "subtitle": "Background job and failed AI call snapshot for the selected window.",
+        "window_label": "Window",
+        "windows": {
+          "24h": "Last 24 hours",
+          "7d": "Last 7 days",
+          "30d": "Last 30 days"
+        },
+        "rows": {
+          "failed_jobs_label": "Failed jobs",
+          "failed_jobs_desc": "Processing jobs with status=failed",
+          "in_flight_jobs_label": "In-flight jobs",
+          "in_flight_jobs_desc": "Processing jobs currently running",
+          "failed_ai_calls_label": "Failed AI calls",
+          "failed_ai_calls_desc": "AI calls with failure status"
+        }
+      },
+      "content": {
+        "courses_by_status": "Courses by status",
+        "materials_by_type": "Materials by type",
+        "processing_jobs_by_status": "Processing jobs by status"
+      }
     },
     "ai_costs": {
       "title": "AI costs",

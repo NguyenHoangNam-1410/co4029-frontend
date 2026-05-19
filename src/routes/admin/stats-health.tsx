@@ -1,26 +1,32 @@
 import { useMemo, useState } from "react";
 import { AlertTriangle, Bot, Loader } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useStatsHealth } from "@/lib/api/hooks/admin";
 
 type Window = "24h" | "7d" | "30d";
 
-const WINDOW_OPTIONS: { value: Window; label: string; hours: number }[] = [
-  { value: "24h", label: "24 giờ qua", hours: 24 },
-  { value: "7d", label: "7 ngày qua", hours: 24 * 7 },
-  { value: "30d", label: "30 ngày qua", hours: 24 * 30 },
-];
+const WINDOW_HOURS: Record<Window, number> = {
+  "24h": 24,
+  "7d": 24 * 7,
+  "30d": 24 * 30,
+};
 
-function formatCount(n: number | undefined): string {
-  if (n === undefined || n === null) return "—";
-  return new Intl.NumberFormat("vi-VN").format(n);
+function useFormatCount() {
+  const { i18n } = useTranslation();
+  const locale = (i18n.resolvedLanguage ?? i18n.language ?? "en") === "vi" ? "vi-VN" : "en-US";
+  return (n: number | undefined): string => {
+    if (n === undefined || n === null) return "—";
+    return new Intl.NumberFormat(locale).format(n);
+  };
 }
 
 export default function AdminStatsHealthPage() {
+  const { t } = useTranslation();
+  const formatCount = useFormatCount();
   const [windowKey, setWindowKey] = useState<Window>("24h");
 
   const since = useMemo(() => {
-    const opt = WINDOW_OPTIONS.find((w) => w.value === windowKey)!;
-    const ms = opt.hours * 60 * 60 * 1000;
+    const ms = WINDOW_HOURS[windowKey] * 60 * 60 * 1000;
     return new Date(Date.now() - ms).toISOString();
   }, [windowKey]);
 
@@ -29,22 +35,22 @@ export default function AdminStatsHealthPage() {
   const rows = [
     {
       key: "failed_jobs",
-      label: "Tác vụ thất bại",
-      desc: "Số job xử lý có trạng thái failed",
+      label: t("admin.stats.health.rows.failed_jobs_label"),
+      desc: t("admin.stats.health.rows.failed_jobs_desc"),
       value: data?.failed_jobs_count,
       icon: AlertTriangle,
     },
     {
       key: "in_flight_jobs",
-      label: "Tác vụ đang chạy",
-      desc: "Số job đang ở trạng thái in-flight",
+      label: t("admin.stats.health.rows.in_flight_jobs_label"),
+      desc: t("admin.stats.health.rows.in_flight_jobs_desc"),
       value: data?.in_flight_jobs_count,
       icon: Loader,
     },
     {
       key: "failed_ai_calls",
-      label: "Lệnh gọi AI thất bại",
-      desc: "Số AI call có trạng thái thất bại",
+      label: t("admin.stats.health.rows.failed_ai_calls_label"),
+      desc: t("admin.stats.health.rows.failed_ai_calls_desc"),
       value: data?.failed_ai_calls_count,
       icon: Bot,
     },
@@ -54,12 +60,11 @@ export default function AdminStatsHealthPage() {
     <div className="space-y-6 pb-12">
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl font-headline font-bold text-text-strong">
-            Trạng thái xử lý nền
+          <h1 className="text-2xl font-headline font-bold text-text-strong">
+            {t("admin.stats.title_health")}
           </h1>
           <p className="text-sm text-text-muted mt-1">
-            Snapshot job nền và lệnh gọi AI thất bại trong khoảng thời gian được
-            chọn.
+            {t("admin.stats.health.subtitle")}
           </p>
         </div>
 
@@ -68,7 +73,7 @@ export default function AdminStatsHealthPage() {
             htmlFor="health-window"
             className="block text-xs font-semibold uppercase tracking-wider text-text-muted mb-1"
           >
-            Khoảng thời gian
+            {t("admin.stats.health.window_label")}
           </label>
           <select
             id="health-window"
@@ -76,9 +81,9 @@ export default function AdminStatsHealthPage() {
             onChange={(e) => setWindowKey(e.target.value as Window)}
             className="bg-surface-elev border border-border rounded-md px-3 py-2 text-sm text-text-strong focus:outline-none focus:ring-2 focus:ring-m3-primary"
           >
-            {WINDOW_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
+            {(Object.keys(WINDOW_HOURS) as Window[]).map((w) => (
+              <option key={w} value={w}>
+                {t(`admin.stats.health.windows.${w}`)}
               </option>
             ))}
           </select>
@@ -87,9 +92,7 @@ export default function AdminStatsHealthPage() {
 
       {isError ? (
         <div className="bg-surface-elev border border-border rounded-lg p-5">
-          <p className="text-sm text-danger">
-            Không thể tải dữ liệu. Vui lòng thử lại sau.
-          </p>
+          <p className="text-sm text-danger">{t("admin.stats.load_failed")}</p>
         </div>
       ) : isLoading ? (
         <div className="space-y-3">
@@ -104,7 +107,7 @@ export default function AdminStatsHealthPage() {
         <div className="bg-surface-elev border border-border rounded-lg p-10 text-center">
           <AlertTriangle className="h-10 w-10 mx-auto mb-3 text-text-subtle" />
           <p className="text-sm font-medium text-text-strong">
-            Chưa có dữ liệu cho phạm vi này
+            {t("admin.stats.empty_in_scope")}
           </p>
         </div>
       ) : (
@@ -112,9 +115,9 @@ export default function AdminStatsHealthPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-surface-muted text-left text-xs uppercase tracking-wider text-text-muted">
-                <th className="px-5 py-3 font-semibold">Chỉ số</th>
-                <th className="px-5 py-3 font-semibold">Mô tả</th>
-                <th className="px-5 py-3 font-semibold text-right">Giá trị</th>
+                <th className="px-5 py-3 font-semibold">{t("admin.stats.labels.metric")}</th>
+                <th className="px-5 py-3 font-semibold">{t("admin.stats.labels.description")}</th>
+                <th className="px-5 py-3 font-semibold text-right">{t("admin.stats.labels.value")}</th>
               </tr>
             </thead>
             <tbody>

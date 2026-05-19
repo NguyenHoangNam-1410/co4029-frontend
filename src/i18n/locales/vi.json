@@ -338,12 +338,60 @@
       }
     },
     "stats": {
-      "title_overview": "Tổng quan",
-      "title_active_users": "Người dùng đang hoạt động",
-      "title_content": "Thống kê nội dung",
+      "title_overview": "Tổng quan hệ thống",
+      "subtitle_overview": "Các chỉ số tổng hợp trong phạm vi quyền của bạn.",
+      "title_active_users": "Người dùng hoạt động",
+      "subtitle_active_users": "Phân tích DAU/WAU/MAU theo phạm vi quyền của bạn.",
+      "title_content": "Phân tích nội dung",
+      "subtitle_content": "Số lượng nội dung theo trạng thái và loại.",
       "title_health": "Tình trạng hệ thống",
-      "load_failed": "Không thể tải thống kê.",
-      "empty": "Chưa có dữ liệu."
+      "subtitle_health": "Theo dõi tình trạng hạ tầng theo thời gian.",
+      "load_failed": "Không thể tải dữ liệu. Vui lòng thử lại sau.",
+      "empty_in_scope": "Chưa có dữ liệu cho phạm vi này",
+      "empty_body": "Khi có hoạt động, các chỉ số sẽ xuất hiện tại đây.",
+      "labels": {
+        "users": "Người dùng",
+        "courses": "Khoá học",
+        "enrollments": "Đăng ký",
+        "materials": "Tài liệu",
+        "quiz_attempts": "Lượt làm quiz",
+        "metric": "Chỉ số",
+        "description": "Mô tả",
+        "value": "Giá trị",
+        "count": "Số lượng",
+        "status": "Trạng thái",
+        "type": "Loại"
+      },
+      "active": {
+        "dau_label": "Người dùng hoạt động hằng ngày (DAU)",
+        "dau_desc": "Số người dùng có hoạt động trong 24 giờ qua",
+        "wau_label": "Người dùng hoạt động hằng tuần (WAU)",
+        "wau_desc": "Số người dùng có hoạt động trong 7 ngày qua",
+        "mau_label": "Người dùng hoạt động hằng tháng (MAU)",
+        "mau_desc": "Số người dùng có hoạt động trong 30 ngày qua"
+      },
+      "health": {
+        "subtitle": "Snapshot job nền và lệnh gọi AI thất bại trong khoảng thời gian được chọn.",
+        "window_label": "Khoảng thời gian",
+        "windows": {
+          "24h": "24 giờ qua",
+          "7d": "7 ngày qua",
+          "30d": "30 ngày qua"
+        },
+        "rows": {
+          "failed_jobs_label": "Tác vụ thất bại",
+          "failed_jobs_desc": "Số job xử lý có trạng thái failed",
+          "in_flight_jobs_label": "Tác vụ đang chạy",
+          "in_flight_jobs_desc": "Số job đang ở trạng thái in-flight",
+          "failed_ai_calls_label": "Lệnh gọi AI thất bại",
+          "failed_ai_calls_desc": "Số AI call có trạng thái thất bại"
+        }
+      },
+      "content": {
+        "courses_by_status": "Khoá học theo trạng thái",
+        "materials_by_type": "Tài liệu theo loại",
+        "processing_jobs_by_status": "Tác vụ xử lý theo trạng thái"
+      }
     },
     "ai_costs": {
       "title": "Chi phí AI",

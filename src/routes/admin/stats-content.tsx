@@ -1,11 +1,16 @@
 import { BookOpen, FileText, Workflow } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useContentStats } from "@/lib/api/hooks/admin";
 
 type Bucket = { [key: string]: unknown };
 
-function formatCount(n: unknown): string {
-  if (typeof n === "number") return new Intl.NumberFormat("vi-VN").format(n);
-  return "—";
+function useFormatCount() {
+  const { i18n } = useTranslation();
+  const locale = (i18n.resolvedLanguage ?? i18n.language ?? "en") === "vi" ? "vi-VN" : "en-US";
+  return (n: unknown): string => {
+    if (typeof n === "number") return new Intl.NumberFormat(locale).format(n);
+    return "—";
+  };
 }
 
 function readBucket(bucket: Bucket): { label: string; count: unknown } {
@@ -32,6 +37,8 @@ function BreakdownTable({
   buckets: Bucket[] | undefined;
   labelHeader: string;
 }) {
+  const { t } = useTranslation();
+  const formatCount = useFormatCount();
   return (
     <div className="bg-surface-elev border border-border rounded-xl overflow-hidden">
       <div className="px-5 py-4 border-b border-border flex items-center gap-3">
@@ -44,14 +51,14 @@ function BreakdownTable({
       </div>
       {!buckets || buckets.length === 0 ? (
         <div className="px-5 py-8 text-center text-sm text-text-muted">
-          Chưa có dữ liệu cho phạm vi này
+          {t("admin.stats.empty_in_scope")}
         </div>
       ) : (
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-surface-muted text-left text-xs uppercase tracking-wider text-text-muted">
               <th className="px-5 py-3 font-semibold">{labelHeader}</th>
-              <th className="px-5 py-3 font-semibold text-right">Số lượng</th>
+              <th className="px-5 py-3 font-semibold text-right">{t("admin.stats.labels.count")}</th>
             </tr>
           </thead>
           <tbody>
@@ -79,24 +86,23 @@ function BreakdownTable({
 }
 
 export default function AdminStatsContentPage() {
+  const { t } = useTranslation();
   const { data, isLoading, isError } = useContentStats();
 
   return (
     <div className="space-y-6 pb-12">
       <div>
-        <h1 className="text-xl font-headline font-bold text-text-strong">
-          Phân tích nội dung
+        <h1 className="text-2xl font-headline font-bold text-text-strong">
+          {t("admin.stats.title_content")}
         </h1>
         <p className="text-sm text-text-muted mt-1">
-          Số lượng nội dung theo trạng thái và loại.
+          {t("admin.stats.subtitle_content")}
         </p>
       </div>
 
       {isError ? (
         <div className="bg-surface-elev border border-border rounded-lg p-5">
-          <p className="text-sm text-danger">
-            Không thể tải dữ liệu. Vui lòng thử lại sau.
-          </p>
+          <p className="text-sm text-danger">{t("admin.stats.load_failed")}</p>
         </div>
       ) : isLoading ? (
         <div className="space-y-4">
@@ -110,22 +116,22 @@ export default function AdminStatsContentPage() {
       ) : (
         <div className="space-y-4">
           <BreakdownTable
-            title="Khoá học theo trạng thái"
+            title={t("admin.stats.content.courses_by_status")}
             icon={BookOpen}
             buckets={data?.courses_by_status}
-            labelHeader="Trạng thái"
+            labelHeader={t("admin.stats.labels.status")}
           />
           <BreakdownTable
-            title="Tài liệu theo loại"
+            title={t("admin.stats.content.materials_by_type")}
             icon={FileText}
             buckets={data?.materials_by_type}
-            labelHeader="Loại"
+            labelHeader={t("admin.stats.labels.type")}
           />
           <BreakdownTable
-            title="Tác vụ xử lý theo trạng thái"
+            title={t("admin.stats.content.processing_jobs_by_status")}
             icon={Workflow}
             buckets={data?.processing_jobs_by_status}
-            labelHeader="Trạng thái"
+            labelHeader={t("admin.stats.labels.status")}
           />
         </div>
       )}
