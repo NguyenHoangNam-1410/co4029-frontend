@@ -381,10 +381,10 @@ function ModuleAccordion({
   const [dragSourceIdx, setDragSourceIdx] = useState<number | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
 
-  const allItemsSorted = [...module.items].sort((a, b) => a.position - b.position);
-  const lessonCount = module.items.filter((i) => i.item_type === "lesson").length;
-  const quizCount = module.items.filter((i) => i.item_type === "quiz").length;
-  const interviewCount = module.items.filter((i) => i.item_type === "interview").length;
+  const allItemsSorted = [...(module.items ?? [])].sort((a, b) => a.position - b.position);
+  const lessonCount = (module.items ?? []).filter((i) => i.item_type === "lesson").length;
+  const quizCount = (module.items ?? []).filter((i) => i.item_type === "quiz").length;
+  const interviewCount = (module.items ?? []).filter((i) => i.item_type === "interview").length;
 
   function handleDrop(dropIdx: number) {
     if (dragSourceIdx === null || dragSourceIdx === dropIdx) {
@@ -556,7 +556,7 @@ function ModuleAccordion({
             <AddLessonPills
               moduleId={module.id}
               courseId={courseId}
-              nextPosition={module.items.length + 1}
+              nextPosition={(module.items ?? []).length + 1}
             />
           </div>
         </div>
@@ -641,7 +641,7 @@ export default function CourseManagePage() {
           <p className="text-xs text-m3-on-surface-variant mt-0.5">
             {modules.length} module{modules.length !== 1 ? "s" : ""}
             {modules.length > 0 && (
-              <> · {modules.reduce((acc, m) => acc + m.items.filter(i => i.item_type === "lesson").length, 0)} lessons</>
+              <> · {modules.reduce((acc, m) => acc + (m.items ?? []).filter(i => i.item_type === "lesson").length, 0)} lessons</>
             )}
           </p>
         </div>
