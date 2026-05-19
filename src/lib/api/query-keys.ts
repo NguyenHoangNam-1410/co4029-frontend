@@ -80,6 +80,14 @@ export const queryKeys = {
       ["admin", "processing", "jobs", status] as const,
     processingJob: (jobId: string) =>
       ["admin", "processing", "jobs", "detail", jobId] as const,
+    permissions: () => ["admin", "permissions"] as const,
+    roles: () => ["admin", "roles"] as const,
+    userAssignments: (userId: string) =>
+      ["admin", "users", userId, "assignments"] as const,
+    userGrants: (userId: string) =>
+      ["admin", "users", userId, "grants"] as const,
+    orgMemberships: (orgId: string) =>
+      ["admin", "organizations", orgId, "memberships"] as const,
     aiCosts: {
       summary: (period: string) =>
         ["admin", "ai-costs", "summary", period] as const,
@@ -149,6 +157,17 @@ export const queryKeys = {
   progress: {
     course: (courseId: string) => ["progress", "course", courseId] as const,
     lesson: (lessonId: string) => ["progress", "lesson", lessonId] as const,
+    myCourse: (courseId: string) =>
+      ["progress", "my-course", courseId] as const,
+    cohort: (courseId: string) => ["progress", "cohort", courseId] as const,
+    atRiskRoster: (courseId: string) =>
+      ["progress", "at-risk", courseId] as const,
+  },
+
+  me: {
+    enrollments: () => ["me", "enrollments"] as const,
+    enrollment: (courseId: string) =>
+      ["me", "enrollments", courseId] as const,
   },
 
   careerPaths: {

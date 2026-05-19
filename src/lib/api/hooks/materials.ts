@@ -83,6 +83,17 @@ export function useTeacherLessonMaterials(lessonId: string | undefined) {
   });
 }
 
+export function useTeacherMaterial(materialId: string | null | undefined) {
+  return useQuery({
+    queryKey: ["teacher", "materials", materialId, "detail"],
+    queryFn: () =>
+      apiFetch<MaterialAuthoring>(`/teacher/materials/${materialId}`),
+    enabled: !!materialId,
+    staleTime: 1000 * 30,
+    retry: retryUnless404,
+  });
+}
+
 export function useTeacherMaterialStatus(materialId: string | undefined) {
   return useQuery({
     queryKey: ["teacher", "materials", materialId, "status"],

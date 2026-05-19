@@ -1,0 +1,14 @@
+src/lib/api/hooks/admin.ts:export function useListPermissions() {
+src/lib/api/hooks/admin.ts:export function useListRoles() {
+src/lib/api/hooks/materials.ts:export function useTeacherMaterial(materialId: string | null | undefined) {
+src/lib/api/hooks/me.ts:export function useMyEnrollments() {
+src/lib/api/hooks/progress.ts:export function useLessonProgress(lessonId: string | null | undefined) {
+src/lib/api/hooks/admin.ts:2
+src/lib/api/hooks/materials.ts:1
+src/lib/api/hooks/me.ts:1
+src/lib/api/hooks/progress.ts:1
+TOTAL: 5
+src/lib/api/hooks/admin.ts:34
+src/lib/api/hooks/progress.ts:5
+src/lib/api/hooks/me.ts:2
+src/lib/api/hooks/materials.ts:18

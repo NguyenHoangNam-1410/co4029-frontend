@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiFetch, apiPatch, apiPost } from "../client";
+import { apiDelete, apiFetch, apiPatch, apiPost } from "../client";
 import { queryKeys } from "../query-keys";
 import { useInfinitePage } from "../use-infinite-page";
 import type {
@@ -15,11 +15,19 @@ import type {
   CourseStats,
   DisableUserOut,
   EnableUserOut,
+  GrantCreate,
+  GrantRead,
   HealthOut,
+  MembershipCreate,
+  MembershipRead,
   OverviewOut,
+  PermissionRead,
   ProcessingJobOut,
   ProcessingJobRow,
   ProcessingQueueDepth,
+  RoleAssignmentCreate,
+  RoleAssignmentRead,
+  RoleWithPermissionsRead,
   User,
   UserListPage,
 } from "../types";
@@ -339,5 +347,123 @@ export function useRecentAiCalls(opts?: { limit?: number }) {
         `/admin/ai/costs/recent?limit=${limit}`,
       ),
     staleTime: 1000 * 30,
+  });
+}
+
+export function useListPermissions() {
+  return useQuery({
+    queryKey: queryKeys.admin.permissions(),
+    queryFn: () => apiFetch<PermissionRead[]>("/admin/permissions"),
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+export function useListRoles() {
+  return useQuery({
+    queryKey: queryKeys.admin.roles(),
+    queryFn: () => apiFetch<RoleWithPermissionsRead[]>("/admin/roles"),
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+export function useUserAssignments(userId: string) {
+  return useQuery({
+    queryKey: queryKeys.admin.userAssignments(userId),
+    queryFn: () =>
+      apiFetch<RoleAssignmentRead[]>(`/admin/users/${userId}/assignments`),
+    enabled: Boolean(userId),
+    staleTime: 1000 * 30,
+  });
+}
+
+export function useGrantUserAssignment(userId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: RoleAssignmentCreate) =>
+      apiPost<RoleAssignmentRead>(
+        `/admin/users/${userId}/assignments`,
+        payload,
+      ),
+    onSuccess: () => {
+      void qc.invalidateQueries({
+        queryKey: queryKeys.admin.userAssignments(userId),
+      });
+    },
+  });
+}
+
+export function useRevokeUserAssignment(userId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (assignmentId: string) =>
+      apiDelete(`/admin/users/${userId}/assignments/${assignmentId}`),
+    onSuccess: () => {
+      void qc.invalidateQueries({
+        queryKey: queryKeys.admin.userAssignments(userId),
+      });
+    },
+  });
+}
+
+export function useUserGrants(userId: string) {
+  return useQuery({
+    queryKey: queryKeys.admin.userGrants(userId),
+    queryFn: () => apiFetch<GrantRead[]>(`/admin/users/${userId}/grants`),
+    enabled: Boolean(userId),
+    staleTime: 1000 * 30,
+  });
+}
+
+export function useGrantPermission(userId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: GrantCreate) =>
+      apiPost<GrantRead>(`/admin/users/${userId}/grants`, payload),
+    onSuccess: () => {
+      void qc.invalidateQueries({
+        queryKey: queryKeys.admin.userGrants(userId),
+      });
+    },
+  });
+}
+
+export function useRevokePermissionGrant(userId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (grantId: string) =>
+      apiDelete(`/admin/users/${userId}/grants/${grantId}`),
+    onSuccess: () => {
+      void qc.invalidateQueries({
+        queryKey: queryKeys.admin.userGrants(userId),
+      });
+    },
+  });
+}
+
+export function useOrgMemberships(orgId: string) {
+  return useQuery({
+    queryKey: queryKeys.admin.orgMemberships(orgId),
+    queryFn: () =>
+      apiFetch<MembershipRead[]>(
+        `/admin/organizations/${orgId}/memberships`,
+      ),
+    enabled: Boolean(orgId),
+    staleTime: 1000 * 30,
+  });
+}
+
+export function useAddOrgMember(orgId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: MembershipCreate) =>
+      apiPost<MembershipRead>(
+        `/admin/organizations/${orgId}/memberships`,
+        payload,
+      ),
+    onSuccess: () => {
+      void qc.invalidateQueries({
+        queryKey: queryKeys.admin.orgMemberships(orgId),
+      });
+    },
   });
 }

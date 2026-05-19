@@ -42,6 +42,11 @@ export type LessonCreate = Schemas["LessonCreate"];
 export type LessonUpdate = Schemas["LessonUpdate"];
 export type LessonOverviewItem = Schemas["LessonOverviewItem"];
 export type LessonProgress = Schemas["LessonProgressPublic"];
+export type LessonProgressPublic = Schemas["LessonProgressPublic"];
+export type LessonProgressSummary = Schemas["LessonProgressSummary"];
+export type MyCourseProgressSummary = Schemas["MyCourseProgressSummary"];
+export type RosterProgressRead = Schemas["RosterProgressRead"];
+export type AtRiskListRead = Schemas["AtRiskListRead"];
 export type LessonResource = Schemas["LessonResourcePublic"];
 export type LessonResourcePublic = Schemas["LessonResourcePublic"];
 export type LessonResourceAuthoring = Schemas["LessonResourceAuthoring"];
@@ -54,6 +59,8 @@ export type MaterialPublic = Schemas["MaterialPublic"];
 export type MaterialAuthoring = Schemas["MaterialAuthoring"];
 export type MaterialUpdate = Schemas["MaterialUpdate"];
 export type MaterialEngagement = Schemas["MaterialEngagementPublic"];
+export type MaterialEngagementPublic = Schemas["MaterialEngagementPublic"];
+export type MaterialEngagementCreate = Schemas["MaterialEngagementCreate"];
 export type MaterialStreamUrl = Schemas["MaterialStreamUrl"];
 export type ChunkPreview = Schemas["ChunkPreview"];
 
@@ -117,6 +124,7 @@ export type GapReportAuthoringRead = Schemas["GapReportAuthoringRead"];
 export type StudyPlanItem = Schemas["StudyPlanItem"];
 
 export type Enrollment = Schemas["EnrollmentRead"];
+export type EnrollmentRead = Schemas["EnrollmentRead"];
 export type EnrollmentAuthoring = Schemas["EnrollmentAuthoring"];
 
 export type TeacherAssignmentRead = Schemas["TeacherAssignmentRead"];
@@ -219,3 +227,13 @@ export type StudentSrDetailReview = Schemas["StudentSrDetailReviewRead"];
 
 export type Page<T> = { items: T[]; next_cursor: string | null };
 export type Paths = paths;
+
+export type PermissionRead = Schemas["PermissionRead"];
+export type RoleRead = Schemas["RoleRead"];
+export type RoleWithPermissionsRead = Schemas["RoleWithPermissionsRead"];
+export type RoleAssignmentRead = Schemas["RoleAssignmentRead"];
+export type RoleAssignmentCreate = Schemas["RoleAssignmentCreate"];
+export type GrantRead = Schemas["GrantRead"];
+export type GrantCreate = Schemas["GrantCreate"];
+export type MembershipRead = Schemas["MembershipRead"];
+export type MembershipCreate = Schemas["MembershipCreate"];
