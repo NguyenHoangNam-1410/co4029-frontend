@@ -142,7 +142,7 @@ export default function DashboardPage() {
 
   return (
     <div className="relative min-h-screen bg-m3-surface pb-28">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+      <div className="max-w-6xl mx-auto space-y-8">
 
         <header className="flex items-start justify-between gap-4">
           <div className="space-y-1">

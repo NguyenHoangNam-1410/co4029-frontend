@@ -112,7 +112,7 @@ export default function CoursesListPage() {
 
   return (
     <div className="relative min-h-screen bg-m3-surface pb-28">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+      <div className="max-w-6xl mx-auto space-y-8">
 
         <header className="pt-2">
           <div className="flex items-center gap-3 mb-2">

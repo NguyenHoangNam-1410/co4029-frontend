@@ -164,7 +164,7 @@ export default function SrDashboardPage() {
 
   return (
     <div className="min-h-screen bg-m3-surface pb-12">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+      <div className="max-w-6xl mx-auto space-y-8">
         <header className="space-y-2">
           <div className="flex items-center gap-2 text-m3-primary text-xs font-bold uppercase tracking-widest">
             <Sparkles className="h-3.5 w-3.5" />

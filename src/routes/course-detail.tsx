@@ -87,7 +87,7 @@ export default function CourseDetailPage() {
     return (
       <div className="min-h-screen bg-m3-surface pb-28">
         <div className="h-72 bg-gradient-to-br from-m3-primary via-m3-primary-container to-m3-secondary animate-pulse" />
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        <div className="max-w-6xl mx-auto space-y-6">
           <SkeletonBlock className="h-48" />
           <SkeletonBlock className="h-72" />
         </div>
@@ -132,7 +132,7 @@ export default function CourseDetailPage() {
 
       <div className="relative overflow-hidden bg-gradient-to-br from-m3-primary via-m3-primary-container to-m3-secondary">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJub2lzZSI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9IjAuNjUiIG51bU9jdGF2ZXM9IjMiIHN0aXRjaFRpbGVzPSJzdGl0Y2giLz48ZmVCbGVuZCBtb2RlPSJzY3JlZW4iLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsdGVyPSJ1cmwoI25vaXNlKSIgb3BhY2l0eT0iMC4wNSIvPjwvc3ZnPg==')] opacity-20 pointer-events-none" />
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+        <div className="max-w-6xl mx-auto">
           <nav className="flex items-center gap-2 text-xs text-white/60 mb-6">
             <Link to="/courses" className="hover:text-white transition-colors">Courses</Link>
             <span>/</span>
@@ -188,7 +188,7 @@ export default function CourseDetailPage() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-6xl mx-auto">
         <div className="flex flex-col lg:flex-row gap-8 items-start">
 
           <div className="flex-1 min-w-0 space-y-8">

@@ -548,7 +548,7 @@ export default function CourseQuizPage() {
 
   return (
     <div className="min-h-[70vh] bg-m3-surface pb-20">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
           <div className="flex items-center gap-3 flex-wrap">
             <Link to="/courses/$slug/learn" params={{ slug }}>
