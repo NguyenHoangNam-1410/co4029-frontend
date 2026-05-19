@@ -334,14 +334,14 @@ function ModuleItemRow({
           {status}
         </Badge>
       )}
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="flex items-center gap-1 text-m3-on-surface-variant">
         {lesson && (
           <Link
             to="/teacher/courses/$courseId/lessons/$lessonId"
             params={{ courseId, lessonId: lesson.id }}
             onClick={(e) => e.stopPropagation()}
           >
-            <Button variant="ghost" size="icon" className="h-6 w-6">
+            <Button variant="ghost" size="icon" className="h-6 w-6 hover:text-m3-on-surface">
               <Pencil className="h-3 w-3" />
             </Button>
           </Link>
@@ -352,7 +352,18 @@ function ModuleItemRow({
             params={{ courseId, quizId: quiz.id }}
             onClick={(e) => e.stopPropagation()}
           >
-            <Button variant="ghost" size="icon" className="h-6 w-6">
+            <Button variant="ghost" size="icon" className="h-6 w-6 hover:text-m3-on-surface">
+              <Pencil className="h-3 w-3" />
+            </Button>
+          </Link>
+        )}
+        {interview && (
+          <Link
+            to="/teacher/courses/$courseId/interview-configs/$configId"
+            params={{ courseId, configId: interview.id }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Button variant="ghost" size="icon" className="h-6 w-6 hover:text-m3-on-surface">
               <Pencil className="h-3 w-3" />
             </Button>
           </Link>

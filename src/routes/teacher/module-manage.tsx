@@ -89,6 +89,7 @@ function ItemRow({
   const { t } = useTranslation();
   const lesson: CourseContentLesson | null = item.lesson;
   const quiz = item.quiz;
+  const interview = item.interview;
   const cfg = quiz
     ? QUIZ_ITEM_CONFIG
     : lesson
@@ -100,8 +101,8 @@ function ItemRow({
     : item.item_type === "interview"
       ? t("teacher_common.interview_label")
       : (cfg?.label ?? item.item_type);
-  const title = lesson?.title ?? quiz?.title ?? label;
-  const status = lesson?.status ?? quiz?.status;
+  const title = lesson?.title ?? quiz?.title ?? interview?.title ?? label;
+  const status = lesson?.status ?? quiz?.status ?? interview?.status;
 
   return (
     <div
@@ -150,14 +151,14 @@ function ItemRow({
           {status}
         </Badge>
       )}
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+      <div className="flex items-center gap-1 text-m3-on-surface-variant shrink-0">
         {lesson && (
           <Link
             to="/teacher/courses/$courseId/lessons/$lessonId"
             params={{ courseId, lessonId: lesson.id }}
             onClick={(e) => e.stopPropagation()}
           >
-            <Button variant="ghost" size="icon" className="h-7 w-7">
+            <Button variant="ghost" size="icon" className="h-7 w-7 hover:text-m3-on-surface">
               <Pencil className="h-3.5 w-3.5" />
             </Button>
           </Link>
@@ -168,7 +169,18 @@ function ItemRow({
             params={{ courseId, quizId: quiz.id }}
             onClick={(e) => e.stopPropagation()}
           >
-            <Button variant="ghost" size="icon" className="h-7 w-7">
+            <Button variant="ghost" size="icon" className="h-7 w-7 hover:text-m3-on-surface">
+              <Pencil className="h-3.5 w-3.5" />
+            </Button>
+          </Link>
+        )}
+        {interview && (
+          <Link
+            to="/teacher/courses/$courseId/interview-configs/$configId"
+            params={{ courseId, configId: interview.id }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Button variant="ghost" size="icon" className="h-7 w-7 hover:text-m3-on-surface">
               <Pencil className="h-3.5 w-3.5" />
             </Button>
           </Link>
@@ -315,13 +327,14 @@ function ModuleSettings({
     }
   }
 
-  const publishedCount = module.items.filter((i) => {
+  const items = module.items ?? [];
+  const publishedCount = items.filter((i) => {
     if (i.item_type === "lesson") return i.lesson?.status === "published";
     if (i.item_type === "quiz") return i.quiz?.status === "published";
     if (i.item_type === "interview") return i.interview?.status === "published";
     return false;
   }).length;
-  const draftCount = module.items.length - publishedCount;
+  const draftCount = items.length - publishedCount;
 
   return (
     <div className="space-y-5">
@@ -331,7 +344,7 @@ function ModuleSettings({
         </h3>
         <div className="grid grid-cols-2 gap-3">
           {[
-            { label: "Total Items", value: module.items.length },
+            { label: "Total Items", value: items.length },
             { label: "Published", value: publishedCount },
             { label: "Draft", value: draftCount },
             { label: "Est. Minutes", value: module.estimated_minutes ?? "—" },
@@ -452,7 +465,7 @@ export default function ModuleManagePage() {
     );
   }
 
-  const sortedItems = [...module.items].sort((a, b) => a.position - b.position);
+  const sortedItems = [...(module.items ?? [])].sort((a, b) => a.position - b.position);
 
   function startEdit(e: React.MouseEvent) {
     e.stopPropagation();
