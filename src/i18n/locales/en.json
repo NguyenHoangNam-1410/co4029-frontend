@@ -118,5 +118,10 @@
     "en": "English",
     "vi": "Tiếng Việt",
     "switch": "Language"
+  },
+  "sections": {
+    "student": "Student",
+    "teacher": "Teacher",
+    "admin": "Admin"
   }
 }

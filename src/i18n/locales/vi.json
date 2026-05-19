@@ -118,5 +118,10 @@
     "en": "English",
     "vi": "Tiếng Việt",
     "switch": "Ngôn ngữ"
+  },
+  "sections": {
+    "student": "Học viên",
+    "teacher": "Giảng viên",
+    "admin": "Quản trị"
   }
 }
