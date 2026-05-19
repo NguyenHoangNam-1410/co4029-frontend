@@ -270,6 +270,60 @@
         "retry_failed": "Không thể thử lại"
       }
     },
+    "ai_costs": {
+      "title": "Chi phí AI",
+      "subtitle": "Theo dõi mức tiêu thụ token và chi phí của các pipeline AI.",
+      "summary_load_failed": "Không thể tải tổng quan chi phí.",
+      "users_load_failed": "Không thể tải bảng người dùng.",
+      "pipelines_load_failed": "Không thể tải bảng pipeline.",
+      "recent_load_failed": "Không thể tải danh sách lượt gọi.",
+      "period_aria": "Khoảng thời gian",
+      "period_options": {
+        "24h": "24 giờ qua",
+        "7d": "7 ngày qua",
+        "30d": "30 ngày qua"
+      },
+      "period_short": {
+        "24h": "24 giờ",
+        "7d": "7 ngày",
+        "30d": "30 ngày"
+      },
+      "stats": {
+        "total_cost": "Tổng chi phí",
+        "total_tokens": "Tổng tokens",
+        "call_count": "Số lượt gọi",
+        "period": "Khoảng thời gian"
+      },
+      "sections": {
+        "by_role": "Chi phí theo vai trò",
+        "by_stage": "Chi phí theo bước xử lý",
+        "top_users": "Người dùng tốn chi phí cao nhất",
+        "top_pipelines": "Pipeline tốn chi phí cao nhất",
+        "recent_calls": "Lượt gọi AI gần đây"
+      },
+      "empty": {
+        "by_role": "Chưa có dữ liệu chi phí theo vai trò.",
+        "by_stage": "Chưa có dữ liệu chi phí theo bước.",
+        "users": "Chưa có người dùng nào phát sinh chi phí.",
+        "pipelines": "Chưa có pipeline nào trong khoảng thời gian này.",
+        "recent": "Chưa có lượt gọi AI nào gần đây."
+      },
+      "cols": {
+        "user": "Người dùng",
+        "cost": "Tổng chi phí",
+        "tokens": "Tổng tokens",
+        "calls": "Số lượt gọi",
+        "pipeline": "Pipeline",
+        "type": "Loại",
+        "time": "Thời điểm",
+        "model": "Mô hình",
+        "role": "Vai trò",
+        "stage": "Bước",
+        "latency": "Độ trễ",
+        "tokens_short": "Tokens",
+        "cost_short": "Chi phí"
+      }
+    },
     "users": {
       "title": "Người dùng",
       "list_title": "Quản lý người dùng",

@@ -270,6 +270,60 @@
         "retry_failed": "Couldn't retry"
       }
     },
+    "ai_costs": {
+      "title": "AI costs",
+      "subtitle": "Track token consumption and costs across AI pipelines.",
+      "summary_load_failed": "Couldn't load cost summary.",
+      "users_load_failed": "Couldn't load users table.",
+      "pipelines_load_failed": "Couldn't load pipelines table.",
+      "recent_load_failed": "Couldn't load recent calls.",
+      "period_aria": "Time range",
+      "period_options": {
+        "24h": "Last 24 hours",
+        "7d": "Last 7 days",
+        "30d": "Last 30 days"
+      },
+      "period_short": {
+        "24h": "24 hours",
+        "7d": "7 days",
+        "30d": "30 days"
+      },
+      "stats": {
+        "total_cost": "Total cost",
+        "total_tokens": "Total tokens",
+        "call_count": "Calls",
+        "period": "Period"
+      },
+      "sections": {
+        "by_role": "Cost by role",
+        "by_stage": "Cost by pipeline stage",
+        "top_users": "Top spenders",
+        "top_pipelines": "Top pipelines",
+        "recent_calls": "Recent AI calls"
+      },
+      "empty": {
+        "by_role": "No cost data by role yet.",
+        "by_stage": "No cost data by stage yet.",
+        "users": "No users have generated AI costs yet.",
+        "pipelines": "No pipelines in this period yet.",
+        "recent": "No recent AI calls."
+      },
+      "cols": {
+        "user": "User",
+        "cost": "Total cost",
+        "tokens": "Total tokens",
+        "calls": "Calls",
+        "pipeline": "Pipeline",
+        "type": "Type",
+        "time": "Time",
+        "model": "Model",
+        "role": "Role",
+        "stage": "Stage",
+        "latency": "Latency",
+        "tokens_short": "Tokens",
+        "cost_short": "Cost"
+      }
+    },
     "users": {
       "title": "Users",
       "list_title": "User management",
