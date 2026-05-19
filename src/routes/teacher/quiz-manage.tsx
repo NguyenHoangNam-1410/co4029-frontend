@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import {
   AlertCircle,
   ArrowLeft,
@@ -51,11 +52,7 @@ import { cn } from "@/lib/utils";
 
 type TabKey = "questions" | "settings" | "preview";
 
-const TABS: ReadonlyArray<{ key: TabKey; label: string }> = [
-  { key: "questions", label: "Câu hỏi" },
-  { key: "settings", label: "Cấu hình" },
-  { key: "preview", label: "Xem trước" },
-];
+const TAB_KEYS: ReadonlyArray<TabKey> = ["questions", "settings", "preview"];
 
 interface SettingsDraft {
   title: string;
@@ -117,6 +114,7 @@ function draftFromQuiz(quiz: QuizAuthoring): SettingsDraft {
 }
 
 export default function QuizManagePage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { courseId, quizId } = useParams({ strict: false }) as {
     courseId: string;
@@ -186,16 +184,16 @@ export default function QuizManagePage() {
         </div>
         <div>
           <p className="font-headline font-bold text-m3-on-surface">
-            Không tìm thấy bài kiểm tra
+            {t("teacher_quiz_manage.errors.not_found_title")}
           </p>
           <p className="text-sm mt-1">
-            Bài kiểm tra này không thể tải cho khoá học.
+            {t("teacher_quiz_manage.errors.not_found_description")}
           </p>
         </div>
         <Link to="/teacher/courses/$courseId" params={{ courseId }} className="inline-flex">
           <Button variant="outline" className="gap-2">
             <ArrowLeft className="h-4 w-4" />
-            Quay lại khoá học
+            {t("teacher_quiz_manage.errors.back_to_course")}
           </Button>
         </Link>
       </div>
@@ -217,10 +215,12 @@ export default function QuizManagePage() {
   async function handleDelete() {
     try {
       await deleteQuiz.mutateAsync();
-      toast.success("Đã xoá bài kiểm tra");
+      toast.success(t("teacher_quiz_manage.toasts.deleted"));
       returnToModule();
     } catch (err: unknown) {
-      toast.error((err as Error).message || "Không thể xoá bài kiểm tra");
+      toast.error(
+        (err as Error).message || t("teacher_quiz_manage.toasts.delete_failed"),
+      );
     } finally {
       setConfirmDelete(false);
     }
@@ -230,7 +230,7 @@ export default function QuizManagePage() {
     if (publishDisabled) return;
     try {
       await publishQuiz.mutateAsync();
-      toast.success("Đã xuất bản bài kiểm tra");
+      toast.success(t("teacher_quiz_manage.toasts.published"));
     } catch (err: unknown) {
       if (
         err instanceof ApiError &&
@@ -241,7 +241,9 @@ export default function QuizManagePage() {
       ) {
         return;
       }
-      toast.error((err as Error).message || "Không thể xuất bản bài kiểm tra");
+      toast.error(
+        (err as Error).message || t("teacher_quiz_manage.toasts.publish_failed"),
+      );
     }
   }
 
@@ -249,20 +251,39 @@ export default function QuizManagePage() {
     try {
       await addQuestion.mutateAsync({
         question_type: "multiple_choice",
-        prompt_text: "Câu hỏi mới",
-        explanation: "Thêm giải thích cho đáp án đúng.",
+        prompt_text: t("teacher_quiz_manage.new_question.prompt"),
+        explanation: t("teacher_quiz_manage.new_question.explanation"),
         difficulty: "medium",
         bloom_level: "understand",
         options: [
-          { option_key: "A", option_text: "Lựa chọn A", is_correct: true },
-          { option_key: "B", option_text: "Lựa chọn B", is_correct: false },
-          { option_key: "C", option_text: "Lựa chọn C", is_correct: false },
-          { option_key: "D", option_text: "Lựa chọn D", is_correct: false },
+          {
+            option_key: "A",
+            option_text: t("teacher_quiz_manage.new_question.option_a"),
+            is_correct: true,
+          },
+          {
+            option_key: "B",
+            option_text: t("teacher_quiz_manage.new_question.option_b"),
+            is_correct: false,
+          },
+          {
+            option_key: "C",
+            option_text: t("teacher_quiz_manage.new_question.option_c"),
+            is_correct: false,
+          },
+          {
+            option_key: "D",
+            option_text: t("teacher_quiz_manage.new_question.option_d"),
+            is_correct: false,
+          },
         ],
       });
-      toast.success("Đã thêm câu hỏi");
+      toast.success(t("teacher_quiz_manage.toasts.question_added"));
     } catch (err: unknown) {
-      toast.error((err as Error).message || "Không thể thêm câu hỏi");
+      toast.error(
+        (err as Error).message ||
+          t("teacher_quiz_manage.toasts.add_question_failed"),
+      );
     }
   }
 
@@ -270,7 +291,7 @@ export default function QuizManagePage() {
     e.preventDefault();
     if (!draft) return;
     if (!draft.title.trim()) {
-      toast.error("Tiêu đề bài kiểm tra là bắt buộc");
+      toast.error(t("teacher_quiz_manage.errors.title_required"));
       return;
     }
     const minutesRaw = draft.time_limit_minutes.trim();
@@ -294,9 +315,12 @@ export default function QuizManagePage() {
         show_hints: draft.show_hints,
         reminders_enabled: draft.reminders_enabled,
       });
-      toast.success("Đã lưu cấu hình");
+      toast.success(t("teacher_quiz_manage.toasts.settings_saved"));
     } catch (err: unknown) {
-      toast.error((err as Error).message || "Không thể lưu cấu hình");
+      toast.error(
+        (err as Error).message ||
+          t("teacher_quiz_manage.toasts.save_settings_failed"),
+      );
     }
   }
 
@@ -313,13 +337,16 @@ export default function QuizManagePage() {
       });
       setActiveRunId(run.id);
       setShowGenerateModal(true);
-      toast.success("Đã bắt đầu tạo câu hỏi");
+      toast.success(t("teacher_quiz_manage.toasts.generation_started"));
     } catch (err: unknown) {
       if (err instanceof ApiError && err.status === 409) {
-        toast.error("Một lần tạo khác đang chạy. Hãy chờ một lát.");
+        toast.error(t("teacher_quiz_manage.toasts.generation_in_progress"));
         return;
       }
-      toast.error((err as Error).message || "Không thể tạo câu hỏi");
+      toast.error(
+        (err as Error).message ||
+          t("teacher_quiz_manage.toasts.generation_failed"),
+      );
     }
   }
 
@@ -344,8 +371,11 @@ export default function QuizManagePage() {
     <div className="space-y-6 pb-12 max-w-[1500px] mx-auto">
       <Breadcrumbs
         items={[
-          { label: "Giảng dạy", to: "/teacher/courses" },
-          { label: course?.title ?? "Khóa học", to: "/teacher/courses/$courseId" },
+          { label: t("teacher_common.breadcrumb_teaching"), to: "/teacher/courses" },
+          {
+            label: course?.title ?? t("teacher_common.breadcrumb_course"),
+            to: "/teacher/courses/$courseId",
+          },
           {
             label: courseModule.title,
             to: "/teacher/courses/$courseId/modules/$moduleId",
@@ -364,7 +394,7 @@ export default function QuizManagePage() {
               variant="ghost"
               size="icon"
               className="h-9 w-9 mt-1 shrink-0"
-              title="Quay lại module"
+              title={t("teacher_quiz_manage.actions.back_to_module")}
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
@@ -376,16 +406,18 @@ export default function QuizManagePage() {
             </h1>
             <div className="flex flex-wrap items-center gap-2">
               <Badge className="border border-m3-outline-variant/30 bg-m3-surface-container-low text-m3-on-surface-variant rounded-full text-[11px] font-bold px-2.5 py-1">
-                {questions.length} câu hỏi
+                {t("teacher_quiz_manage.header.questions_count", {
+                  count: questions.length,
+                })}
               </Badge>
               {isPublished ? (
                 <Badge className="border-0 bg-emerald-100 text-emerald-700 text-[11px] font-bold gap-1.5 rounded-full px-2.5 py-1">
                   <CheckCircle2 className="h-3 w-3" />
-                  Đã xuất bản
+                  {t("teacher_quiz_manage.status.published")}
                 </Badge>
               ) : (
                 <Badge className="border-0 bg-amber-50 text-amber-700 text-[11px] font-bold rounded-full px-2.5 py-1">
-                  Bản nháp
+                  {t("teacher_quiz_manage.status.draft")}
                 </Badge>
               )}
               <AIInsightChip>AI Quiz Editor</AIInsightChip>
@@ -406,7 +438,7 @@ export default function QuizManagePage() {
             >
               <Button variant="outline" className="gap-2" type="button">
                 <Eye className="h-4 w-4" />
-                Xem như học viên
+                {t("teacher_quiz_manage.actions.view_as_student")}
               </Button>
             </Link>
           )}
@@ -422,10 +454,10 @@ export default function QuizManagePage() {
             )}
             title={
               questions.length === 0
-                ? "Cần thêm ít nhất một câu hỏi trước khi xuất bản"
+                ? t("teacher_quiz_manage.actions.publish_needs_question")
                 : isPublished
-                  ? "Đã xuất bản"
-                  : "Xuất bản bài kiểm tra này"
+                  ? t("teacher_quiz_manage.status.published")
+                  : t("teacher_quiz_manage.actions.publish_quiz_tooltip")
             }
           >
             {publishQuiz.isPending ? (
@@ -435,7 +467,9 @@ export default function QuizManagePage() {
             ) : (
               <Upload className="h-4 w-4" />
             )}
-            {isPublished ? "Đã xuất bản" : "Xuất bản"}
+            {isPublished
+              ? t("teacher_quiz_manage.status.published")
+              : t("teacher_quiz_manage.actions.publish")}
           </Button>
           <Button
             type="button"
@@ -443,22 +477,22 @@ export default function QuizManagePage() {
             className="gap-2 border-red-200 text-red-700 hover:bg-red-50 hover:text-red-700"
             onClick={() => setConfirmDelete(true)}
             disabled={deleteQuiz.isPending}
-            title="Xoá bài kiểm tra, câu hỏi, lượt làm bài và mục module"
+            title={t("teacher_quiz_manage.actions.delete_quiz_tooltip")}
           >
             <Trash2 className="h-4 w-4" />
-            Xoá
+            {t("common.delete")}
           </Button>
         </div>
       </div>
 
       <div className="bg-m3-surface-container-low rounded-xl p-1 inline-flex gap-1 border border-m3-outline-variant/20 shadow-glass">
-        {TABS.map((entry) => {
-          const active = entry.key === tab;
+        {TAB_KEYS.map((key) => {
+          const active = key === tab;
           return (
             <button
-              key={entry.key}
+              key={key}
               type="button"
-              onClick={() => setTab(entry.key)}
+              onClick={() => setTab(key)}
               aria-pressed={active}
               className={cn(
                 "px-4 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer",
@@ -467,7 +501,7 @@ export default function QuizManagePage() {
                   : "text-m3-on-surface-variant hover:text-m3-primary/80",
               )}
             >
-              {entry.label}
+              {t(`teacher_quiz_manage.tabs.${key}`)}
             </button>
           );
         })}
@@ -524,12 +558,10 @@ export default function QuizManagePage() {
               </div>
               <div className="space-y-1">
                 <h2 className="font-headline font-bold text-base text-m3-on-surface">
-                  Xoá bài kiểm tra này?
+                  {t("teacher_quiz_manage.confirm_delete.title")}
                 </h2>
                 <p className="text-sm text-m3-on-surface-variant">
-                  Hành động này sẽ xoá vĩnh viễn bài kiểm tra{" "}
-                  <span className="font-semibold">{quiz.title}</span>, các câu
-                  hỏi, lượt làm bài và mục module liên quan. Không thể hoàn tác.
+                  {t("teacher_quiz_manage.confirm_delete.body")}
                 </p>
               </div>
             </div>
@@ -540,7 +572,7 @@ export default function QuizManagePage() {
                 onClick={() => setConfirmDelete(false)}
                 disabled={deleteQuiz.isPending}
               >
-                Huỷ
+                {t("common.cancel")}
               </Button>
               <Button
                 type="button"
@@ -553,7 +585,7 @@ export default function QuizManagePage() {
                 ) : (
                   <Trash2 className="h-4 w-4" />
                 )}
-                Xoá
+                {t("common.delete")}
               </Button>
             </div>
           </div>
@@ -588,6 +620,7 @@ function QuestionsTab({
   addPending: boolean;
   onOpenGenerator: () => void;
 }) {
+  const { t } = useTranslation();
   const bulkSet = useBulkSetExpectedTime(quizId);
   const pendingCount = questions.filter(
     (q) => q.review_status !== "approved",
@@ -611,12 +644,15 @@ function QuestionsTab({
         expected_seconds: secondsValue,
       });
       toast.success(
-        `Đã đặt thời gian dự kiến cho ${result.updated} câu hỏi`,
+        t("teacher_quiz_manage.toasts.expected_time_set", {
+          count: result.updated,
+        }),
       );
       onClearSelection();
     } catch (err: unknown) {
       toast.error(
-        (err as Error).message || "Không thể đặt thời gian dự kiến",
+        (err as Error).message ||
+          t("teacher_quiz_manage.toasts.expected_time_failed"),
       );
     }
   }
@@ -628,8 +664,9 @@ function QuestionsTab({
           <div className="flex items-center gap-2 rounded-xl bg-amber-50 border border-amber-100 px-3 py-2 text-xs text-amber-800">
             <AlertCircle className="h-3.5 w-3.5 shrink-0" />
             <span>
-              <strong>{missingExpectedTimeCount}</strong> câu chưa có thời gian
-              dự kiến. Cần đặt thời gian trước khi xuất bản.
+              {t("teacher_quiz_manage.banners.missing_expected_time", {
+                count: missingExpectedTimeCount,
+              })}
             </span>
           </div>
         )}
@@ -638,8 +675,9 @@ function QuestionsTab({
           <div className="flex items-center gap-2 rounded-xl bg-blue-50 border border-blue-100 px-3 py-2 text-xs text-blue-900">
             <AlertCircle className="h-3.5 w-3.5 shrink-0" />
             <span>
-              <strong>{pendingCount}</strong> câu hỏi đang chờ duyệt. Hãy duyệt
-              trước khi xuất bản.
+              {t("teacher_quiz_manage.banners.pending_review", {
+                count: pendingCount,
+              })}
             </span>
           </div>
         )}
@@ -661,11 +699,10 @@ function QuestionsTab({
             <HelpCircle className="h-10 w-10 text-m3-outline-variant mx-auto" />
             <div>
               <p className="font-headline font-bold text-m3-on-surface">
-                Chưa có câu hỏi
+                {t("teacher_quiz_manage.empty.no_questions_title")}
               </p>
               <p className="text-sm text-m3-on-surface-variant mt-1 max-w-md mx-auto">
-                Thêm câu hỏi thủ công bên dưới hoặc dùng AI để tạo nhanh từ tài
-                liệu bài học.
+                {t("teacher_quiz_manage.empty.no_questions_body")}
               </p>
             </div>
           </div>
@@ -692,7 +729,7 @@ function QuestionsTab({
           ) : (
             <Plus className="h-4 w-4" />
           )}
-          Thêm câu hỏi
+          {t("teacher_quiz_manage.actions.add_question")}
         </button>
       </div>
 
@@ -705,10 +742,10 @@ function QuestionsTab({
               </div>
               <div>
                 <h2 className="font-headline font-bold text-sm text-m3-on-surface">
-                  Tạo bằng AI
+                  {t("teacher_quiz_manage.ai_panel.title")}
                 </h2>
                 <p className="text-xs text-m3-on-surface-variant">
-                  Sinh câu hỏi từ tài liệu bài học đã sẵn sàng.
+                  {t("teacher_quiz_manage.ai_panel.description")}
                 </p>
               </div>
             </div>
@@ -718,7 +755,7 @@ function QuestionsTab({
               className="w-full gap-2 gradient-primary text-white border-0 shadow-ai-glow"
             >
               <Sparkles className="h-4 w-4" />
-              Mở trình tạo
+              {t("teacher_quiz_manage.ai_panel.open_generator")}
             </Button>
           </div>
         </div>
@@ -748,19 +785,25 @@ function BulkSetExpectedTimeBar({
   applyValid: boolean;
   applying: boolean;
 }) {
+  const { t } = useTranslation();
   if (totalQuestions === 0) return null;
   return (
     <div className="rounded-xl border border-m3-outline-variant/20 bg-m3-surface-container-lowest p-4 flex flex-col sm:flex-row sm:items-center gap-3 shadow-glass">
       <div className="flex items-center gap-2 text-sm text-m3-on-surface">
         <Clock className="h-4 w-4 text-m3-secondary" />
-        <span className="font-bold">Đặt nhanh thời gian</span>
+        <span className="font-bold">
+          {t("teacher_quiz_manage.bulk_time.title")}
+        </span>
         <Badge className="border-0 bg-m3-surface-container-high text-m3-on-surface text-[11px] font-bold rounded-full px-2 py-0.5">
-          {selectedCount}/{totalQuestions} đã chọn
+          {t("teacher_quiz_manage.bulk_time.selected_count", {
+            selected: selectedCount,
+            total: totalQuestions,
+          })}
         </Badge>
       </div>
       <div className="flex flex-1 items-center gap-2 min-w-0">
         <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant whitespace-nowrap">
-          Thời gian (giây)
+          {t("teacher_quiz_manage.bulk_time.duration_seconds")}
         </label>
         <Input
           type="number"
@@ -779,7 +822,7 @@ function BulkSetExpectedTimeBar({
           onClick={onSelectAll}
           disabled={totalQuestions === 0}
         >
-          Chọn tất cả
+          {t("teacher_quiz_manage.bulk_time.select_all")}
         </Button>
         <Button
           type="button"
@@ -788,7 +831,7 @@ function BulkSetExpectedTimeBar({
           onClick={onClear}
           disabled={selectedCount === 0}
         >
-          Bỏ chọn
+          {t("teacher_quiz_manage.bulk_time.deselect")}
         </Button>
         <Button
           type="button"
@@ -802,7 +845,7 @@ function BulkSetExpectedTimeBar({
           ) : (
             <Save className="h-3.5 w-3.5" />
           )}
-          Áp dụng cho đã chọn
+          {t("teacher_quiz_manage.bulk_time.apply")}
         </Button>
       </div>
     </div>
@@ -820,6 +863,7 @@ function QuestionCard({
   selected: boolean;
   onToggleSelect: () => void;
 }) {
+  const { t } = useTranslation();
   const updateQuestion = useUpdateQuizQuestion(quizId, question.id);
   const deleteQuestion = useDeleteQuizQuestion(quizId, question.id);
   const regenerate = useRegenerateQuestion(quizId, question.id);
@@ -840,16 +884,16 @@ function QuestionCard({
 
   async function handleSave(reviewStatus = draft.review_status) {
     if (!draft.prompt_text.trim()) {
-      toast.error("Cần điền nội dung câu hỏi");
+      toast.error(t("teacher_quiz_manage.errors.prompt_required"));
       return;
     }
     if (hasOptions) {
       if (draft.options.some((o) => !o.option_text.trim())) {
-        toast.error("Cần điền nội dung cho mọi đáp án");
+        toast.error(t("teacher_quiz_manage.errors.option_text_required"));
         return;
       }
       if (draft.options.filter((o) => o.is_correct).length !== 1) {
-        toast.error("Phải có đúng một đáp án đúng");
+        toast.error(t("teacher_quiz_manage.errors.exactly_one_correct"));
         return;
       }
     }
@@ -872,19 +916,27 @@ function QuestionCard({
           : {}),
       });
       toast.success(
-        reviewStatus === "approved" ? "Đã duyệt câu hỏi" : "Đã lưu câu hỏi",
+        reviewStatus === "approved"
+          ? t("teacher_quiz_manage.toasts.question_approved")
+          : t("teacher_quiz_manage.toasts.question_saved"),
       );
     } catch (err: unknown) {
-      toast.error((err as Error).message || "Không thể lưu câu hỏi");
+      toast.error(
+        (err as Error).message ||
+          t("teacher_quiz_manage.toasts.save_question_failed"),
+      );
     }
   }
 
   async function handleDelete() {
     try {
       await deleteQuestion.mutateAsync();
-      toast.success("Đã xoá câu hỏi");
+      toast.success(t("teacher_quiz_manage.toasts.question_deleted"));
     } catch (err: unknown) {
-      toast.error((err as Error).message || "Không thể xoá câu hỏi");
+      toast.error(
+        (err as Error).message ||
+          t("teacher_quiz_manage.toasts.delete_question_failed"),
+      );
     } finally {
       setConfirming(false);
     }
@@ -893,13 +945,16 @@ function QuestionCard({
   async function handleRegenerate() {
     try {
       await regenerate.mutateAsync();
-      toast.success("Đang tái tạo câu hỏi");
+      toast.success(t("teacher_quiz_manage.toasts.regen_started"));
     } catch (err: unknown) {
       if (err instanceof ApiError && err.status === 409) {
-        toast.error("Một lần tái tạo khác đang chạy.");
+        toast.error(t("teacher_quiz_manage.toasts.regen_in_progress"));
         return;
       }
-      toast.error((err as Error).message || "Không thể tái tạo câu hỏi");
+      toast.error(
+        (err as Error).message ||
+          t("teacher_quiz_manage.toasts.regen_failed"),
+      );
     }
   }
 
@@ -920,10 +975,16 @@ function QuestionCard({
             onChange={onToggleSelect}
             className="h-4 w-4"
           />
-          <span className="sr-only">Chọn câu hỏi {question.position}</span>
+          <span className="sr-only">
+            {t("teacher_quiz_manage.questions.sr_select", {
+              position: question.position,
+            })}
+          </span>
         </label>
         <Badge className="border-0 bg-m3-primary-fixed text-m3-primary text-[10px]">
-          Câu {question.position}
+          {t("teacher_quiz_manage.questions.position_label", {
+            position: question.position,
+          })}
         </Badge>
         <Badge className="border-0 bg-blue-50 text-blue-800 text-[10px] capitalize">
           {question.question_type.replace("_", " ")}
@@ -946,14 +1007,14 @@ function QuestionCard({
         ) : (
           <Badge className="border-0 bg-amber-50 text-amber-700 text-[10px] gap-1">
             <Clock className="h-3 w-3" />
-            Chưa đặt thời gian
+            {t("teacher_quiz_manage.questions.no_time_set")}
           </Badge>
         )}
       </div>
 
       <div className="space-y-1.5">
         <label className="text-[10px] font-bold uppercase tracking-widest text-m3-on-surface-variant">
-          Câu hỏi
+          {t("teacher_quiz_manage.editor.prompt_label")}
         </label>
         <textarea
           value={draft.prompt_text}
@@ -968,7 +1029,7 @@ function QuestionCard({
       {hasOptions && (
         <div className="space-y-2">
           <label className="text-[10px] font-bold uppercase tracking-widest text-m3-on-surface-variant">
-            Đáp án
+            {t("teacher_quiz_manage.editor.options_label")}
           </label>
           {draft.options.map((option, idx) => (
             <div
@@ -1018,7 +1079,7 @@ function QuestionCard({
 
       <div className="space-y-1.5">
         <label className="text-[10px] font-bold uppercase tracking-widest text-m3-on-surface-variant">
-          Giải thích
+          {t("teacher_quiz_manage.editor.explanation_label")}
         </label>
         <textarea
           value={draft.explanation}
@@ -1043,7 +1104,7 @@ function QuestionCard({
           ) : (
             <Save className="h-3.5 w-3.5" />
           )}
-          Lưu
+          {t("common.save")}
         </Button>
         {question.review_status !== "approved" && (
           <Button
@@ -1055,7 +1116,7 @@ function QuestionCard({
             className="gap-2 border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-700"
           >
             <CheckCircle2 className="h-3.5 w-3.5" />
-            Duyệt
+            {t("teacher_quiz_manage.editor.approve")}
           </Button>
         )}
         <Button
@@ -1071,7 +1132,7 @@ function QuestionCard({
           ) : (
             <RefreshCw className="h-3.5 w-3.5" />
           )}
-          Tái tạo
+          {t("teacher_quiz_manage.editor.regenerate")}
         </Button>
         <Button
           type="button"
@@ -1082,13 +1143,13 @@ function QuestionCard({
           className="gap-2 border-red-200 text-red-700 hover:bg-red-50 hover:text-red-700 ml-auto"
         >
           <Trash2 className="h-3.5 w-3.5" />
-          Xoá
+          {t("common.delete")}
         </Button>
       </div>
 
       {confirming && (
         <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-3 text-xs text-red-800 flex flex-wrap items-center gap-2">
-          <span>Xoá câu hỏi này? Không thể hoàn tác.</span>
+          <span>{t("teacher_quiz_manage.confirm_delete_question")}</span>
           <Button
             type="button"
             size="sm"
@@ -1096,7 +1157,7 @@ function QuestionCard({
             onClick={() => setConfirming(false)}
             disabled={deleteQuestion.isPending}
           >
-            Huỷ
+            {t("common.cancel")}
           </Button>
           <Button
             type="button"
@@ -1110,7 +1171,7 @@ function QuestionCard({
             ) : (
               <Trash2 className="h-3.5 w-3.5" />
             )}
-            Xoá
+            {t("common.delete")}
           </Button>
         </div>
       )}
@@ -1164,6 +1225,7 @@ function GenerateModal({
     focus_topics: string[];
   }) => void | Promise<void>;
 }) {
+  const { t } = useTranslation();
   const { data: run } = useQuizGenerationRun(quizId, activeRunId);
   const [targetCount, setTargetCount] = useState(5);
   const [focusInput, setFocusInput] = useState("");
@@ -1178,7 +1240,7 @@ function GenerateModal({
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (targetCount < 1 || targetCount > 50) {
-      toast.error("Số lượng câu hỏi phải nằm trong khoảng 1-50");
+      toast.error(t("teacher_quiz_manage.errors.count_out_of_range"));
       return;
     }
     const focus_topics = focusInput
@@ -1198,10 +1260,10 @@ function GenerateModal({
             </div>
             <div className="space-y-1">
               <h2 className="font-headline font-bold text-base text-m3-on-surface">
-                Tạo câu hỏi bằng AI
+                {t("teacher_quiz_manage.generate_modal.title")}
               </h2>
               <p className="text-sm text-m3-on-surface-variant">
-                Sinh câu hỏi từ tài liệu bài học đã được xử lý.
+                {t("teacher_quiz_manage.generate_modal.description")}
               </p>
             </div>
           </div>
@@ -1211,7 +1273,7 @@ function GenerateModal({
             size="icon"
             onClick={onClose}
             className="h-8 w-8 shrink-0"
-            title="Đóng"
+            title={t("common.close")}
           >
             <X className="h-4 w-4" />
           </Button>
@@ -1221,7 +1283,7 @@ function GenerateModal({
           <form onSubmit={handleSubmit} className="space-y-3">
             <div className="space-y-1.5">
               <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">
-                Số lượng câu hỏi
+                {t("teacher_quiz_manage.generate_modal.count_label")}
               </label>
               <Input
                 type="number"
@@ -1238,12 +1300,14 @@ function GenerateModal({
             </div>
             <div className="space-y-1.5">
               <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">
-                Chủ đề tập trung (tuỳ chọn)
+                {t("teacher_quiz_manage.generate_modal.focus_label")}
               </label>
               <Input
                 value={focusInput}
                 onChange={(e) => setFocusInput(e.target.value)}
-                placeholder="Ngăn cách bằng dấu phẩy"
+                placeholder={t(
+                  "teacher_quiz_manage.generate_modal.focus_placeholder",
+                )}
                 className="bg-m3-surface text-sm"
               />
             </div>
@@ -1254,7 +1318,7 @@ function GenerateModal({
                 onClick={onClose}
                 disabled={generating}
               >
-                Huỷ
+                {t("common.cancel")}
               </Button>
               <Button
                 type="submit"
@@ -1266,7 +1330,7 @@ function GenerateModal({
                 ) : (
                   <Sparkles className="h-4 w-4" />
                 )}
-                Bắt đầu tạo
+                {t("teacher_quiz_manage.generate_modal.start")}
               </Button>
             </div>
           </form>
@@ -1289,18 +1353,19 @@ function GenerateModal({
 }
 
 function RunProgress({ run }: { run: GenerationRunRead | undefined }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-3 text-center py-6">
       <div className="flex justify-center">
         <Loader2 className="h-10 w-10 animate-spin text-m3-secondary" />
       </div>
       <p className="font-headline font-bold text-m3-on-surface">
-        Đang tạo câu hỏi…
+        {t("teacher_quiz_manage.generate_modal.running_title")}
       </p>
       <p className="text-sm text-m3-on-surface-variant">
         {run?.status === "running"
-          ? "AI đang phân tích tài liệu và soạn câu hỏi."
-          : "Đang xếp hàng đợi…"}
+          ? t("teacher_quiz_manage.generate_modal.running_body")
+          : t("teacher_quiz_manage.generate_modal.queued")}
       </p>
       <div className="h-2 rounded-full bg-m3-surface-container-high overflow-hidden">
         <div className="h-full w-1/2 gradient-primary animate-pulse" />
@@ -1316,6 +1381,7 @@ function RunSucceeded({
   run: GenerationRunRead | undefined;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   void run;
   return (
     <div className="space-y-4 text-center py-4">
@@ -1325,15 +1391,15 @@ function RunSucceeded({
         </div>
       </div>
       <p className="font-headline font-bold text-m3-on-surface">
-        Đã tạo xong câu hỏi
+        {t("teacher_quiz_manage.generate_modal.success_title")}
       </p>
       <p className="text-sm text-m3-on-surface-variant">
-        Danh sách câu hỏi đã được làm mới.
+        {t("teacher_quiz_manage.generate_modal.success_body")}
       </p>
       <div className="flex justify-center pt-2">
         <Button type="button" onClick={onClose} className="gap-2">
           <CheckCircle2 className="h-4 w-4" />
-          Đóng
+          {t("common.close")}
         </Button>
       </div>
     </div>
@@ -1347,21 +1413,24 @@ function RunFailed({
   run: GenerationRunRead | undefined;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-4 py-4">
       <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 flex items-start gap-2">
         <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
         <div>
-          <p className="font-bold">Tạo câu hỏi thất bại</p>
+          <p className="font-bold">
+            {t("teacher_quiz_manage.generate_modal.failure_title")}
+          </p>
           <p className="mt-1">
             {run?.error_message ??
-              "Đã có lỗi xảy ra. Hãy thử lại sau ít phút."}
+              t("teacher_quiz_manage.generate_modal.failure_body")}
           </p>
         </div>
       </div>
       <div className="flex justify-end gap-2">
         <Button type="button" variant="outline" onClick={onClose}>
-          Đóng
+          {t("common.close")}
         </Button>
       </div>
     </div>
@@ -1379,6 +1448,7 @@ function SettingsTab({
   onSubmit: (e: React.FormEvent) => void;
   saving: boolean;
 }) {
+  const { t } = useTranslation();
   function update<K extends keyof SettingsDraft>(
     key: K,
     value: SettingsDraft[K],
@@ -1392,33 +1462,37 @@ function SettingsTab({
       className="bg-m3-surface-container-lowest border border-m3-outline-variant/20 rounded-xl p-6 lg:p-8 space-y-8 shadow-glass"
     >
       <SettingsSection
-        title="Thông tin chung"
-        description="Đặt tên và mô tả để học viên dễ nhận biết."
+        title={t("teacher_quiz_manage.settings.general.title")}
+        description={t("teacher_quiz_manage.settings.general.description")}
       >
-        <Field label="Tiêu đề bài kiểm tra">
+        <Field label={t("teacher_quiz_manage.settings.general.title_label")}>
           <Input
             value={draft.title}
             onChange={(e) => update("title", e.target.value)}
-            placeholder="Nhập tiêu đề…"
+            placeholder={t(
+              "teacher_quiz_manage.settings.general.title_placeholder",
+            )}
             className="bg-m3-surface text-sm"
           />
         </Field>
-        <Field label="Mô tả">
+        <Field label={t("teacher_quiz_manage.settings.general.desc_label")}>
           <textarea
             value={draft.description}
             onChange={(e) => update("description", e.target.value)}
             rows={3}
-            placeholder="Tóm tắt nội dung bài kiểm tra…"
+            placeholder={t(
+              "teacher_quiz_manage.settings.general.desc_placeholder",
+            )}
             className="w-full rounded-xl border border-m3-outline-variant/20 bg-m3-surface px-3 py-2.5 text-sm text-m3-on-surface resize-none focus:outline-none focus:ring-2 focus:ring-m3-secondary/30"
           />
         </Field>
       </SettingsSection>
 
-      <SettingsSection title="Điểm số & Thời gian">
+      <SettingsSection title={t("teacher_quiz_manage.settings.scoring.title")}>
         <Field
           label={
             <span className="flex items-center justify-between">
-              <span>Điểm đậu</span>
+              <span>{t("teacher_quiz_manage.settings.scoring.pass_score")}</span>
               <span className="text-m3-primary font-extrabold text-sm">
                 {draft.passing_score_percent}%
               </span>
@@ -1437,45 +1511,60 @@ function SettingsTab({
             className="w-full h-2 rounded-full cursor-pointer accent-[var(--m3-primary)]"
           />
         </Field>
-        <Field label="Thời gian (phút)" hint="Để trống nếu không giới hạn.">
+        <Field
+          label={t("teacher_quiz_manage.settings.scoring.time_label")}
+          hint={t("teacher_quiz_manage.settings.scoring.time_hint")}
+        >
           <Input
             type="number"
             min={1}
             max={180}
             value={draft.time_limit_minutes}
             onChange={(e) => update("time_limit_minutes", e.target.value)}
-            placeholder="Ví dụ: 30"
+            placeholder={t(
+              "teacher_quiz_manage.settings.scoring.time_placeholder",
+            )}
             className="bg-m3-surface text-sm w-40"
           />
         </Field>
       </SettingsSection>
 
-      <SettingsSection title="Số lần làm">
+      <SettingsSection title={t("teacher_quiz_manage.settings.attempts.title")}>
         <ToggleRow
-          label="Cho phép làm lại"
-          description="Học viên có thể làm lại sau khi nộp."
+          label={t("teacher_quiz_manage.settings.attempts.allow_label")}
+          description={t("teacher_quiz_manage.settings.attempts.allow_desc")}
           value={draft.allow_retakes}
           onChange={(v) => update("allow_retakes", v)}
         />
         {draft.allow_retakes && (
           <div className="ml-1 pl-4 border-l-2 border-m3-primary/30 grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
-            <Field label="Số lần tối đa" hint="Để trống = không giới hạn.">
+            <Field
+              label={t("teacher_quiz_manage.settings.attempts.max_label")}
+              hint={t("teacher_quiz_manage.settings.attempts.max_hint")}
+            >
               <Input
                 type="number"
                 min={1}
                 value={draft.max_attempts}
                 onChange={(e) => update("max_attempts", e.target.value)}
-                placeholder="Ví dụ: 3"
+                placeholder={t(
+                  "teacher_quiz_manage.settings.attempts.max_placeholder",
+                )}
                 className="bg-m3-surface text-sm"
               />
             </Field>
-            <Field label="Cooldown (giờ)" hint="Khoảng chờ giữa các lần.">
+            <Field
+              label={t("teacher_quiz_manage.settings.attempts.cooldown_label")}
+              hint={t("teacher_quiz_manage.settings.attempts.cooldown_hint")}
+            >
               <Input
                 type="number"
                 min={0}
                 value={draft.cooldown_hours}
                 onChange={(e) => update("cooldown_hours", e.target.value)}
-                placeholder="Tuỳ chọn"
+                placeholder={t(
+                  "teacher_quiz_manage.settings.attempts.cooldown_placeholder",
+                )}
                 className="bg-m3-surface text-sm"
               />
             </Field>
@@ -1483,39 +1572,47 @@ function SettingsTab({
         )}
       </SettingsSection>
 
-      <SettingsSection title="Hành vi">
+      <SettingsSection title={t("teacher_quiz_manage.settings.behavior.title")}>
         <ToggleRow
-          label="Xáo trộn câu hỏi"
-          description="Hoán đổi thứ tự câu hỏi theo từng lần làm."
+          label={t("teacher_quiz_manage.settings.behavior.shuffle_q_label")}
+          description={t(
+            "teacher_quiz_manage.settings.behavior.shuffle_q_desc",
+          )}
           value={draft.shuffle_questions}
           onChange={(v) => update("shuffle_questions", v)}
         />
         <ToggleRow
-          label="Xáo trộn đáp án"
-          description="Hoán đổi thứ tự đáp án trong mỗi câu hỏi."
+          label={t("teacher_quiz_manage.settings.behavior.shuffle_o_label")}
+          description={t(
+            "teacher_quiz_manage.settings.behavior.shuffle_o_desc",
+          )}
           value={draft.shuffle_options}
           onChange={(v) => update("shuffle_options", v)}
         />
         <ToggleRow
-          label="Hiển thị gợi ý"
-          description="Cho phép học viên xem gợi ý trong khi làm."
+          label={t("teacher_quiz_manage.settings.behavior.show_hints_label")}
+          description={t(
+            "teacher_quiz_manage.settings.behavior.show_hints_desc",
+          )}
           value={draft.show_hints}
           onChange={(v) => update("show_hints", v)}
         />
         <ToggleRow
-          label="Nhắc ôn tập"
-          description="Gửi nhắc nhở khi đến lúc ôn lại bài."
+          label={t("teacher_quiz_manage.settings.behavior.reminders_label")}
+          description={t(
+            "teacher_quiz_manage.settings.behavior.reminders_desc",
+          )}
           value={draft.reminders_enabled}
           onChange={(v) => update("reminders_enabled", v)}
         />
       </SettingsSection>
 
       <SettingsSection
-        title="Lặp lại ngắt quãng"
-        description="Tinh chỉnh tham số SM2. Khoảng 1.3 – 5.0."
+        title={t("teacher_quiz_manage.settings.spacing.title")}
+        description={t("teacher_quiz_manage.settings.spacing.description")}
       >
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Field label="EF khởi đầu">
+          <Field label={t("teacher_quiz_manage.settings.spacing.starting_ef")}>
             <Input
               type="number"
               min={1.3}
@@ -1527,7 +1624,7 @@ function SettingsTab({
               className="bg-m3-surface text-sm"
             />
           </Field>
-          <Field label="Ngưỡng EF mở khoá">
+          <Field label={t("teacher_quiz_manage.settings.spacing.unlock_ef")}>
             <Input
               type="number"
               min={1.3}
@@ -1565,7 +1662,7 @@ function SettingsTab({
           ) : (
             <Save className="h-4 w-4" />
           )}
-          Lưu cấu hình
+          {t("teacher_quiz_manage.settings.save_button")}
         </Button>
       </div>
     </form>
@@ -1662,28 +1759,31 @@ function PreviewTab({
   quiz: QuizAuthoring;
   questions: QuizQuestionAuthoring[];
 }) {
+  const { t } = useTranslation();
   return (
     <div className="bg-m3-surface-container-lowest border border-m3-outline-variant/20 rounded-xl p-6 lg:p-8 space-y-6 shadow-glass">
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
         <div>
           <h2 className="font-headline font-extrabold text-xl text-m3-on-surface">
-            Xem trước cho học viên
+            {t("teacher_quiz_manage.preview.title")}
           </h2>
           <p className="text-sm text-m3-on-surface-variant mt-1">
-            {quiz.title} — bản chỉ đọc, mô phỏng giao diện học viên.
+            {t("teacher_quiz_manage.preview.description", { title: quiz.title })}
           </p>
         </div>
         <Badge className="border border-m3-outline-variant/40 bg-m3-surface-container-low text-m3-on-surface-variant rounded-full text-[11px] font-medium px-3 py-1 self-start sm:self-auto">
-          Chỉ đọc
+          {t("teacher_quiz_manage.preview.read_only")}
         </Badge>
       </div>
 
       {questions.length === 0 ? (
         <div className="text-center py-16 text-m3-on-surface-variant space-y-1">
           <HelpCircle className="h-8 w-8 mx-auto text-m3-outline-variant" />
-          <p className="text-base font-bold">Chưa có câu hỏi</p>
+          <p className="text-base font-bold">
+            {t("teacher_quiz_manage.empty.no_questions_title")}
+          </p>
           <p className="text-sm">
-            Thêm câu hỏi trong tab Câu hỏi hoặc dùng AI để tạo nhanh.
+            {t("teacher_quiz_manage.preview.empty_body")}
           </p>
         </div>
       ) : (
@@ -1704,6 +1804,7 @@ function PreviewQuestion({
   index: number;
   question: QuizQuestionAuthoring;
 }) {
+  const { t } = useTranslation();
   const hasOptions =
     question.question_type === "multiple_choice" && question.options.length > 0;
 
@@ -1716,7 +1817,7 @@ function PreviewQuestion({
         <p className="text-sm font-semibold text-m3-on-surface leading-relaxed">
           {question.prompt_text || (
             <span className="italic text-m3-on-surface-variant">
-              (Chưa có nội dung)
+              {t("teacher_quiz_manage.preview.no_content")}
             </span>
           )}
         </p>
@@ -1740,13 +1841,13 @@ function PreviewQuestion({
               <span className="flex-1">
                 {opt.option_text || (
                   <span className="italic text-m3-on-surface-variant">
-                    (Chưa có nội dung)
+                    {t("teacher_quiz_manage.preview.no_content")}
                   </span>
                 )}
               </span>
               {opt.is_correct && (
                 <span className="text-[10px] font-bold uppercase tracking-wide text-emerald-700">
-                  Đúng
+                  {t("teacher_quiz_manage.preview.correct")}
                 </span>
               )}
             </div>
@@ -1757,7 +1858,9 @@ function PreviewQuestion({
       {question.explanation && (
         <div className="pl-10">
           <p className="text-xs text-m3-on-surface-variant bg-m3-surface-container rounded-xl px-3 py-2 italic">
-            <span className="font-bold not-italic">Giải thích: </span>
+            <span className="font-bold not-italic">
+              {t("teacher_quiz_manage.editor.explanation_inline")}{" "}
+            </span>
             {question.explanation}
           </p>
         </div>

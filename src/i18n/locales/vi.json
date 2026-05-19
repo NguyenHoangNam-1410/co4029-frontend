@@ -13,7 +13,9 @@
     "submit": "Gửi",
     "close": "Đóng",
     "yes": "Có",
-    "no": "Không"
+    "no": "Không",
+    "breadcrumb_aria": "Đường dẫn",
+    "unsaved_changes_warning": "Bạn có thay đổi chưa được lưu. Rời khỏi trang sẽ làm mất các thay đổi này."
   },
   "nav": {
     "dashboard": "Bảng điều khiển",
@@ -945,5 +947,763 @@
     "student": "Học viên",
     "teacher": "Giảng viên",
     "admin": "Quản trị"
+  },
+  "teacher_interview_gap_report": {
+    "empty_states": {
+      "no_report": "Chưa có báo cáo lỗ hổng",
+      "no_overview": "AI chưa sinh phần tổng quan.",
+      "no_detail": "Không có dữ liệu chi tiết theo tiêu chí.",
+      "no_study_plan": "AI chưa đề xuất bước học cụ thể."
+    },
+    "errors": {
+      "no_view_permission_or_ungraded": "Phiên phỏng vấn này chưa được chấm hoặc bạn không có quyền xem báo cáo."
+    },
+    "sections": {
+      "title": "Báo cáo lỗ hổng phỏng vấn",
+      "overview": "Tổng quan khoảng cách",
+      "by_criterion": "Phân tích theo tiêu chí",
+      "study_plan": "Kế hoạch học tập",
+      "sources": "Liên kết nguồn"
+    },
+    "labels": {
+      "session_id": "Phiên #{{id}}",
+      "updated_at": "Cập nhật lần cuối: {{date}}",
+      "related_interview": " · Phỏng vấn {{id}}",
+      "teacher_notes": "Ghi chú của giảng viên",
+      "criteria_count": "{{count}} tiêu chí",
+      "passed": "Đạt",
+      "failed": "Chưa đạt",
+      "quote": "Trích dẫn:",
+      "analysis": "Phân tích:",
+      "source_quiz_attempt": "Lượt làm quiz nguồn",
+      "source_interview_session": "Phiên phỏng vấn nguồn"
+    }
+  },
+  "course_quiz": {
+    "sections": {
+      "config": "Cấu hình bài quiz",
+      "module_review": "Đánh giá module",
+      "instructions": "Hướng dẫn",
+      "question_overview": "Tổng quan câu hỏi"
+    },
+    "labels": {
+      "hint": "Gợi ý",
+      "hint_prefix": "Gợi ý: ",
+      "retake": "Làm lại",
+      "cooldown": "Thời gian chờ",
+      "passing_score": "Điểm đạt",
+      "time": "Thời gian",
+      "attempts": "Lượt đã làm",
+      "attempts_before": "{{count}} lượt trước",
+      "student": "Học viên",
+      "answered": "Đã trả lời",
+      "flagged": "Đánh dấu",
+      "no_time_limit": "Không giới hạn thời gian",
+      "attempt_summary": "Lượt {{attempt}} • {{correct}}/{{total}} câu đúng",
+      "question_label_short": "Câu hỏi {{index}}"
+    },
+    "values": {
+      "hint_available": "Có sẵn",
+      "hint_off": "Tắt",
+      "allowed": "Cho phép",
+      "disallowed": "Không cho phép",
+      "no_limit": "Không giới hạn",
+      "retake_max_attempts": "Tối đa {{count}} lần",
+      "cooldown_hours": "{{hours}} giờ"
+    },
+    "messages": {
+      "no_retakes": "Bài quiz này không cho phép làm lại.",
+      "max_attempts_reached": "Bạn đã sử dụng hết {{count}} lượt."
+    },
+    "actions": {
+      "starting": "Đang khởi tạo...",
+      "start": "Bắt đầu làm bài",
+      "submitting": "Đang nộp...",
+      "saving": "Đang lưu...",
+      "submit": "Nộp bài",
+      "next": "Tiếp theo",
+      "previous": "Trước",
+      "save_and_continue": "Lưu & tiếp tục",
+      "back_to_course": "Quay lại khoá học",
+      "unflag": "Bỏ đánh dấu",
+      "flag": "Đánh dấu",
+      "show_hint": "Xem gợi ý"
+    },
+    "errors": {
+      "rate_limited": "Quá nhiều yêu cầu, vui lòng thử lại sau",
+      "start_failed": "Không thể bắt đầu bài quiz",
+      "cooldown_active": "Câu hỏi đang trong thời gian chờ",
+      "save_answer_failed": "Không thể lưu câu trả lời",
+      "auto_submitted_timeout": "Đã hết giờ. Bài quiz đã được nộp tự động.",
+      "submit_failed": "Không thể nộp bài quiz"
+    },
+    "empty_states": {
+      "no_quiz_found": "Không tìm thấy bài quiz",
+      "quiz_not_loadable": "Bài quiz này không tải được cho khoá học."
+    },
+    "results": {
+      "passed": "Đạt yêu cầu",
+      "submitted": "Bài đã được nộp",
+      "passed_summary": "Bạn đã hoàn thành {{title}} với {{score}}%.",
+      "failed_summary": "Bạn đạt {{score}}% và cần {{passing}}% để qua."
+    },
+    "status": {
+      "currently_doing": "ĐANG LÀM"
+    },
+    "instructions": {
+      "choose_best": "Chọn đáp án phù hợp nhất; có thể đánh dấu để xem lại sau."
+    }
+  },
+  "course_interview": {
+    "sections": {
+      "gap_report": "Báo cáo lỗ hổng",
+      "study_plan": "Kế hoạch học tập",
+      "follow_up": "Tiếp theo"
+    },
+    "labels": {
+      "persona": "Phong cách",
+      "time": "Thời gian",
+      "max_attempts": "Lượt tối đa",
+      "ai_interview": "Phỏng vấn AI",
+      "answer": "Câu trả lời của bạn",
+      "character_count": "{{count}} ký tự"
+    },
+    "question_types": {
+      "conceptual": "Khái niệm",
+      "behavioral": "Hành vi",
+      "technical": "Kỹ thuật",
+      "situational": "Tình huống",
+      "system_design": "Thiết kế hệ thống"
+    },
+    "values": {
+      "persona": {
+        "strict": "Nghiêm khắc",
+        "supportive": "Hỗ trợ",
+        "neutral": "Trung lập"
+      },
+      "time_limit_minutes": "{{minutes}} phút",
+      "no_limit": "Không giới hạn",
+      "mode": {
+        "voice": "Giọng nói",
+        "text": "Văn bản"
+      }
+    },
+    "actions": {
+      "starting": "Đang khởi tạo...",
+      "start": "Bắt đầu phỏng vấn",
+      "course": "Khoá học",
+      "next": "Tiếp theo",
+      "finish_early": "Kết thúc sớm",
+      "send_answer": "Gửi câu trả lời",
+      "back_to_course": "Quay lại khoá học",
+      "sending": "Đang gửi..."
+    },
+    "errors": {
+      "rate_limited": "Quá nhiều yêu cầu, vui lòng thử lại sau",
+      "start_failed": "Không thể bắt đầu phỏng vấn",
+      "answer_required": "Vui lòng nhập câu trả lời",
+      "send_failed": "Không thể gửi câu trả lời",
+      "finish_failed": "Không thể kết thúc phỏng vấn"
+    },
+    "empty_states": {
+      "no_interview_found": "Không tìm thấy phỏng vấn",
+      "config_not_loadable": "Cấu hình phỏng vấn này không tải được cho khoá học."
+    },
+    "results": {
+      "passed": "Đạt yêu cầu",
+      "completed": "Đã hoàn tất phỏng vấn",
+      "total_score": "Điểm tổng: {{score}}",
+      "summary_loading": "Hệ thống đang tổng hợp kết quả của bạn."
+    },
+    "intro": {
+      "description": "Phỏng vấn AI chấm điểm theo các tiêu chí của module. Trả lời từng câu một và xem phản hồi cuối phiên."
+    },
+    "placeholders": {
+      "answer": "Nhập câu trả lời..."
+    },
+    "status": {
+      "compiling_results": "Đang tổng hợp kết quả phỏng vấn..."
+    }
+  },
+  "management_career_path_detail": {
+    "tabs": {
+      "courses": "Khóa học",
+      "students": "Sinh viên",
+      "progress": "Tiến độ"
+    },
+    "status": {
+      "draft": "Bản nháp",
+      "published": "Đã xuất bản",
+      "archived": "Đã lưu trữ"
+    },
+    "errors": {
+      "load_failed": "Không thể tải lộ trình",
+      "publish_needs_course": "Thêm ít nhất một khóa học trước khi xuất bản",
+      "publish_failed": "Xuất bản thất bại",
+      "archive_failed": "Lưu trữ thất bại",
+      "save_failed": "Lưu thất bại",
+      "enter_course_uuid": "Hãy nhập UUID khóa học",
+      "add_course_failed": "Thêm khóa học thất bại",
+      "update_order_failed": "Cập nhật thứ tự thất bại",
+      "remove_course_failed": "Xoá thất bại",
+      "enter_student_uuid": "Hãy nhập UUID sinh viên",
+      "add_student_failed": "Thêm sinh viên thất bại",
+      "unregister_student_failed": "Huỷ đăng ký thất bại",
+      "load_student_progress_failed": "Không thể tải tiến độ sinh viên"
+    },
+    "breadcrumbs": {
+      "management": "Quản lý",
+      "career_paths": "Lộ trình nghề nghiệp"
+    },
+    "toasts": {
+      "published": "Đã xuất bản lộ trình",
+      "archived": "Đã lưu trữ lộ trình",
+      "saved_changes": "Đã lưu thay đổi",
+      "course_added": "Đã thêm khóa học",
+      "order_updated": "Đã cập nhật thứ tự",
+      "course_removed": "Đã xoá khóa học khỏi lộ trình",
+      "student_added": "Đã thêm sinh viên",
+      "student_unregistered": "Đã huỷ đăng ký"
+    },
+    "dialogs": {
+      "confirm_publish": "Xác nhận xuất bản",
+      "confirm_archive": "Xác nhận lưu trữ"
+    },
+    "actions": {
+      "publish": "Xuất bản",
+      "archive": "Lưu trữ",
+      "add": "Thêm",
+      "move_up": "Chuyển lên",
+      "move_down": "Chuyển xuống",
+      "save_order": "Lưu thứ tự",
+      "register": "Đăng ký"
+    },
+    "fields": {
+      "name": "Tên",
+      "org_unit": "Đơn vị (org_unit_id)",
+      "description": "Mô tả",
+      "course_uuid": "UUID khóa học *",
+      "position": "Vị trí",
+      "required": "Bắt buộc",
+      "student_uuid": "UUID sinh viên *"
+    },
+    "placeholders": {
+      "org_unit_uuid_optional": "UUID đơn vị (tuỳ chọn)",
+      "position_end": "Cuối"
+    },
+    "sections": {
+      "add_course": "Thêm khóa học",
+      "register_student": "Đăng ký sinh viên"
+    },
+    "empty_states": {
+      "no_courses": "Chưa có khóa học nào trong lộ trình.",
+      "no_students": "Chưa có sinh viên nào đăng ký.",
+      "no_student_path_progress": "Chưa có sinh viên nào đăng ký lộ trình."
+    },
+    "hints": {
+      "reorder_dirty": "Thứ tự đã thay đổi. Lưu để áp dụng."
+    },
+    "labels": {
+      "required_or_optional": "Bắt buộc / Tự chọn",
+      "student_completion": "Đã hoàn thành {{completed}}/{{total}} khóa học"
+    },
+    "columns": {
+      "student": "Sinh viên",
+      "completed_courses": "Khóa học hoàn thành",
+      "total_progress": "Tổng tiến độ"
+    }
+  },
+  "management_course_enrollments": {
+    "tabs": {
+      "roster": "Sinh viên",
+      "bulk": "Thêm hàng loạt",
+      "codes": "Mã mời"
+    },
+    "failure": {
+      "user_not_found": "Không tìm thấy người dùng",
+      "already_enrolled": "Đã đăng ký rồi",
+      "invalid_identifier": "Định danh không hợp lệ",
+      "forbidden": "Không có quyền"
+    },
+    "errors": {
+      "no_access": "Không có quyền truy cập",
+      "roster_load_failed": "Không thể tải danh sách sinh viên.",
+      "bulk_input_required": "Hãy nhập ít nhất một UUID hoặc email",
+      "code_required": "Hãy nhập mã",
+      "codes_load_failed": "Không thể tải danh sách mã mời."
+    },
+    "breadcrumb": {
+      "manage": "Quản lý đăng ký"
+    },
+    "header": {
+      "title": "Quản lý đăng ký"
+    },
+    "toasts": {
+      "dropped": "Đã huỷ đăng ký",
+      "drop_failed": "Huỷ đăng ký thất bại",
+      "bulk_added": "Đã thêm {{enrolled}} sinh viên, {{failures}} lỗi",
+      "bulk_failed": "Thêm hàng loạt thất bại",
+      "csv_failed": "Tải CSV thất bại",
+      "read_file_failed": "Đọc file thất bại",
+      "code_created": "Đã tạo mã mời",
+      "code_create_failed": "Tạo mã thất bại",
+      "code_copied": "Đã chép mã",
+      "copy_failed": "Không thể chép",
+      "code_deleted": "Đã xoá mã mời",
+      "code_delete_failed": "Xoá thất bại",
+      "code_updated": "Đã cập nhật mã",
+      "code_update_failed": "Cập nhật thất bại"
+    },
+    "roster": {
+      "empty": "Chưa có sinh viên nào đăng ký.",
+      "col_student": "Sinh viên",
+      "col_status": "Trạng thái",
+      "col_source": "Nguồn",
+      "col_enrolled_at": "Đăng ký lúc",
+      "col_actions": "Hành động"
+    },
+    "actions": {
+      "drop": "Bỏ"
+    },
+    "bulk": {
+      "label": "Dán danh sách (mỗi dòng một UUID hoặc email)",
+      "hint": "Hệ thống tự nhận diện UUID và email. Dòng không hợp lệ sẽ bỏ qua.",
+      "invalid_count": "Bỏ qua: {{count}}",
+      "submit": "Thêm sinh viên",
+      "csv_or": "Hoặc tải lên file CSV",
+      "csv_hint": "File CSV có cột email hoặc user_id.",
+      "choose_csv": "Chọn file CSV"
+    },
+    "bulk_result": {
+      "title": "Kết quả",
+      "added": "Đã thêm {{count}} sinh viên",
+      "errors": "{{count}} lỗi",
+      "error_details": "Chi tiết lỗi ({{count}})"
+    },
+    "codes": {
+      "create_title": "Tạo mã mời mới",
+      "code_placeholder": "ví dụ: SPRING2026",
+      "expires_label": "Hết hạn (tuỳ chọn)",
+      "max_uses_label": "Số lượt dùng tối đa (tuỳ chọn)",
+      "max_uses_placeholder": "Trống = không giới hạn",
+      "create_button": "Tạo mã",
+      "empty": "Chưa có mã mời nào.",
+      "col_code": "Mã",
+      "col_expires": "Hết hạn",
+      "col_uses": "Lượt dùng",
+      "col_created": "Tạo lúc",
+      "copy_tooltip": "Chép mã",
+      "active": "Đang hoạt động",
+      "disabled": "Tắt",
+      "edit_button": "Sửa",
+      "edit_title": "Sửa mã mời",
+      "max_uses_label_short": "Số lượt dùng tối đa"
+    }
+  },
+  "teacher_quiz_manage": {
+    "tabs": {
+      "questions": "Câu hỏi",
+      "settings": "Cấu hình",
+      "preview": "Xem trước"
+    },
+    "errors": {
+      "not_found_title": "Không tìm thấy bài kiểm tra",
+      "not_found_description": "Bài kiểm tra này không thể tải cho khoá học.",
+      "back_to_course": "Quay lại khoá học",
+      "title_required": "Tiêu đề bài kiểm tra là bắt buộc",
+      "prompt_required": "Cần điền nội dung câu hỏi",
+      "option_text_required": "Cần điền nội dung cho mọi đáp án",
+      "exactly_one_correct": "Phải có đúng một đáp án đúng",
+      "count_out_of_range": "Số lượng câu hỏi phải nằm trong khoảng 1-50",
+      "publish_missing_t_exp": "Cần đặt thời gian dự kiến cho mọi câu hỏi trước khi xuất bản. Dùng nút 'Đặt nhanh thời gian'.",
+      "bulk_select_required": "Hãy chọn ít nhất một câu hỏi.",
+      "bulk_seconds_positive": "Thời gian dự kiến phải lớn hơn 0 giây."
+    },
+    "toasts": {
+      "deleted": "Đã xoá bài kiểm tra",
+      "delete_failed": "Không thể xoá bài kiểm tra",
+      "published": "Đã xuất bản bài kiểm tra",
+      "publish_failed": "Không thể xuất bản bài kiểm tra",
+      "question_added": "Đã thêm câu hỏi",
+      "add_question_failed": "Không thể thêm câu hỏi",
+      "settings_saved": "Đã lưu cấu hình",
+      "save_settings_failed": "Không thể lưu cấu hình",
+      "generation_started": "Đã bắt đầu tạo câu hỏi",
+      "generation_in_progress": "Một lần tạo khác đang chạy. Hãy chờ một lát.",
+      "generation_failed": "Không thể tạo câu hỏi",
+      "expected_time_set": "Đã đặt thời gian dự kiến cho {{count}} câu hỏi",
+      "expected_time_failed": "Không thể đặt thời gian dự kiến",
+      "question_approved": "Đã duyệt câu hỏi",
+      "question_saved": "Đã lưu câu hỏi",
+      "save_question_failed": "Không thể lưu câu hỏi",
+      "question_deleted": "Đã xoá câu hỏi",
+      "delete_question_failed": "Không thể xoá câu hỏi",
+      "regen_started": "Đang tái tạo câu hỏi",
+      "regen_in_progress": "Một lần tái tạo khác đang chạy.",
+      "regen_failed": "Không thể tái tạo câu hỏi"
+    },
+    "new_question": {
+      "prompt": "Câu hỏi mới",
+      "explanation": "Thêm giải thích cho đáp án đúng.",
+      "option_a": "Lựa chọn A",
+      "option_b": "Lựa chọn B",
+      "option_c": "Lựa chọn C",
+      "option_d": "Lựa chọn D"
+    },
+    "actions": {
+      "back_to_module": "Quay lại module",
+      "publish_needs_question": "Cần thêm ít nhất một câu hỏi trước khi xuất bản",
+      "publish_quiz_tooltip": "Xuất bản bài kiểm tra này",
+      "publish": "Xuất bản",
+      "delete_quiz_tooltip": "Xoá bài kiểm tra, câu hỏi, lượt làm bài và mục module",
+      "add_question": "Thêm câu hỏi",
+      "view_as_student": "Xem như học viên"
+    },
+    "status": {
+      "published": "Đã xuất bản",
+      "draft": "Bản nháp"
+    },
+    "header": {
+      "questions_count": "{{count}} câu hỏi"
+    },
+    "confirm_delete": {
+      "title": "Xoá bài kiểm tra này?",
+      "body": "Hành động này sẽ xoá vĩnh viễn bài kiểm tra này, các câu hỏi, lượt làm bài và mục module liên quan. Không thể hoàn tác."
+    },
+    "confirm_delete_question": "Xoá câu hỏi này? Không thể hoàn tác.",
+    "banners": {
+      "missing_expected_time": "{{count}} câu chưa có thời gian dự kiến. Cần đặt thời gian trước khi xuất bản.",
+      "pending_review": "{{count}} câu hỏi đang chờ duyệt. Hãy duyệt trước khi xuất bản."
+    },
+    "empty": {
+      "no_questions_title": "Chưa có câu hỏi",
+      "no_questions_body": "Thêm câu hỏi thủ công bên dưới hoặc dùng AI để tạo nhanh từ tài liệu bài học."
+    },
+    "ai_panel": {
+      "title": "Tạo bằng AI",
+      "description": "Sinh câu hỏi từ tài liệu bài học đã sẵn sàng.",
+      "open_generator": "Mở trình tạo"
+    },
+    "bulk_time": {
+      "title": "Đặt nhanh thời gian",
+      "selected_count": "{{selected}}/{{total}} đã chọn",
+      "duration_seconds": "Thời gian (giây)",
+      "select_all": "Chọn tất cả",
+      "deselect": "Bỏ chọn",
+      "apply": "Áp dụng cho đã chọn"
+    },
+    "questions": {
+      "sr_select": "Chọn câu hỏi {{position}}",
+      "position_label": "Câu {{position}}",
+      "no_time_set": "Chưa đặt thời gian"
+    },
+    "editor": {
+      "prompt_label": "Câu hỏi",
+      "options_label": "Đáp án",
+      "explanation_label": "Giải thích",
+      "approve": "Duyệt",
+      "regenerate": "Tái tạo",
+      "explanation_inline": "Giải thích:"
+    },
+    "generate_modal": {
+      "title": "Tạo câu hỏi bằng AI",
+      "description": "Sinh câu hỏi từ tài liệu bài học đã được xử lý.",
+      "count_label": "Số lượng câu hỏi",
+      "focus_label": "Chủ đề tập trung (tuỳ chọn)",
+      "focus_placeholder": "Ngăn cách bằng dấu phẩy",
+      "start": "Bắt đầu tạo",
+      "running_title": "Đang tạo câu hỏi…",
+      "running_body": "AI đang phân tích tài liệu và soạn câu hỏi.",
+      "queued": "Đang xếp hàng đợi…",
+      "success_title": "Đã tạo xong câu hỏi",
+      "success_body": "Danh sách câu hỏi đã được làm mới.",
+      "failure_title": "Tạo câu hỏi thất bại",
+      "failure_body": "Đã có lỗi xảy ra. Hãy thử lại sau ít phút."
+    },
+    "settings": {
+      "general": {
+        "title": "Thông tin chung",
+        "description": "Đặt tên và mô tả để học viên dễ nhận biết.",
+        "title_label": "Tiêu đề bài kiểm tra",
+        "title_placeholder": "Nhập tiêu đề…",
+        "desc_label": "Mô tả",
+        "desc_placeholder": "Tóm tắt nội dung bài kiểm tra…"
+      },
+      "scoring": {
+        "title": "Điểm số & Thời gian",
+        "pass_score": "Điểm đậu",
+        "time_label": "Thời gian (phút)",
+        "time_hint": "Để trống nếu không giới hạn.",
+        "time_placeholder": "Ví dụ: 30"
+      },
+      "attempts": {
+        "title": "Số lần làm",
+        "allow_label": "Cho phép làm lại",
+        "allow_desc": "Học viên có thể làm lại sau khi nộp.",
+        "max_label": "Số lần tối đa",
+        "max_hint": "Để trống = không giới hạn.",
+        "max_placeholder": "Ví dụ: 3",
+        "cooldown_label": "Cooldown (giờ)",
+        "cooldown_hint": "Khoảng chờ giữa các lần.",
+        "cooldown_placeholder": "Tuỳ chọn"
+      },
+      "behavior": {
+        "title": "Hành vi",
+        "shuffle_q_label": "Xáo trộn câu hỏi",
+        "shuffle_q_desc": "Hoán đổi thứ tự câu hỏi theo từng lần làm.",
+        "shuffle_o_label": "Xáo trộn đáp án",
+        "shuffle_o_desc": "Hoán đổi thứ tự đáp án trong mỗi câu hỏi.",
+        "show_hints_label": "Hiển thị gợi ý",
+        "show_hints_desc": "Cho phép học viên xem gợi ý trong khi làm.",
+        "reminders_label": "Nhắc ôn tập",
+        "reminders_desc": "Gửi nhắc nhở khi đến lúc ôn lại bài."
+      },
+      "spacing": {
+        "title": "Lặp lại ngắt quãng",
+        "description": "Tinh chỉnh tham số SM2. Khoảng 1.3 – 5.0.",
+        "starting_ef": "EF khởi đầu",
+        "unlock_ef": "Ngưỡng EF mở khoá"
+      },
+      "save_button": "Lưu cấu hình"
+    },
+    "preview": {
+      "title": "Xem trước cho học viên",
+      "description": "{{title}} — bản chỉ đọc, mô phỏng giao diện học viên.",
+      "read_only": "Chỉ đọc",
+      "empty_body": "Thêm câu hỏi trong tab Câu hỏi hoặc dùng AI để tạo nhanh.",
+      "no_content": "(Chưa có nội dung)",
+      "correct": "Đúng"
+    }
+  },
+  "teacher_interview_config": {
+    "persona": {
+      "strict": "Nghiêm khắc",
+      "neutral": "Trung lập",
+      "supportive": "Hỗ trợ"
+    },
+    "mode": {
+      "hybrid": "Văn bản + giọng nói",
+      "text": "Chỉ văn bản",
+      "voice": "Chỉ giọng nói"
+    },
+    "status": {
+      "draft": "Bản nháp",
+      "published": "Đã xuất bản",
+      "archived": "Đã lưu trữ"
+    },
+    "errors": {
+      "not_found_title": "Không tìm thấy bộ phỏng vấn",
+      "not_found_body": "Bộ câu hỏi phỏng vấn không tải được cho khoá học này.",
+      "back_to_course": "Quay lại khoá học",
+      "title_required": "Tiêu đề không được để trống",
+      "questions_required": "Tạo câu hỏi trước khi xuất bản"
+    },
+    "toasts": {
+      "config_saved": "Đã lưu cấu hình",
+      "save_failed": "Lưu cấu hình thất bại",
+      "published": "Đã xuất bản phỏng vấn",
+      "publish_failed": "Xuất bản thất bại",
+      "archived": "Đã lưu trữ phỏng vấn",
+      "archive_failed": "Lưu trữ thất bại",
+      "deleted": "Đã xoá phỏng vấn",
+      "delete_failed": "Xoá thất bại",
+      "generation_started": "Đang tạo câu hỏi…",
+      "generation_failed": "Không thể bắt đầu sinh câu hỏi"
+    },
+    "actions": {
+      "back_tooltip": "Quay lại khoá học",
+      "generate_with_ai": "Tạo câu hỏi bằng AI",
+      "publish_label": "Xuất bản phỏng vấn",
+      "publish_short": "Xuất bản",
+      "archive": "Lưu trữ",
+      "delete_tooltip": "Xoá vĩnh viễn bộ phỏng vấn này",
+      "save_config": "Lưu cấu hình"
+    },
+    "header": {
+      "draft_count": "{{count}} câu hỏi",
+      "chip_label": "Phỏng vấn AI"
+    },
+    "confirm_delete": {
+      "title": "Xoá phỏng vấn này?",
+      "body": "Hành động này sẽ xoá vĩnh viễn {{title}} cùng các câu hỏi và bản ghi liên quan."
+    },
+    "sections": {
+      "general": {
+        "title": "Thông tin chung",
+        "description": "Tên và mô tả ngắn để học viên nhận biết bộ phỏng vấn này."
+      },
+      "style": {
+        "title": "Phong cách & Hình thức"
+      },
+      "rules": {
+        "title": "Quy tắc làm bài"
+      },
+      "guidance": {
+        "title": "Hướng dẫn cho AI",
+        "description": "Gợi ý phong cách câu hỏi, chủ đề trọng tâm hoặc lỗi cần tránh."
+      }
+    },
+    "fields": {
+      "title": "Tiêu đề",
+      "title_placeholder": "Nhập tiêu đề phỏng vấn…",
+      "persona": "Phong cách AI",
+      "mode": "Hình thức trả lời",
+      "duration_label": "Thời lượng (phút)",
+      "duration_hint": "Để trống = không giới hạn",
+      "attempts_label": "Số lần thử",
+      "criteria_label": "Số tiêu chí cần đạt",
+      "criteria_hint": "Số rubric outcome tối thiểu để vượt qua",
+      "lock_ef_label": "Khoá nâng EF của quiz đến khi đạt",
+      "lock_ef_desc": "Học viên phải vượt phỏng vấn trước khi spaced repetition tăng khoảng cách ôn tập.",
+      "supplementary_label": "Hướng dẫn bổ sung",
+      "supplementary_placeholder": "VD: Tập trung vào tình huống thực tế, tránh câu hỏi học thuộc lòng…"
+    },
+    "questions": {
+      "section_title": "Câu hỏi & Tiêu chí",
+      "section_description": "Sinh hàng loạt từ tài liệu khoá học bằng AI.",
+      "count_label": "Câu hỏi",
+      "weight_total": "Tổng trọng số",
+      "open_generator": "Mở trình tạo AI",
+      "empty": "Chưa có câu hỏi nào. Tạo câu hỏi trước khi xuất bản phỏng vấn."
+    },
+    "generate_modal": {
+      "description": "AI sẽ sinh câu hỏi phỏng vấn dựa trên tiêu chí của module."
+    },
+    "generate": {
+      "mode_label": "Chế độ sinh",
+      "mode_outcome": "Theo tiêu chí (rubric)",
+      "mode_topic": "Theo chủ đề",
+      "mode_coverage": "Bao phủ tài liệu",
+      "count_label": "Số câu hỏi",
+      "focus_label": "Chủ đề trọng tâm",
+      "focus_hint": "Các chủ đề muốn AI tập trung. Cách nhau bằng dấu phẩy.",
+      "focus_placeholder": "VD: thuật toán, cấu trúc dữ liệu",
+      "avoid_label": "Chủ đề cần tránh",
+      "avoid_hint": "Các chủ đề không muốn xuất hiện.",
+      "avoid_placeholder": "VD: thư viện đã lỗi thời",
+      "supplementary_placeholder": "Hướng dẫn riêng cho lần sinh này…",
+      "in_progress": "Đang sinh câu hỏi…",
+      "failed": "Sinh câu hỏi thất bại",
+      "completed": "Hoàn thành",
+      "success_body": "Câu hỏi mới đã được thêm vào bộ nháp. Đóng cửa sổ để xem.",
+      "processing": "Đang xử lý…",
+      "start_button": "Bắt đầu sinh"
+    }
+  },
+  "teacher_lesson_materials": {
+    "proc_status": {
+      "not_queued": "Chưa xếp hàng",
+      "pending": "Đang chờ",
+      "extracting": "Trích xuất",
+      "chunking": "Phân đoạn",
+      "embedding": "Nhúng vector",
+      "building_kg": "Xây dựng KG",
+      "ready": "Sẵn sàng",
+      "failed": "Thất bại"
+    },
+    "doc_type": {
+      "pdf": "PDF / Tài liệu",
+      "text": "Văn bản / Markdown",
+      "code": "Mã nguồn",
+      "image": "Hình ảnh",
+      "audio": "Âm thanh"
+    },
+    "dropzone": {
+      "drop_active": "Thả tệp để tải lên",
+      "drop_idle": "Kéo & thả hoặc nhấn để chọn tệp",
+      "formats": "PDF, Video, DOCX, PPTX, Code, Markdown · tới 5 GB (multipart tự động khi >100 MB)"
+    },
+    "errors": {
+      "upload_url_missing": "Phản hồi init thiếu upload_url cho chế độ single"
+    },
+    "toasts": {
+      "storage_not_ready": "Cấu hình lưu trữ chưa sẵn sàng. Vui lòng liên hệ admin.",
+      "upload_complete": "Đã tải lên — AI đang xử lý",
+      "upload_failed": "Tải lên thất bại",
+      "reprocess_started": "Đã bắt đầu xử lý lại",
+      "reprocess_busy": "Đang xử lý lần trước; vui lòng thử lại sau",
+      "reprocess_forbidden": "Bạn không có quyền xử lý lại tài liệu này",
+      "reprocess_failed": "Xử lý lại thất bại",
+      "ai_enabled": "Đã bật AI và bắt đầu xử lý",
+      "edit_forbidden": "Bạn không có quyền chỉnh sửa tài liệu này",
+      "hidden_from_students": "Đã ẩn khỏi học viên",
+      "shown_to_students": "Đã hiển thị cho học viên",
+      "deleted": "Đã xoá tài liệu",
+      "delete_forbidden": "Bạn không có quyền xoá tài liệu này",
+      "delete_failed": "Xoá thất bại"
+    },
+    "phase": {
+      "init": "Khởi tạo phiên tải lên…",
+      "hashing": "Tính checksum SHA-256…",
+      "uploading": "Đang tải lên S3…",
+      "completing": "Đang hoàn tất & xếp hàng xử lý…"
+    },
+    "form": {
+      "title_label": "Tiêu đề *",
+      "doc_type_label": "Loại tài liệu",
+      "ai_processing": "Xử lý AI",
+      "visible_to_students": "Hiển thị cho học viên",
+      "cancel_upload": "Huỷ tải lên",
+      "uploading": "Đang tải lên…",
+      "upload_button": "Tải lên & Xử lý"
+    },
+    "processing": {
+      "building_kg": "Trích xuất khái niệm và xây dựng đồ thị tri thức…",
+      "embedding": "Tạo vector nhúng…",
+      "chunking": "Phân đoạn nội dung thành các chunk ngữ nghĩa…",
+      "extracting": "Trích xuất văn bản từ tệp…",
+      "queued": "Đang chờ xử lý…",
+      "empty_title": "Không có tệp nào đang xử lý",
+      "empty_body": "Tải tệp lên ở khung trên để bắt đầu xử lý AI",
+      "indexed_summary": "AI đã lập chỉ mục {{count}} tài liệu — đồ thị tri thức sẵn sàng cho việc tạo quiz"
+    },
+    "badge": {
+      "visible": "Hiển thị",
+      "hidden": "Ẩn"
+    },
+    "actions": {
+      "toggle_visibility_hide": "Ẩn khỏi học viên",
+      "toggle_visibility_show": "Hiển thị cho học viên",
+      "enable_ai": "Bật xử lý AI",
+      "reprocess": "Xử lý lại",
+      "confirm_delete": "Xác nhận xoá"
+    },
+    "breadcrumb": {
+      "lesson_fallback": "Bài học",
+      "materials": "Tài liệu"
+    },
+    "header": {
+      "subtitle_loading": "Đang tải…",
+      "subtitle_suffix": "· Tải tài liệu để AI dựng đồ thị tri thức",
+      "title": "Tài liệu & AI Hub",
+      "processing_count": "{{count}} đang xử lý",
+      "ready_count": "{{count}} sẵn sàng",
+      "failed_count": "{{count}} thất bại"
+    },
+    "kg": {
+      "title": "Đồ thị Tri thức",
+      "indexed_count": "Đã lập chỉ mục {{count}} tài liệu · khái niệm đã trích xuất",
+      "empty_hint": "Tải lên & xử lý tài liệu để xây dựng đồ thị tri thức của bạn",
+      "open_full": "Mở đồ thị đầy đủ",
+      "viewer_coming_soon": "Trình xem đồ thị tri thức sẽ sớm có"
+    },
+    "history": {
+      "title": "Lịch sử tài liệu",
+      "total": "{{count}} tài liệu",
+      "empty_title": "Chưa có tài liệu nào",
+      "empty_body": "Tải tệp đầu tiên bằng khung kéo-thả ở bên trái"
+    },
+    "confirm_delete": {
+      "inline": "Xoá tài liệu này?"
+    }
+  },
+  "cooldown": {
+    "wait_prefix": "Chờ",
+    "ready": "Sẵn sàng"
+  },
+  "desktop_only": {
+    "title": "Trải nghiệm tốt nhất trên màn hình lớn",
+    "description": "Khu vực này được tối ưu cho màn hình từ 1024px trở lên. Một số bảng dữ liệu có thể khó đọc trên màn hình nhỏ.",
+    "dismiss": "Đã hiểu"
   }
 }

@@ -1,4 +1,5 @@
 import { Clock } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useCardCooldown } from "@/lib/api/cooldown";
 import { cn } from "@/lib/utils";
@@ -9,6 +10,7 @@ interface CardCooldownBadgeProps {
 }
 
 export function CardCooldownBadge({ retryAt, className }: CardCooldownBadgeProps) {
+  const { t } = useTranslation();
   const { isExpired, formatRemaining } = useCardCooldown(retryAt);
 
   if (isExpired || !retryAt) return null;
@@ -24,7 +26,7 @@ export function CardCooldownBadge({ retryAt, className }: CardCooldownBadgeProps
       )}
     >
       <Clock className="h-3 w-3" />
-      Chờ {formatRemaining()}
+      {t("cooldown.wait_prefix")} {formatRemaining()}
     </span>
   );
 }

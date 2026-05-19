@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { Monitor } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const MIN_DESKTOP_WIDTH = 1024;
 
 export function DesktopOnlyBanner() {
+  const { t } = useTranslation();
   const [showBanner, setShowBanner] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
@@ -26,17 +28,15 @@ export function DesktopOnlyBanner() {
     >
       <Monitor className="mt-0.5 size-5 shrink-0 text-warning" aria-hidden="true" />
       <div className="flex-1">
-        <p className="font-medium">Trải nghiệm tốt nhất trên màn hình lớn</p>
-        <p className="text-text-muted">
-          Khu vực này được tối ưu cho màn hình từ 1024px trở lên. Một số bảng dữ liệu có thể khó đọc trên màn hình nhỏ.
-        </p>
+        <p className="font-medium">{t("desktop_only.title")}</p>
+        <p className="text-text-muted">{t("desktop_only.description")}</p>
       </div>
       <button
         type="button"
         onClick={() => setDismissed(true)}
         className="cursor-pointer rounded-md px-2 py-1 text-xs font-medium text-text-muted hover:bg-surface-muted hover:text-text-strong"
       >
-        Đã hiểu
+        {t("desktop_only.dismiss")}
       </button>
     </div>
   );

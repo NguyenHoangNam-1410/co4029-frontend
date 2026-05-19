@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import {
   ArrowLeft,
@@ -79,25 +80,11 @@ function integerOrNull(value: string): number | null {
   return Number.isFinite(parsed) ? Math.round(parsed) : null;
 }
 
-const PERSONA_LABELS: Record<Persona, string> = {
-  strict: "Nghiêm khắc",
-  neutral: "Trung lập",
-  supportive: "Hỗ trợ",
-};
-
-const MODE_LABELS: Record<SupportedMode, string> = {
-  hybrid: "Văn bản + giọng nói",
-  text: "Chỉ văn bản",
-  voice: "Chỉ giọng nói",
-};
-
-const STATUS_LABELS: Record<InterviewConfigAuthoring["status"], string> = {
-  draft: "Bản nháp",
-  published: "Đã xuất bản",
-  archived: "Đã lưu trữ",
-};
+const PERSONA_KEYS: Persona[] = ["strict", "neutral", "supportive"];
+const MODE_KEYS: SupportedMode[] = ["hybrid", "text", "voice"];
 
 export default function InterviewConfigPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { courseId, configId } = useParams({ strict: false }) as {
     courseId: string;
@@ -145,10 +132,10 @@ export default function InterviewConfigPage() {
         </div>
         <div>
           <p className="font-headline font-bold text-m3-on-surface">
-            Không tìm thấy bộ phỏng vấn
+            {t("teacher_interview_config.errors.not_found_title")}
           </p>
           <p className="text-sm mt-1">
-            Bộ câu hỏi phỏng vấn không tải được cho khoá học này.
+            {t("teacher_interview_config.errors.not_found_body")}
           </p>
         </div>
         <Link
@@ -158,7 +145,7 @@ export default function InterviewConfigPage() {
         >
           <Button variant="outline" className="gap-2">
             <ArrowLeft className="h-4 w-4" />
-            Quay lại khoá học
+            {t("teacher_interview_config.errors.back_to_course")}
           </Button>
         </Link>
       </div>
@@ -182,7 +169,7 @@ export default function InterviewConfigPage() {
     event.preventDefault();
     if (!draft) return;
     if (!draft.title.trim()) {
-      toast.error("Tiêu đề không được để trống");
+      toast.error(t("teacher_interview_config.errors.title_required"));
       return;
     }
     try {
@@ -197,9 +184,12 @@ export default function InterviewConfigPage() {
         supplementary_instructions:
           draft.supplementary_instructions.trim() || null,
       });
-      toast.success("Đã lưu cấu hình");
+      toast.success(t("teacher_interview_config.toasts.config_saved"));
     } catch (err: unknown) {
-      toast.error((err as Error).message || "Lưu cấu hình thất bại");
+      toast.error(
+        (err as Error).message ||
+          t("teacher_interview_config.toasts.save_failed"),
+      );
     }
   }
 
@@ -207,16 +197,18 @@ export default function InterviewConfigPage() {
     if (publishDisabled) return;
     try {
       await publishConfig.mutateAsync();
-      toast.success("Đã xuất bản phỏng vấn");
+      toast.success(t("teacher_interview_config.toasts.published"));
     } catch (err: unknown) {
       const message = (err as Error).message || "";
       if (
         draftCount === 0 ||
         /question|insufficient|empty/i.test(message)
       ) {
-        toast.error("Tạo câu hỏi trước khi xuất bản");
+        toast.error(t("teacher_interview_config.errors.questions_required"));
       } else {
-        toast.error(message || "Xuất bản thất bại");
+        toast.error(
+          message || t("teacher_interview_config.toasts.publish_failed"),
+        );
       }
     }
   }
@@ -224,19 +216,25 @@ export default function InterviewConfigPage() {
   async function handleArchive() {
     try {
       await updateConfig.mutateAsync({ status: "archived" });
-      toast.success("Đã lưu trữ phỏng vấn");
+      toast.success(t("teacher_interview_config.toasts.archived"));
     } catch (err: unknown) {
-      toast.error((err as Error).message || "Lưu trữ thất bại");
+      toast.error(
+        (err as Error).message ||
+          t("teacher_interview_config.toasts.archive_failed"),
+      );
     }
   }
 
   async function handleDelete() {
     try {
       await deleteConfig.mutateAsync();
-      toast.success("Đã xoá phỏng vấn");
+      toast.success(t("teacher_interview_config.toasts.deleted"));
       returnToCourse();
     } catch (err: unknown) {
-      toast.error((err as Error).message || "Xoá thất bại");
+      toast.error(
+        (err as Error).message ||
+          t("teacher_interview_config.toasts.delete_failed"),
+      );
     } finally {
       setConfirmDelete(false);
     }
@@ -246,8 +244,11 @@ export default function InterviewConfigPage() {
     <div className="space-y-6 pb-12 max-w-[1400px] mx-auto">
       <Breadcrumbs
         items={[
-          { label: "Giảng dạy", to: "/teacher/courses" },
-          { label: course?.title ?? "Khóa học", to: "/teacher/courses/$courseId" },
+          { label: t("teacher_common.breadcrumb_teaching"), to: "/teacher/courses" },
+          {
+            label: course?.title ?? t("teacher_common.breadcrumb_course"),
+            to: "/teacher/courses/$courseId",
+          },
           ...(courseModule ? [{ label: courseModule.title }] : []),
           { label: config.title },
         ]}
@@ -260,7 +261,7 @@ export default function InterviewConfigPage() {
               variant="ghost"
               size="icon"
               className="h-9 w-9 mt-1 shrink-0"
-              title="Quay lại khoá học"
+              title={t("teacher_interview_config.actions.back_tooltip")}
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
@@ -272,23 +273,27 @@ export default function InterviewConfigPage() {
             </h1>
             <div className="flex flex-wrap items-center gap-2">
               <Badge className="border border-m3-outline-variant/30 bg-m3-surface-container-low text-m3-on-surface-variant rounded-full text-[11px] font-bold px-2.5 py-1">
-                {draftCount} câu hỏi
+                {t("teacher_interview_config.header.draft_count", {
+                  count: draftCount,
+                })}
               </Badge>
               {isPublished ? (
                 <Badge className="border-0 bg-emerald-100 text-emerald-700 text-[11px] font-bold gap-1.5 rounded-full px-2.5 py-1">
                   <CheckCircle2 className="h-3 w-3" />
-                  {STATUS_LABELS.published}
+                  {t("teacher_interview_config.status.published")}
                 </Badge>
               ) : isArchived ? (
                 <Badge className="border-0 bg-slate-100 text-slate-700 text-[11px] font-bold rounded-full px-2.5 py-1">
-                  {STATUS_LABELS.archived}
+                  {t("teacher_interview_config.status.archived")}
                 </Badge>
               ) : (
                 <Badge className="border-0 bg-amber-50 text-amber-700 text-[11px] font-bold rounded-full px-2.5 py-1">
-                  {STATUS_LABELS.draft}
+                  {t("teacher_interview_config.status.draft")}
                 </Badge>
               )}
-              <AIInsightChip>Phỏng vấn AI</AIInsightChip>
+              <AIInsightChip>
+                {t("teacher_interview_config.header.chip_label")}
+              </AIInsightChip>
             </div>
           </div>
         </div>
@@ -300,7 +305,7 @@ export default function InterviewConfigPage() {
             className="gap-2 border-0 shadow-glass gradient-primary text-white hover:shadow-ai-glow"
           >
             <Sparkles className="h-4 w-4" />
-            Tạo câu hỏi bằng AI
+            {t("teacher_interview_config.actions.generate_with_ai")}
           </Button>
           <Button
             type="button"
@@ -314,10 +319,10 @@ export default function InterviewConfigPage() {
             )}
             title={
               draftCount === 0
-                ? "Tạo câu hỏi trước khi xuất bản"
+                ? t("teacher_interview_config.errors.questions_required")
                 : isPublished
-                  ? "Đã xuất bản"
-                  : "Xuất bản phỏng vấn"
+                  ? t("teacher_interview_config.status.published")
+                  : t("teacher_interview_config.actions.publish_label")
             }
           >
             {publishConfig.isPending ? (
@@ -327,7 +332,9 @@ export default function InterviewConfigPage() {
             ) : (
               <Upload className="h-4 w-4" />
             )}
-            {isPublished ? "Đã xuất bản" : "Xuất bản"}
+            {isPublished
+              ? t("teacher_interview_config.status.published")
+              : t("teacher_interview_config.actions.publish_short")}
           </Button>
           {!isArchived && (
             <Button
@@ -337,7 +344,7 @@ export default function InterviewConfigPage() {
               onClick={handleArchive}
               disabled={updateConfig.isPending}
             >
-              Lưu trữ
+              {t("teacher_interview_config.actions.archive")}
             </Button>
           )}
           <Button
@@ -346,10 +353,10 @@ export default function InterviewConfigPage() {
             className="gap-2 border-red-200 text-red-700 hover:bg-red-50 hover:text-red-700"
             onClick={() => setConfirmDelete(true)}
             disabled={deleteConfig.isPending}
-            title="Xoá vĩnh viễn bộ phỏng vấn này"
+            title={t("teacher_interview_config.actions.delete_tooltip")}
           >
             <Trash2 className="h-4 w-4" />
-            Xoá
+            {t("common.delete")}
           </Button>
         </div>
       </div>
@@ -397,12 +404,12 @@ export default function InterviewConfigPage() {
               </div>
               <div className="space-y-1">
                 <h2 className="font-headline font-bold text-base text-m3-on-surface">
-                  Xoá phỏng vấn này?
+                  {t("teacher_interview_config.confirm_delete.title")}
                 </h2>
                 <p className="text-sm text-m3-on-surface-variant">
-                  Hành động này sẽ xoá vĩnh viễn{" "}
-                  <span className="font-semibold">{config.title}</span> cùng các
-                  câu hỏi và bản ghi liên quan.
+                  {t("teacher_interview_config.confirm_delete.body", {
+                    title: config.title,
+                  })}
                 </p>
               </div>
             </div>
@@ -413,7 +420,7 @@ export default function InterviewConfigPage() {
                 onClick={() => setConfirmDelete(false)}
                 disabled={deleteConfig.isPending}
               >
-                Huỷ
+                {t("common.cancel")}
               </Button>
               <Button
                 type="button"
@@ -426,7 +433,7 @@ export default function InterviewConfigPage() {
                 ) : (
                   <Trash2 className="h-4 w-4" />
                 )}
-                Xoá
+                {t("common.delete")}
               </Button>
             </div>
           </div>
@@ -447,6 +454,7 @@ function SettingsForm({
   onSubmit: (event: React.FormEvent) => void;
   saving: boolean;
 }) {
+  const { t } = useTranslation();
   function update<K extends keyof SettingsDraft>(
     key: K,
     value: SettingsDraft[K],
@@ -460,35 +468,39 @@ function SettingsForm({
       className="bg-m3-surface-container-lowest border border-m3-outline-variant/20 rounded-xl p-6 lg:p-8 space-y-8 shadow-glass"
     >
       <Section
-        title="Thông tin chung"
-        description="Tên và mô tả ngắn để học viên nhận biết bộ phỏng vấn này."
+        title={t("teacher_interview_config.sections.general.title")}
+        description={t(
+          "teacher_interview_config.sections.general.description",
+        )}
       >
-        <Field label="Tiêu đề">
+        <Field label={t("teacher_interview_config.fields.title")}>
           <Input
             value={draft.title}
             onChange={(e) => update("title", e.target.value)}
-            placeholder="Nhập tiêu đề phỏng vấn…"
+            placeholder={t(
+              "teacher_interview_config.fields.title_placeholder",
+            )}
             className="bg-m3-surface text-sm"
           />
         </Field>
       </Section>
 
-      <Section title="Phong cách & Hình thức">
+      <Section title={t("teacher_interview_config.sections.style.title")}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="Phong cách AI">
+          <Field label={t("teacher_interview_config.fields.persona")}>
             <select
               value={draft.persona}
               onChange={(e) => update("persona", e.target.value as Persona)}
               className="w-full rounded-xl border border-m3-outline-variant/20 bg-m3-surface px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-m3-secondary/30"
             >
-              {(Object.keys(PERSONA_LABELS) as Persona[]).map((p) => (
+              {PERSONA_KEYS.map((p) => (
                 <option key={p} value={p}>
-                  {PERSONA_LABELS[p]}
+                  {t(`teacher_interview_config.persona.${p}`)}
                 </option>
               ))}
             </select>
           </Field>
-          <Field label="Hình thức trả lời">
+          <Field label={t("teacher_interview_config.fields.mode")}>
             <select
               value={draft.supported_modes}
               onChange={(e) =>
@@ -496,9 +508,9 @@ function SettingsForm({
               }
               className="w-full rounded-xl border border-m3-outline-variant/20 bg-m3-surface px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-m3-secondary/30"
             >
-              {(Object.keys(MODE_LABELS) as SupportedMode[]).map((m) => (
+              {MODE_KEYS.map((m) => (
                 <option key={m} value={m}>
-                  {MODE_LABELS[m]}
+                  {t(`teacher_interview_config.mode.${m}`)}
                 </option>
               ))}
             </select>
@@ -506,9 +518,12 @@ function SettingsForm({
         </div>
       </Section>
 
-      <Section title="Quy tắc làm bài">
+      <Section title={t("teacher_interview_config.sections.rules.title")}>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Field label="Thời lượng (phút)" hint="Để trống = không giới hạn">
+          <Field
+            label={t("teacher_interview_config.fields.duration_label")}
+            hint={t("teacher_interview_config.fields.duration_hint")}
+          >
             <Input
               type="number"
               min={1}
@@ -519,7 +534,10 @@ function SettingsForm({
               className="bg-m3-surface text-sm"
             />
           </Field>
-          <Field label="Số lần thử" hint="Để trống = không giới hạn">
+          <Field
+            label={t("teacher_interview_config.fields.attempts_label")}
+            hint={t("teacher_interview_config.fields.duration_hint")}
+          >
             <Input
               type="number"
               min={1}
@@ -530,8 +548,8 @@ function SettingsForm({
             />
           </Field>
           <Field
-            label="Số tiêu chí cần đạt"
-            hint="Số rubric outcome tối thiểu để vượt qua"
+            label={t("teacher_interview_config.fields.criteria_label")}
+            hint={t("teacher_interview_config.fields.criteria_hint")}
           >
             <Input
               type="number"
@@ -545,25 +563,31 @@ function SettingsForm({
         </div>
 
         <ToggleRow
-          label="Khoá nâng EF của quiz đến khi đạt"
-          description="Học viên phải vượt phỏng vấn trước khi spaced repetition tăng khoảng cách ôn tập."
+          label={t("teacher_interview_config.fields.lock_ef_label")}
+          description={t("teacher_interview_config.fields.lock_ef_desc")}
           value={draft.lock_quiz_ef_until_pass}
           onChange={(v) => update("lock_quiz_ef_until_pass", v)}
         />
       </Section>
 
       <Section
-        title="Hướng dẫn cho AI"
-        description="Gợi ý phong cách câu hỏi, chủ đề trọng tâm hoặc lỗi cần tránh."
+        title={t("teacher_interview_config.sections.guidance.title")}
+        description={t(
+          "teacher_interview_config.sections.guidance.description",
+        )}
       >
-        <Field label="Hướng dẫn bổ sung">
+        <Field
+          label={t("teacher_interview_config.fields.supplementary_label")}
+        >
           <textarea
             value={draft.supplementary_instructions}
             onChange={(e) =>
               update("supplementary_instructions", e.target.value)
             }
             rows={4}
-            placeholder="VD: Tập trung vào tình huống thực tế, tránh câu hỏi học thuộc lòng…"
+            placeholder={t(
+              "teacher_interview_config.fields.supplementary_placeholder",
+            )}
             className="w-full rounded-xl border border-m3-outline-variant/20 bg-m3-surface px-3 py-2.5 text-sm text-m3-on-surface resize-none focus:outline-none focus:ring-2 focus:ring-m3-secondary/30"
           />
         </Field>
@@ -580,7 +604,7 @@ function SettingsForm({
           ) : (
             <Save className="h-4 w-4" />
           )}
-          Lưu cấu hình
+          {t("teacher_interview_config.actions.save_config")}
         </Button>
       </div>
     </form>
@@ -596,6 +620,7 @@ function QuestionsSummaryCard({
   importanceWeight: number | null | undefined;
   onGenerate: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="rounded-xl border border-m3-outline-variant/20 bg-m3-surface-container-lowest p-5 shadow-glass space-y-4">
       <div className="flex items-center gap-2">
@@ -604,10 +629,10 @@ function QuestionsSummaryCard({
         </div>
         <div>
           <h3 className="font-headline font-bold text-sm text-m3-on-surface">
-            Câu hỏi & Tiêu chí
+            {t("teacher_interview_config.questions.section_title")}
           </h3>
           <p className="text-[11px] text-m3-on-surface-variant">
-            Sinh hàng loạt từ tài liệu khoá học bằng AI.
+            {t("teacher_interview_config.questions.section_description")}
           </p>
         </div>
       </div>
@@ -615,7 +640,7 @@ function QuestionsSummaryCard({
       <div className="grid grid-cols-2 gap-3 text-center">
         <div className="rounded-xl bg-m3-surface-container-low p-3">
           <p className="text-[10px] uppercase font-bold text-m3-on-surface-variant tracking-widest">
-            Câu hỏi
+            {t("teacher_interview_config.questions.count_label")}
           </p>
           <p className="text-2xl font-extrabold font-headline text-m3-primary mt-1">
             {draftCount}
@@ -623,7 +648,7 @@ function QuestionsSummaryCard({
         </div>
         <div className="rounded-xl bg-m3-surface-container-low p-3">
           <p className="text-[10px] uppercase font-bold text-m3-on-surface-variant tracking-widest">
-            Tổng trọng số
+            {t("teacher_interview_config.questions.weight_total")}
           </p>
           <p className="text-2xl font-extrabold font-headline text-m3-on-surface mt-1">
             {importanceWeight == null
@@ -639,12 +664,12 @@ function QuestionsSummaryCard({
         className="w-full gap-2 gradient-primary text-white border-0 hover:shadow-ai-glow"
       >
         <Sparkles className="h-4 w-4" />
-        Mở trình tạo AI
+        {t("teacher_interview_config.questions.open_generator")}
       </Button>
 
       {draftCount === 0 && (
         <p className="text-[11px] text-amber-700 bg-amber-50 rounded-xl px-3 py-2 leading-relaxed">
-          Chưa có câu hỏi nào. Tạo câu hỏi trước khi xuất bản phỏng vấn.
+          {t("teacher_interview_config.questions.empty")}
         </p>
       )}
     </div>
@@ -666,6 +691,7 @@ function GenerationModal({
   setActiveRunId: (runId: string | null) => void;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   const generate = useGenerateInterviewQuestions(configId);
   const { data: run } = useInterviewGenerationRun(configId, activeRunId);
 
@@ -710,9 +736,12 @@ function GenerationModal({
           form.supplementary_instructions.trim() || null,
       });
       setActiveRunId(result.run_id);
-      toast.success("Đang tạo câu hỏi…");
+      toast.success(t("teacher_interview_config.toasts.generation_started"));
     } catch (err: unknown) {
-      toast.error((err as Error).message || "Không thể bắt đầu sinh câu hỏi");
+      toast.error(
+        (err as Error).message ||
+          t("teacher_interview_config.toasts.generation_failed"),
+      );
     }
   }
 
@@ -726,10 +755,10 @@ function GenerationModal({
             </div>
             <div>
               <h2 className="font-headline font-bold text-base text-m3-on-surface">
-                Tạo câu hỏi bằng AI
+                {t("teacher_interview_config.actions.generate_with_ai")}
               </h2>
               <p className="text-xs text-m3-on-surface-variant">
-                AI sẽ sinh câu hỏi phỏng vấn dựa trên tiêu chí của module.
+                {t("teacher_interview_config.generate_modal.description")}
               </p>
             </div>
           </div>
@@ -746,7 +775,7 @@ function GenerationModal({
 
         <form onSubmit={handleGenerate} className="p-6 space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="Chế độ sinh">
+            <Field label={t("teacher_interview_config.generate.mode_label")}>
               <select
                 value={form.mode}
                 onChange={(e) =>
@@ -757,12 +786,18 @@ function GenerationModal({
                 }
                 className="w-full rounded-xl border border-m3-outline-variant/20 bg-m3-surface-container-low px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-m3-secondary/30"
               >
-                <option value="outcome-based">Theo tiêu chí (rubric)</option>
-                <option value="topic">Theo chủ đề</option>
-                <option value="coverage">Bao phủ tài liệu</option>
+                <option value="outcome-based">
+                  {t("teacher_interview_config.generate.mode_outcome")}
+                </option>
+                <option value="topic">
+                  {t("teacher_interview_config.generate.mode_topic")}
+                </option>
+                <option value="coverage">
+                  {t("teacher_interview_config.generate.mode_coverage")}
+                </option>
               </select>
             </Field>
-            <Field label="Số câu hỏi">
+            <Field label={t("teacher_interview_config.generate.count_label")}>
               <Input
                 type="number"
                 min={1}
@@ -779,7 +814,7 @@ function GenerationModal({
             </Field>
           </div>
 
-          <Field label="Phong cách AI">
+          <Field label={t("teacher_interview_config.fields.persona")}>
             <select
               value={form.persona}
               onChange={(e) =>
@@ -787,43 +822,49 @@ function GenerationModal({
               }
               className="w-full rounded-xl border border-m3-outline-variant/20 bg-m3-surface-container-low px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-m3-secondary/30"
             >
-              {(Object.keys(PERSONA_LABELS) as Persona[]).map((p) => (
+              {PERSONA_KEYS.map((p) => (
                 <option key={p} value={p}>
-                  {PERSONA_LABELS[p]}
+                  {t(`teacher_interview_config.persona.${p}`)}
                 </option>
               ))}
             </select>
           </Field>
 
           <Field
-            label="Chủ đề trọng tâm"
-            hint="Các chủ đề muốn AI tập trung. Cách nhau bằng dấu phẩy."
+            label={t("teacher_interview_config.generate.focus_label")}
+            hint={t("teacher_interview_config.generate.focus_hint")}
           >
             <Input
               value={form.focus_topics}
               onChange={(e) =>
                 setForm((f) => ({ ...f, focus_topics: e.target.value }))
               }
-              placeholder="VD: thuật toán, cấu trúc dữ liệu"
+              placeholder={t(
+                "teacher_interview_config.generate.focus_placeholder",
+              )}
               className="bg-m3-surface-container-low text-sm"
             />
           </Field>
 
           <Field
-            label="Chủ đề cần tránh"
-            hint="Các chủ đề không muốn xuất hiện."
+            label={t("teacher_interview_config.generate.avoid_label")}
+            hint={t("teacher_interview_config.generate.avoid_hint")}
           >
             <Input
               value={form.avoid_topics}
               onChange={(e) =>
                 setForm((f) => ({ ...f, avoid_topics: e.target.value }))
               }
-              placeholder="VD: thư viện đã lỗi thời"
+              placeholder={t(
+                "teacher_interview_config.generate.avoid_placeholder",
+              )}
               className="bg-m3-surface-container-low text-sm"
             />
           </Field>
 
-          <Field label="Hướng dẫn bổ sung">
+          <Field
+            label={t("teacher_interview_config.fields.supplementary_label")}
+          >
             <textarea
               value={form.supplementary_instructions}
               onChange={(e) =>
@@ -833,7 +874,9 @@ function GenerationModal({
                 }))
               }
               rows={3}
-              placeholder="Hướng dẫn riêng cho lần sinh này…"
+              placeholder={t(
+                "teacher_interview_config.generate.supplementary_placeholder",
+              )}
               className="w-full rounded-xl border border-m3-outline-variant/20 bg-m3-surface-container-low px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-m3-secondary/30"
             />
           </Field>
@@ -858,17 +901,17 @@ function GenerationModal({
                   <CheckCircle2 className="h-4 w-4" />
                 )}
                 {inProgress
-                  ? "Đang sinh câu hỏi…"
+                  ? t("teacher_interview_config.generate.in_progress")
                   : failed
-                    ? "Sinh câu hỏi thất bại"
-                    : "Hoàn thành"}
+                    ? t("teacher_interview_config.generate.failed")
+                    : t("teacher_interview_config.generate.completed")}
               </div>
               {failed && run?.failure_message && (
                 <p className="mt-1 text-xs">{run.failure_message}</p>
               )}
               {completed && (
                 <p className="mt-1 text-xs">
-                  Câu hỏi mới đã được thêm vào bộ nháp. Đóng cửa sổ để xem.
+                  {t("teacher_interview_config.generate.success_body")}
                 </p>
               )}
             </div>
@@ -876,7 +919,7 @@ function GenerationModal({
 
           <div className="flex justify-end gap-2 pt-2 border-t border-m3-outline-variant/20">
             <Button type="button" variant="outline" onClick={onClose}>
-              Đóng
+              {t("common.close")}
             </Button>
             <Button
               type="submit"
@@ -888,7 +931,9 @@ function GenerationModal({
               ) : (
                 <Sparkles className="h-4 w-4" />
               )}
-              {inProgress ? "Đang xử lý…" : "Bắt đầu sinh"}
+              {inProgress
+                ? t("teacher_interview_config.generate.processing")
+                : t("teacher_interview_config.generate.start_button")}
             </Button>
           </div>
         </form>

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
   AlertCircle,
@@ -41,24 +42,28 @@ import { cn } from "@/lib/utils";
 
 type TabKey = "roster" | "bulk" | "codes";
 
-const TABS: { key: TabKey; label: string; icon: typeof Users }[] = [
-  { key: "roster", label: "Sinh viên", icon: Users },
-  { key: "bulk", label: "Thêm hàng loạt", icon: Upload },
-  { key: "codes", label: "Mã mời", icon: FileSpreadsheet },
+const TABS: { key: TabKey; labelKey: string; icon: typeof Users }[] = [
+  { key: "roster", labelKey: "management_course_enrollments.tabs.roster", icon: Users },
+  { key: "bulk", labelKey: "management_course_enrollments.tabs.bulk", icon: Upload },
+  { key: "codes", labelKey: "management_course_enrollments.tabs.codes", icon: FileSpreadsheet },
 ];
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-const FAILURE_LABEL: Record<string, string> = {
-  user_not_found: "Không tìm thấy người dùng",
-  already_enrolled: "Đã đăng ký rồi",
-  invalid_identifier: "Định danh không hợp lệ",
-  forbidden: "Không có quyền",
+const FAILURE_KEY: Record<string, string> = {
+  user_not_found: "management_course_enrollments.failure.user_not_found",
+  already_enrolled: "management_course_enrollments.failure.already_enrolled",
+  invalid_identifier: "management_course_enrollments.failure.invalid_identifier",
+  forbidden: "management_course_enrollments.failure.forbidden",
 };
 
-function failureLabel(reason: string): string {
-  return FAILURE_LABEL[reason] ?? reason;
+function useFailureLabel() {
+  const { t } = useTranslation();
+  return (reason: string): string => {
+    const key = FAILURE_KEY[reason];
+    return key ? t(key) : reason;
+  };
 }
 
 function formatDate(iso: string | null | undefined): string {
@@ -92,6 +97,7 @@ function dateInputToIso(value: string): string | null {
 }
 
 export default function ManagementCourseEnrollmentsPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { courseId } = useParams({ strict: false }) as { courseId: string };
 
@@ -104,10 +110,10 @@ export default function ManagementCourseEnrollmentsPage() {
   useEffect(() => {
     if (permissions.isLoading) return;
     if (!canManage) {
-      toast.error("Không có quyền truy cập");
+      toast.error(t("management_course_enrollments.errors.no_access"));
       void navigate({ to: "/dashboard", replace: true });
     }
-  }, [permissions.isLoading, canManage, navigate]);
+  }, [permissions.isLoading, canManage, navigate, t]);
 
   const enabled = !permissions.isLoading && canManage;
   const { data: course } = useTeacherCourseById(enabled ? courseId : "");
@@ -132,9 +138,9 @@ export default function ManagementCourseEnrollmentsPage() {
       <div className="pt-4">
         <Breadcrumbs
           items={[
-            { label: "Giảng dạy", to: "/teacher/courses" },
-            { label: course?.title ?? "Khóa học", to: "/teacher/courses/$courseId" },
-            { label: "Quản lý đăng ký" },
+            { label: t("teacher_common.breadcrumb_teaching"), to: "/teacher/courses" },
+            { label: course?.title ?? t("teacher_common.breadcrumb_course"), to: "/teacher/courses/$courseId" },
+            { label: t("management_course_enrollments.breadcrumb.manage") },
           ]}
         />
       </div>
@@ -147,7 +153,7 @@ export default function ManagementCourseEnrollmentsPage() {
         </Link>
         <div className="flex-1 min-w-0">
           <h1 className="text-2xl font-headline font-bold text-m3-on-surface truncate">
-            Quản lý đăng ký
+            {t("management_course_enrollments.header.title")}
           </h1>
           <p className="text-xs text-m3-on-surface-variant mt-0.5 truncate">
             {course?.title ?? "…"}
@@ -156,14 +162,14 @@ export default function ManagementCourseEnrollmentsPage() {
       </div>
 
       <div className="flex gap-1 border-b border-m3-outline-variant/30">
-        {TABS.map((t) => {
-          const Icon = t.icon;
-          const active = t.key === tab;
+        {TABS.map((tabItem) => {
+          const Icon = tabItem.icon;
+          const active = tabItem.key === tab;
           return (
             <button
-              key={t.key}
+              key={tabItem.key}
               type="button"
-              onClick={() => setTab(t.key)}
+              onClick={() => setTab(tabItem.key)}
               className={cn(
                 "flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition-colors border-b-2 -mb-px cursor-pointer",
                 active
@@ -172,7 +178,7 @@ export default function ManagementCourseEnrollmentsPage() {
               )}
             >
               <Icon className="h-4 w-4" />
-              {t.label}
+              {t(tabItem.labelKey)}
             </button>
           );
         })}
@@ -188,6 +194,7 @@ export default function ManagementCourseEnrollmentsPage() {
 /* ── Tab 1: Roster ─────────────────────────────────────────────────── */
 
 function RosterTab({ courseId }: { courseId: string }) {
+  const { t } = useTranslation();
   const { data, isLoading, isError } = useDeptEnrollments(courseId);
   const drop = useDropEnrollment(courseId);
   const [confirmId, setConfirmId] = useState<string | null>(null);
@@ -197,11 +204,14 @@ function RosterTab({ courseId }: { courseId: string }) {
   function handleDrop(userId: string) {
     drop.mutate(userId, {
       onSuccess: () => {
-        toast.success("Đã huỷ đăng ký");
+        toast.success(t("management_course_enrollments.toasts.dropped"));
         setConfirmId(null);
       },
       onError: (err) =>
-        toast.error((err as Error).message || "Huỷ đăng ký thất bại"),
+        toast.error(
+          (err as Error).message ||
+            t("management_course_enrollments.toasts.drop_failed"),
+        ),
     });
   }
 
@@ -221,7 +231,7 @@ function RosterTab({ courseId }: { courseId: string }) {
   if (isError) {
     return (
       <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-        Không thể tải danh sách sinh viên.
+        {t("management_course_enrollments.errors.roster_load_failed")}
       </div>
     );
   }
@@ -230,7 +240,9 @@ function RosterTab({ courseId }: { courseId: string }) {
     return (
       <div className="flex flex-col items-center justify-center py-16 gap-3 text-m3-on-surface-variant">
         <Users className="h-10 w-10 opacity-30" />
-        <p className="text-sm font-medium">Chưa có sinh viên nào đăng ký.</p>
+        <p className="text-sm font-medium">
+          {t("management_course_enrollments.roster.empty")}
+        </p>
       </div>
     );
   }
@@ -238,11 +250,13 @@ function RosterTab({ courseId }: { courseId: string }) {
   return (
     <div className="bg-m3-surface-container-lowest rounded-xl border border-m3-outline-variant/20 overflow-hidden">
       <div className="hidden sm:grid grid-cols-[1fr_140px_140px_120px_100px] gap-4 px-5 py-3 border-b border-m3-outline-variant/10 text-[10px] font-bold uppercase tracking-wider text-m3-on-surface-variant">
-        <span>Sinh viên</span>
-        <span>Trạng thái</span>
-        <span>Nguồn</span>
-        <span>Đăng ký lúc</span>
-        <span className="text-right">Hành động</span>
+        <span>{t("management_course_enrollments.roster.col_student")}</span>
+        <span>{t("management_course_enrollments.roster.col_status")}</span>
+        <span>{t("management_course_enrollments.roster.col_source")}</span>
+        <span>{t("management_course_enrollments.roster.col_enrolled_at")}</span>
+        <span className="text-right">
+          {t("management_course_enrollments.roster.col_actions")}
+        </span>
       </div>
       <div className="divide-y divide-m3-outline-variant/10">
         {rows.map((row) => (
@@ -276,7 +290,7 @@ function RosterTab({ courseId }: { courseId: string }) {
                     {drop.isPending ? (
                       <Loader2 className="h-3 w-3 animate-spin" />
                     ) : (
-                      "Xác nhận"
+                      t("common.confirm")
                     )}
                   </Button>
                   <Button
@@ -285,7 +299,7 @@ function RosterTab({ courseId }: { courseId: string }) {
                     onClick={() => setConfirmId(null)}
                     disabled={drop.isPending}
                   >
-                    Huỷ
+                    {t("common.cancel")}
                   </Button>
                 </div>
               ) : (
@@ -296,7 +310,7 @@ function RosterTab({ courseId }: { courseId: string }) {
                   className="gap-1"
                 >
                   <UserMinus className="h-3 w-3" />
-                  Bỏ
+                  {t("management_course_enrollments.actions.drop")}
                 </Button>
               )}
             </div>
@@ -310,6 +324,7 @@ function RosterTab({ courseId }: { courseId: string }) {
 /* ── Tab 2: Bulk add (paste UUIDs/emails or CSV upload) ─────────────── */
 
 function BulkTab({ courseId }: { courseId: string }) {
+  const { t } = useTranslation();
   const bulk = useBulkEnroll(courseId);
   const csv = useImportEnrollmentsCsv(courseId);
   const [text, setText] = useState("");
@@ -337,7 +352,9 @@ function BulkTab({ courseId }: { courseId: string }) {
   function handleSubmitText(e: React.FormEvent) {
     e.preventDefault();
     if (parsed.userIds.length === 0 && parsed.emails.length === 0) {
-      toast.error("Hãy nhập ít nhất một UUID hoặc email");
+      toast.error(
+        t("management_course_enrollments.errors.bulk_input_required"),
+      );
       return;
     }
     bulk.mutate(
@@ -346,12 +363,18 @@ function BulkTab({ courseId }: { courseId: string }) {
         onSuccess: (data) => {
           setResult(data);
           toast.success(
-            `Đã thêm ${data.enrolled.length} sinh viên, ${data.failures.length} lỗi`,
+            t("management_course_enrollments.toasts.bulk_added", {
+              enrolled: data.enrolled.length,
+              failures: data.failures.length,
+            }),
           );
           setText("");
         },
         onError: (err) =>
-          toast.error((err as Error).message || "Thêm hàng loạt thất bại"),
+          toast.error(
+            (err as Error).message ||
+              t("management_course_enrollments.toasts.bulk_failed"),
+          ),
       },
     );
   }
@@ -369,15 +392,22 @@ function BulkTab({ courseId }: { courseId: string }) {
           onSuccess: (data) => {
             setResult(data);
             toast.success(
-              `Đã thêm ${data.enrolled.length} sinh viên, ${data.failures.length} lỗi`,
+              t("management_course_enrollments.toasts.bulk_added", {
+                enrolled: data.enrolled.length,
+                failures: data.failures.length,
+              }),
             );
           },
           onError: (err) =>
-            toast.error((err as Error).message || "Tải CSV thất bại"),
+            toast.error(
+              (err as Error).message ||
+                t("management_course_enrollments.toasts.csv_failed"),
+            ),
         },
       );
     };
-    reader.onerror = () => toast.error("Đọc file thất bại");
+    reader.onerror = () =>
+      toast.error(t("management_course_enrollments.toasts.read_file_failed"));
     reader.readAsText(file);
     e.target.value = "";
   }
@@ -392,10 +422,10 @@ function BulkTab({ courseId }: { courseId: string }) {
       >
         <div>
           <h2 className="text-sm font-bold text-m3-on-surface">
-            Dán danh sách (mỗi dòng một UUID hoặc email)
+            {t("management_course_enrollments.bulk.label")}
           </h2>
           <p className="text-xs text-m3-on-surface-variant mt-1">
-            Hệ thống tự nhận diện UUID và email. Dòng không hợp lệ sẽ bỏ qua.
+            {t("management_course_enrollments.bulk.hint")}
           </p>
         </div>
         <textarea
@@ -413,7 +443,9 @@ function BulkTab({ courseId }: { courseId: string }) {
             <span>Email: <strong>{parsed.emails.length}</strong></span>
             {parsed.invalid.length > 0 && (
               <span className="text-amber-700">
-                Bỏ qua: <strong>{parsed.invalid.length}</strong>
+                {t("management_course_enrollments.bulk.invalid_count", {
+                  count: parsed.invalid.length,
+                })}
               </span>
             )}
           </div>
@@ -431,18 +463,17 @@ function BulkTab({ courseId }: { courseId: string }) {
             ) : (
               <Plus className="h-4 w-4" />
             )}
-            Thêm sinh viên
+            {t("management_course_enrollments.bulk.submit")}
           </Button>
         </div>
       </form>
 
       <div className="bg-m3-surface-container-lowest rounded-xl border border-m3-outline-variant/20 p-5 space-y-3">
         <h2 className="text-sm font-bold text-m3-on-surface">
-          Hoặc tải lên file CSV
+          {t("management_course_enrollments.bulk.csv_or")}
         </h2>
         <p className="text-xs text-m3-on-surface-variant">
-          File CSV có cột <code className="font-mono">email</code> hoặc{" "}
-          <code className="font-mono">user_id</code>.
+          {t("management_course_enrollments.bulk.csv_hint")}
         </p>
         <label className="inline-flex items-center gap-2 cursor-pointer">
           <input
@@ -463,7 +494,7 @@ function BulkTab({ courseId }: { courseId: string }) {
             ) : (
               <Upload className="h-4 w-4" />
             )}
-            Chọn file CSV
+            {t("management_course_enrollments.bulk.choose_csv")}
           </span>
           {csvFileName && (
             <span className="text-xs text-m3-on-surface-variant">
@@ -485,6 +516,8 @@ function BulkResultPanel({
   result: BulkEnrollResult;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
+  const failureLabel = useFailureLabel();
   const [showFailures, setShowFailures] = useState(true);
   const grouped = useMemo(() => {
     const map = new Map<string, BulkEnrollFailure[]>();
@@ -499,18 +532,24 @@ function BulkResultPanel({
   return (
     <div className="bg-m3-surface-container-lowest rounded-xl border border-m3-outline-variant/20 p-5 space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-bold text-m3-on-surface">Kết quả</h3>
+        <h3 className="text-sm font-bold text-m3-on-surface">
+          {t("management_course_enrollments.bulk_result.title")}
+        </h3>
         <Button size="xs" variant="ghost" onClick={onClose}>
-          Đóng
+          {t("common.close")}
         </Button>
       </div>
       <div className="flex gap-4 text-sm">
         <span className="text-emerald-700 font-semibold">
-          Đã thêm {result.enrolled.length} sinh viên
+          {t("management_course_enrollments.bulk_result.added", {
+            count: result.enrolled.length,
+          })}
         </span>
         {result.failures.length > 0 && (
           <span className="text-amber-700 font-semibold">
-            {result.failures.length} lỗi
+            {t("management_course_enrollments.bulk_result.errors", {
+              count: result.failures.length,
+            })}
           </span>
         )}
       </div>
@@ -524,7 +563,9 @@ function BulkResultPanel({
           >
             <span className="flex items-center gap-2 text-m3-on-surface">
               <AlertCircle className="h-4 w-4 text-amber-700" />
-              Chi tiết lỗi ({result.failures.length})
+              {t("management_course_enrollments.bulk_result.error_details", {
+                count: result.failures.length,
+              })}
             </span>
             {showFailures ? (
               <ChevronUp className="h-4 w-4 text-m3-on-surface-variant" />
@@ -559,6 +600,7 @@ function BulkResultPanel({
 /* ── Tab 3: Invitation codes ────────────────────────────────────────── */
 
 function CodesTab({ courseId }: { courseId: string }) {
+  const { t } = useTranslation();
   const list = useListInvitationCodes(courseId);
   const create = useCreateInvitationCode(courseId);
   const [code, setCode] = useState("");
@@ -569,7 +611,7 @@ function CodesTab({ courseId }: { courseId: string }) {
   function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     if (!code.trim()) {
-      toast.error("Hãy nhập mã");
+      toast.error(t("management_course_enrollments.errors.code_required"));
       return;
     }
     create.mutate(
@@ -580,13 +622,18 @@ function CodesTab({ courseId }: { courseId: string }) {
       },
       {
         onSuccess: () => {
-          toast.success("Đã tạo mã mời");
+          toast.success(
+            t("management_course_enrollments.toasts.code_created"),
+          );
           setCode("");
           setExpiresAt("");
           setMaxUses("");
         },
         onError: (err) =>
-          toast.error((err as Error).message || "Tạo mã thất bại"),
+          toast.error(
+            (err as Error).message ||
+              t("management_course_enrollments.toasts.code_create_failed"),
+          ),
       },
     );
   }
@@ -597,23 +644,28 @@ function CodesTab({ courseId }: { courseId: string }) {
         onSubmit={handleCreate}
         className="bg-m3-surface-container-lowest rounded-xl border border-m3-outline-variant/20 p-5 space-y-4"
       >
-        <h2 className="text-sm font-bold text-m3-on-surface">Tạo mã mời mới</h2>
+        <h2 className="text-sm font-bold text-m3-on-surface">
+          {t("management_course_enrollments.codes.create_title")}
+        </h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="space-y-1.5">
             <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">
-              Mã <span className="text-red-600">*</span>
+              {t("management_course_enrollments.codes.col_code")}{" "}
+              <span className="text-red-600">*</span>
             </label>
             <Input
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              placeholder="ví dụ: SPRING2026"
+              placeholder={t(
+                "management_course_enrollments.codes.code_placeholder",
+              )}
               className="text-sm font-mono"
               required
             />
           </div>
           <div className="space-y-1.5">
             <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">
-              Hết hạn (tuỳ chọn)
+              {t("management_course_enrollments.codes.expires_label")}
             </label>
             <Input
               type="date"
@@ -624,14 +676,16 @@ function CodesTab({ courseId }: { courseId: string }) {
           </div>
           <div className="space-y-1.5">
             <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">
-              Số lượt dùng tối đa (tuỳ chọn)
+              {t("management_course_enrollments.codes.max_uses_label")}
             </label>
             <Input
               type="number"
               min={1}
               value={maxUses}
               onChange={(e) => setMaxUses(e.target.value)}
-              placeholder="Trống = không giới hạn"
+              placeholder={t(
+                "management_course_enrollments.codes.max_uses_placeholder",
+              )}
               className="text-sm"
             />
           </div>
@@ -648,7 +702,7 @@ function CodesTab({ courseId }: { courseId: string }) {
             ) : (
               <Plus className="h-4 w-4" />
             )}
-            Tạo mã
+            {t("management_course_enrollments.codes.create_button")}
           </Button>
         </div>
       </form>
@@ -685,6 +739,7 @@ function CodesList({
   isError: boolean;
   onEdit: (item: InvitationCodeAuthoring) => void;
 }) {
+  const { t } = useTranslation();
   if (isLoading) {
     return (
       <div className="space-y-2">
@@ -701,7 +756,7 @@ function CodesList({
   if (isError) {
     return (
       <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-        Không thể tải danh sách mã mời.
+        {t("management_course_enrollments.errors.codes_load_failed")}
       </div>
     );
   }
@@ -710,7 +765,9 @@ function CodesList({
     return (
       <div className="flex flex-col items-center justify-center py-12 gap-2 text-m3-on-surface-variant">
         <FileSpreadsheet className="h-8 w-8 opacity-30" />
-        <p className="text-sm">Chưa có mã mời nào.</p>
+        <p className="text-sm">
+          {t("management_course_enrollments.codes.empty")}
+        </p>
       </div>
     );
   }
@@ -718,12 +775,14 @@ function CodesList({
   return (
     <div className="bg-m3-surface-container-lowest rounded-xl border border-m3-outline-variant/20 overflow-hidden">
       <div className="hidden sm:grid grid-cols-[1.5fr_120px_120px_120px_100px_140px] gap-4 px-5 py-3 border-b border-m3-outline-variant/10 text-[10px] font-bold uppercase tracking-wider text-m3-on-surface-variant">
-        <span>Mã</span>
-        <span>Trạng thái</span>
-        <span>Hết hạn</span>
-        <span>Lượt dùng</span>
-        <span>Tạo lúc</span>
-        <span className="text-right">Hành động</span>
+        <span>{t("management_course_enrollments.codes.col_code")}</span>
+        <span>{t("management_course_enrollments.roster.col_status")}</span>
+        <span>{t("management_course_enrollments.codes.col_expires")}</span>
+        <span>{t("management_course_enrollments.codes.col_uses")}</span>
+        <span>{t("management_course_enrollments.codes.col_created")}</span>
+        <span className="text-right">
+          {t("management_course_enrollments.roster.col_actions")}
+        </span>
       </div>
       <div className="divide-y divide-m3-outline-variant/10">
         {codes.map((c) => (
@@ -748,24 +807,32 @@ function CodeRow({
   item: InvitationCodeAuthoring;
   onEdit: () => void;
 }) {
+  const { t } = useTranslation();
   const del = useDeleteInvitationCode(item.id, courseId);
   const [confirming, setConfirming] = useState(false);
 
   function handleCopy() {
     void navigator.clipboard
       .writeText(item.code)
-      .then(() => toast.success("Đã chép mã"))
-      .catch(() => toast.error("Không thể chép"));
+      .then(() =>
+        toast.success(t("management_course_enrollments.toasts.code_copied")),
+      )
+      .catch(() =>
+        toast.error(t("management_course_enrollments.toasts.copy_failed")),
+      );
   }
 
   function handleDelete() {
     del.mutate(undefined, {
       onSuccess: () => {
-        toast.success("Đã xoá mã mời");
+        toast.success(t("management_course_enrollments.toasts.code_deleted"));
         setConfirming(false);
       },
       onError: (err) =>
-        toast.error((err as Error).message || "Xoá thất bại"),
+        toast.error(
+          (err as Error).message ||
+            t("management_course_enrollments.toasts.code_delete_failed"),
+        ),
     });
   }
 
@@ -783,7 +850,7 @@ function CodeRow({
         <button
           type="button"
           onClick={handleCopy}
-          title="Chép mã"
+          title={t("management_course_enrollments.codes.copy_tooltip")}
           className="text-m3-on-surface-variant hover:text-m3-primary transition-colors"
         >
           <Copy className="h-3.5 w-3.5" />
@@ -797,7 +864,9 @@ function CodeRow({
             : "bg-slate-100 text-slate-600",
         )}
       >
-        {item.is_active ? "Đang hoạt động" : "Tắt"}
+        {item.is_active
+          ? t("management_course_enrollments.codes.active")
+          : t("management_course_enrollments.codes.disabled")}
       </span>
       <span className="text-xs text-m3-on-surface-variant">
         {formatDate(item.expires_at)}
@@ -820,7 +889,7 @@ function CodeRow({
               {del.isPending ? (
                 <Loader2 className="h-3 w-3 animate-spin" />
               ) : (
-                "Xác nhận"
+                t("common.confirm")
               )}
             </Button>
             <Button
@@ -829,13 +898,13 @@ function CodeRow({
               onClick={() => setConfirming(false)}
               disabled={del.isPending}
             >
-              Huỷ
+              {t("common.cancel")}
             </Button>
           </>
         ) : (
           <>
             <Button size="xs" variant="outline" onClick={onEdit}>
-              Sửa
+              {t("management_course_enrollments.codes.edit_button")}
             </Button>
             <Button
               size="xs"
@@ -861,6 +930,7 @@ function EditCodeModal({
   item: InvitationCodeAuthoring;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   const patch = usePatchInvitationCode(item.id, courseId);
   const [isActive, setIsActive] = useState(item.is_active);
   const [expiresAt, setExpiresAt] = useState(
@@ -880,11 +950,16 @@ function EditCodeModal({
       },
       {
         onSuccess: () => {
-          toast.success("Đã cập nhật mã");
+          toast.success(
+            t("management_course_enrollments.toasts.code_updated"),
+          );
           onClose();
         },
         onError: (err) =>
-          toast.error((err as Error).message || "Cập nhật thất bại"),
+          toast.error(
+            (err as Error).message ||
+              t("management_course_enrollments.toasts.code_update_failed"),
+          ),
       },
     );
   }
@@ -901,7 +976,7 @@ function EditCodeModal({
       >
         <div>
           <h2 className="text-lg font-headline font-bold text-m3-on-surface">
-            Sửa mã mời
+            {t("management_course_enrollments.codes.edit_title")}
           </h2>
           <p className="text-xs text-m3-on-surface-variant font-mono mt-1">
             {item.code}
@@ -915,12 +990,14 @@ function EditCodeModal({
             onChange={(e) => setIsActive(e.target.checked)}
             className="h-4 w-4 rounded border-m3-outline-variant accent-m3-primary"
           />
-          <span className="font-medium text-m3-on-surface">Đang hoạt động</span>
+          <span className="font-medium text-m3-on-surface">
+            {t("management_course_enrollments.codes.active")}
+          </span>
         </label>
 
         <div className="space-y-1.5">
           <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">
-            Hết hạn
+            {t("management_course_enrollments.codes.col_expires")}
           </label>
           <Input
             type="date"
@@ -932,14 +1009,16 @@ function EditCodeModal({
 
         <div className="space-y-1.5">
           <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">
-            Số lượt dùng tối đa
+            {t("management_course_enrollments.codes.max_uses_label_short")}
           </label>
           <Input
             type="number"
             min={1}
             value={maxUses}
             onChange={(e) => setMaxUses(e.target.value)}
-            placeholder="Trống = không giới hạn"
+            placeholder={t(
+              "management_course_enrollments.codes.max_uses_placeholder",
+            )}
             className="text-sm"
           />
         </div>
@@ -952,11 +1031,11 @@ function EditCodeModal({
             onClick={onClose}
             disabled={patch.isPending}
           >
-            Huỷ
+            {t("common.cancel")}
           </Button>
           <Button type="submit" size="sm" disabled={patch.isPending} className="gap-2">
             {patch.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-            Lưu
+            {t("common.save")}
           </Button>
         </div>
       </form>

@@ -13,7 +13,9 @@
     "submit": "Submit",
     "close": "Close",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "breadcrumb_aria": "Breadcrumb",
+    "unsaved_changes_warning": "You have unsaved changes. Leaving the page will discard them."
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -955,5 +957,763 @@
     "student": "Student",
     "teacher": "Teacher",
     "admin": "Admin"
+  },
+  "teacher_interview_gap_report": {
+    "empty_states": {
+      "no_report": "No gap report yet",
+      "no_overview": "AI hasn't generated an overview yet.",
+      "no_detail": "No detailed criterion data.",
+      "no_study_plan": "AI hasn't suggested specific learning steps yet."
+    },
+    "errors": {
+      "no_view_permission_or_ungraded": "This interview session hasn't been graded or you don't have permission to view the report."
+    },
+    "sections": {
+      "title": "Interview gap report",
+      "overview": "Gap overview",
+      "by_criterion": "Analysis by criterion",
+      "study_plan": "Study plan",
+      "sources": "Source links"
+    },
+    "labels": {
+      "session_id": "Session #{{id}}",
+      "updated_at": "Last updated: {{date}}",
+      "related_interview": " · Interview {{id}}",
+      "teacher_notes": "Teacher notes",
+      "criteria_count": "{{count}} criteria",
+      "passed": "Passed",
+      "failed": "Not passed",
+      "quote": "Quote:",
+      "analysis": "Analysis:",
+      "source_quiz_attempt": "Source quiz attempt",
+      "source_interview_session": "Source interview session"
+    }
+  },
+  "course_quiz": {
+    "sections": {
+      "config": "Quiz configuration",
+      "module_review": "Module review",
+      "instructions": "Instructions",
+      "question_overview": "Question overview"
+    },
+    "labels": {
+      "hint": "Hint",
+      "hint_prefix": "Hint: ",
+      "retake": "Retake",
+      "cooldown": "Cooldown",
+      "passing_score": "Passing score",
+      "time": "Time",
+      "attempts": "Attempts made",
+      "attempts_before": "{{count}} previous attempts",
+      "student": "Student",
+      "answered": "Answered",
+      "flagged": "Flagged",
+      "no_time_limit": "No time limit",
+      "attempt_summary": "Attempt {{attempt}} • {{correct}}/{{total}} correct",
+      "question_label_short": "Question {{index}}"
+    },
+    "values": {
+      "hint_available": "Available",
+      "hint_off": "Off",
+      "allowed": "Allowed",
+      "disallowed": "Not allowed",
+      "no_limit": "No limit",
+      "retake_max_attempts": "Up to {{count}} tries",
+      "cooldown_hours": "{{hours}} hours"
+    },
+    "messages": {
+      "no_retakes": "This quiz does not allow retakes.",
+      "max_attempts_reached": "You have used all {{count}} attempts."
+    },
+    "actions": {
+      "starting": "Starting...",
+      "start": "Start quiz",
+      "submitting": "Submitting...",
+      "saving": "Saving...",
+      "submit": "Submit",
+      "next": "Next",
+      "previous": "Previous",
+      "save_and_continue": "Save and continue",
+      "back_to_course": "Back to course",
+      "unflag": "Unflag",
+      "flag": "Flag",
+      "show_hint": "View hint"
+    },
+    "errors": {
+      "rate_limited": "Too many requests, please try again later",
+      "start_failed": "Failed to start quiz",
+      "cooldown_active": "Question is in cooldown",
+      "save_answer_failed": "Failed to save answer",
+      "auto_submitted_timeout": "Time's up. Quiz was auto-submitted.",
+      "submit_failed": "Failed to submit quiz"
+    },
+    "empty_states": {
+      "no_quiz_found": "Quiz not found",
+      "quiz_not_loadable": "This quiz can't be loaded for the course."
+    },
+    "results": {
+      "passed": "Passed",
+      "submitted": "Submitted",
+      "passed_summary": "You completed {{title}} with {{score}}%.",
+      "failed_summary": "You scored {{score}}% and need {{passing}}% to pass."
+    },
+    "status": {
+      "currently_doing": "In progress"
+    },
+    "instructions": {
+      "choose_best": "Choose the best answer; you can flag it for review later."
+    }
+  },
+  "course_interview": {
+    "sections": {
+      "gap_report": "Gap report",
+      "study_plan": "Study plan",
+      "follow_up": "Follow-up"
+    },
+    "labels": {
+      "persona": "Persona",
+      "time": "Time",
+      "max_attempts": "Max attempts",
+      "ai_interview": "AI interview",
+      "answer": "Your answer",
+      "character_count": "{{count}} characters"
+    },
+    "question_types": {
+      "conceptual": "Conceptual",
+      "behavioral": "Behavioral",
+      "technical": "Technical",
+      "situational": "Situational",
+      "system_design": "System design"
+    },
+    "values": {
+      "persona": {
+        "strict": "Strict",
+        "supportive": "Supportive",
+        "neutral": "Neutral"
+      },
+      "time_limit_minutes": "{{minutes}} minutes",
+      "no_limit": "Unlimited",
+      "mode": {
+        "voice": "Voice",
+        "text": "Text"
+      }
+    },
+    "actions": {
+      "starting": "Starting...",
+      "start": "Start interview",
+      "course": "Course",
+      "next": "Next",
+      "finish_early": "End early",
+      "send_answer": "Send answer",
+      "back_to_course": "Back to course",
+      "sending": "Sending..."
+    },
+    "errors": {
+      "rate_limited": "Too many requests, please try again later",
+      "start_failed": "Failed to start interview",
+      "answer_required": "Please enter an answer",
+      "send_failed": "Failed to send answer",
+      "finish_failed": "Failed to finish interview"
+    },
+    "empty_states": {
+      "no_interview_found": "Interview not found",
+      "config_not_loadable": "This interview config can't be loaded for the course."
+    },
+    "results": {
+      "passed": "Passed",
+      "completed": "Interview completed",
+      "total_score": "Total score: {{score}}",
+      "summary_loading": "The system is compiling your results."
+    },
+    "intro": {
+      "description": "AI interview grades by module criteria. Answer one by one and review the final feedback."
+    },
+    "placeholders": {
+      "answer": "Enter your answer..."
+    },
+    "status": {
+      "compiling_results": "Compiling interview results..."
+    }
+  },
+  "management_career_path_detail": {
+    "tabs": {
+      "courses": "Courses",
+      "students": "Students",
+      "progress": "Progress"
+    },
+    "status": {
+      "draft": "Draft",
+      "published": "Published",
+      "archived": "Archived"
+    },
+    "errors": {
+      "load_failed": "Failed to load career path",
+      "publish_needs_course": "Add at least one course before publishing",
+      "publish_failed": "Publishing failed",
+      "archive_failed": "Archiving failed",
+      "save_failed": "Save failed",
+      "enter_course_uuid": "Enter course UUID",
+      "add_course_failed": "Failed to add course",
+      "update_order_failed": "Failed to update order",
+      "remove_course_failed": "Remove failed",
+      "enter_student_uuid": "Enter student UUID",
+      "add_student_failed": "Failed to add student",
+      "unregister_student_failed": "Failed to unregister student",
+      "load_student_progress_failed": "Failed to load student progress"
+    },
+    "breadcrumbs": {
+      "management": "Management",
+      "career_paths": "Career paths"
+    },
+    "toasts": {
+      "published": "Published career path",
+      "archived": "Archived career path",
+      "saved_changes": "Saved changes",
+      "course_added": "Added course",
+      "order_updated": "Order updated",
+      "course_removed": "Removed course from path",
+      "student_added": "Added student",
+      "student_unregistered": "Unregistered"
+    },
+    "dialogs": {
+      "confirm_publish": "Confirm publish",
+      "confirm_archive": "Confirm archive"
+    },
+    "actions": {
+      "publish": "Publish",
+      "archive": "Archive",
+      "add": "Add",
+      "move_up": "Move up",
+      "move_down": "Move down",
+      "save_order": "Save order",
+      "register": "Register"
+    },
+    "fields": {
+      "name": "Name",
+      "org_unit": "Organization unit",
+      "description": "Description",
+      "course_uuid": "Course UUID *",
+      "position": "Position",
+      "required": "Required",
+      "student_uuid": "Student UUID *"
+    },
+    "placeholders": {
+      "org_unit_uuid_optional": "Organization unit UUID (optional)",
+      "position_end": "End"
+    },
+    "sections": {
+      "add_course": "Add course",
+      "register_student": "Register student"
+    },
+    "empty_states": {
+      "no_courses": "No courses in the path yet.",
+      "no_students": "No students registered yet.",
+      "no_student_path_progress": "No students enrolled in the path."
+    },
+    "hints": {
+      "reorder_dirty": "Order changed. Save to apply."
+    },
+    "labels": {
+      "required_or_optional": "Required / Optional",
+      "student_completion": "Completed {{completed}}/{{total}} courses"
+    },
+    "columns": {
+      "student": "Student",
+      "completed_courses": "Completed courses",
+      "total_progress": "Total progress"
+    }
+  },
+  "management_course_enrollments": {
+    "tabs": {
+      "roster": "Students",
+      "bulk": "Bulk add",
+      "codes": "Invite codes"
+    },
+    "failure": {
+      "user_not_found": "User not found",
+      "already_enrolled": "Already enrolled",
+      "invalid_identifier": "Invalid identifier",
+      "forbidden": "No permission"
+    },
+    "errors": {
+      "no_access": "Access denied",
+      "roster_load_failed": "Could not load student roster.",
+      "bulk_input_required": "Enter at least one UUID or email",
+      "code_required": "Enter a code",
+      "codes_load_failed": "Could not load invite codes."
+    },
+    "breadcrumb": {
+      "manage": "Manage enrollments"
+    },
+    "header": {
+      "title": "Manage enrollments"
+    },
+    "toasts": {
+      "dropped": "Enrollment cancelled",
+      "drop_failed": "Failed to cancel enrollment",
+      "bulk_added": "Added {{enrolled}} students, {{failures}} errors",
+      "bulk_failed": "Bulk add failed",
+      "csv_failed": "CSV upload failed",
+      "read_file_failed": "Failed to read file",
+      "code_created": "Invite code created",
+      "code_create_failed": "Failed to create code",
+      "code_copied": "Code copied",
+      "copy_failed": "Copy failed",
+      "code_deleted": "Invite code deleted",
+      "code_delete_failed": "Delete failed",
+      "code_updated": "Code updated",
+      "code_update_failed": "Update failed"
+    },
+    "roster": {
+      "empty": "No students enrolled yet.",
+      "col_student": "Student",
+      "col_status": "Status",
+      "col_source": "Source",
+      "col_enrolled_at": "Enrolled at",
+      "col_actions": "Actions"
+    },
+    "actions": {
+      "drop": "Drop"
+    },
+    "bulk": {
+      "label": "Paste list (one UUID or email per line)",
+      "hint": "The system detects UUIDs and emails automatically. Invalid lines are skipped.",
+      "invalid_count": "Skipped: {{count}}",
+      "submit": "Add students",
+      "csv_or": "Or upload a CSV file",
+      "csv_hint": "CSV must have an email or user_id column.",
+      "choose_csv": "Choose CSV file"
+    },
+    "bulk_result": {
+      "title": "Result",
+      "added": "Added {{count}} students",
+      "errors": "{{count}} errors",
+      "error_details": "Error details ({{count}})"
+    },
+    "codes": {
+      "create_title": "New invite code",
+      "code_placeholder": "e.g. SPRING2026",
+      "expires_label": "Expires (optional)",
+      "max_uses_label": "Max uses (optional)",
+      "max_uses_placeholder": "Blank = unlimited",
+      "create_button": "Create code",
+      "empty": "No invite codes yet.",
+      "col_code": "Code",
+      "col_expires": "Expires",
+      "col_uses": "Uses",
+      "col_created": "Created",
+      "copy_tooltip": "Copy code",
+      "active": "Active",
+      "disabled": "Disabled",
+      "edit_button": "Edit",
+      "edit_title": "Edit invite code",
+      "max_uses_label_short": "Max uses"
+    }
+  },
+  "teacher_quiz_manage": {
+    "tabs": {
+      "questions": "Questions",
+      "settings": "Settings",
+      "preview": "Preview"
+    },
+    "errors": {
+      "not_found_title": "Quiz not found",
+      "not_found_description": "This quiz could not be loaded for the course.",
+      "back_to_course": "Back to course",
+      "title_required": "Quiz title is required",
+      "prompt_required": "Question prompt is required",
+      "option_text_required": "Each option must have text",
+      "exactly_one_correct": "Exactly one option must be marked correct",
+      "count_out_of_range": "Question count must be between 1 and 50",
+      "publish_missing_t_exp": "Set the expected time for every question before publishing. Use the 'Quick set time' button.",
+      "bulk_select_required": "Please choose at least one question.",
+      "bulk_seconds_positive": "Expected time must be greater than 0 seconds."
+    },
+    "toasts": {
+      "deleted": "Quiz deleted",
+      "delete_failed": "Failed to delete quiz",
+      "published": "Quiz published",
+      "publish_failed": "Failed to publish quiz",
+      "question_added": "Question added",
+      "add_question_failed": "Failed to add question",
+      "settings_saved": "Settings saved",
+      "save_settings_failed": "Failed to save settings",
+      "generation_started": "Question generation started",
+      "generation_in_progress": "Another generation is already running. Please wait.",
+      "generation_failed": "Failed to generate questions",
+      "expected_time_set": "Expected time set for {{count}} questions",
+      "expected_time_failed": "Failed to set expected time",
+      "question_approved": "Question approved",
+      "question_saved": "Question saved",
+      "save_question_failed": "Failed to save question",
+      "question_deleted": "Question deleted",
+      "delete_question_failed": "Failed to delete question",
+      "regen_started": "Regenerating question",
+      "regen_in_progress": "Another regeneration is already running.",
+      "regen_failed": "Failed to regenerate question"
+    },
+    "new_question": {
+      "prompt": "New question",
+      "explanation": "Add an explanation for the correct answer.",
+      "option_a": "Option A",
+      "option_b": "Option B",
+      "option_c": "Option C",
+      "option_d": "Option D"
+    },
+    "actions": {
+      "back_to_module": "Back to module",
+      "publish_needs_question": "Add at least one question before publishing",
+      "publish_quiz_tooltip": "Publish this quiz",
+      "publish": "Publish",
+      "delete_quiz_tooltip": "Delete quiz, questions, attempts, and module item",
+      "add_question": "Add question",
+      "view_as_student": "View as student"
+    },
+    "status": {
+      "published": "Published",
+      "draft": "Draft"
+    },
+    "header": {
+      "questions_count": "{{count}} questions"
+    },
+    "confirm_delete": {
+      "title": "Delete this quiz?",
+      "body": "This permanently deletes the quiz, its questions, attempts, and module entry. This cannot be undone."
+    },
+    "confirm_delete_question": "Delete this question? This cannot be undone.",
+    "banners": {
+      "missing_expected_time": "{{count}} questions are missing an expected time. Set them before publishing.",
+      "pending_review": "{{count}} questions are pending review. Approve them before publishing."
+    },
+    "empty": {
+      "no_questions_title": "No questions yet",
+      "no_questions_body": "Add questions manually below or use AI to generate from lesson materials."
+    },
+    "ai_panel": {
+      "title": "Generate with AI",
+      "description": "Generate questions from prepared lesson materials.",
+      "open_generator": "Open generator"
+    },
+    "bulk_time": {
+      "title": "Quick set time",
+      "selected_count": "{{selected}}/{{total}} selected",
+      "duration_seconds": "Time (seconds)",
+      "select_all": "Select all",
+      "deselect": "Deselect",
+      "apply": "Apply to selected"
+    },
+    "questions": {
+      "sr_select": "Select question {{position}}",
+      "position_label": "Question {{position}}",
+      "no_time_set": "No expected time set"
+    },
+    "editor": {
+      "prompt_label": "Question",
+      "options_label": "Options",
+      "explanation_label": "Explanation",
+      "approve": "Approve",
+      "regenerate": "Regenerate",
+      "explanation_inline": "Explanation:"
+    },
+    "generate_modal": {
+      "title": "Generate questions with AI",
+      "description": "Generate questions from processed lesson materials.",
+      "count_label": "Number of questions",
+      "focus_label": "Focus topics (optional)",
+      "focus_placeholder": "Separate with commas",
+      "start": "Start generation",
+      "running_title": "Generating questions...",
+      "running_body": "AI is analyzing materials and drafting questions.",
+      "queued": "Queued...",
+      "success_title": "Questions generated",
+      "success_body": "Question list refreshed.",
+      "failure_title": "Generation failed",
+      "failure_body": "An error occurred. Try again in a few minutes."
+    },
+    "settings": {
+      "general": {
+        "title": "General info",
+        "description": "Set the name and description so students recognize it.",
+        "title_label": "Quiz title",
+        "title_placeholder": "Enter a title…",
+        "desc_label": "Description",
+        "desc_placeholder": "Summarize quiz content…"
+      },
+      "scoring": {
+        "title": "Score & timing",
+        "pass_score": "Passing score",
+        "time_label": "Time (minutes)",
+        "time_hint": "Leave blank for unlimited.",
+        "time_placeholder": "e.g. 30"
+      },
+      "attempts": {
+        "title": "Attempts",
+        "allow_label": "Allow retakes",
+        "allow_desc": "Students can retake after submitting.",
+        "max_label": "Max attempts",
+        "max_hint": "Blank = unlimited.",
+        "max_placeholder": "e.g. 3",
+        "cooldown_label": "Cooldown (hours)",
+        "cooldown_hint": "Wait time between attempts.",
+        "cooldown_placeholder": "Optional"
+      },
+      "behavior": {
+        "title": "Behavior",
+        "shuffle_q_label": "Shuffle questions",
+        "shuffle_q_desc": "Randomize question order per attempt.",
+        "shuffle_o_label": "Shuffle options",
+        "shuffle_o_desc": "Randomize option order within each question.",
+        "show_hints_label": "Show hints",
+        "show_hints_desc": "Let students view hints while attempting.",
+        "reminders_label": "Review reminders",
+        "reminders_desc": "Send a reminder when review is due."
+      },
+      "spacing": {
+        "title": "Spaced repetition",
+        "description": "Tune SM2 parameters. Range 1.3 - 5.0.",
+        "starting_ef": "Starting EF",
+        "unlock_ef": "EF unlock threshold"
+      },
+      "save_button": "Save settings"
+    },
+    "preview": {
+      "title": "Student preview",
+      "description": "{{title}} - read-only, simulating the student view.",
+      "read_only": "Read-only",
+      "empty_body": "Add questions in the Questions tab or use AI to generate them.",
+      "no_content": "(No content)",
+      "correct": "Correct"
+    }
+  },
+  "teacher_interview_config": {
+    "persona": {
+      "strict": "Strict",
+      "neutral": "Neutral",
+      "supportive": "Supportive"
+    },
+    "mode": {
+      "hybrid": "Text + voice",
+      "text": "Text only",
+      "voice": "Voice only"
+    },
+    "status": {
+      "draft": "Draft",
+      "published": "Published",
+      "archived": "Archived"
+    },
+    "errors": {
+      "not_found_title": "Interview set not found",
+      "not_found_body": "Interview question set could not be loaded for this course.",
+      "back_to_course": "Back to course",
+      "title_required": "Title cannot be empty",
+      "questions_required": "Generate questions before publishing"
+    },
+    "toasts": {
+      "config_saved": "Configuration saved",
+      "save_failed": "Failed to save configuration",
+      "published": "Interview published",
+      "publish_failed": "Publish failed",
+      "archived": "Interview archived",
+      "archive_failed": "Archive failed",
+      "deleted": "Interview deleted",
+      "delete_failed": "Delete failed",
+      "generation_started": "Generating questions...",
+      "generation_failed": "Could not start generation"
+    },
+    "actions": {
+      "back_tooltip": "Back to course",
+      "generate_with_ai": "Generate questions with AI",
+      "publish_label": "Publish interview",
+      "publish_short": "Publish",
+      "archive": "Archive",
+      "delete_tooltip": "Permanently delete this interview set",
+      "save_config": "Save settings"
+    },
+    "header": {
+      "draft_count": "{{count}} questions",
+      "chip_label": "AI interview"
+    },
+    "confirm_delete": {
+      "title": "Delete this interview?",
+      "body": "This permanently deletes {{title}} along with related questions and recordings."
+    },
+    "sections": {
+      "general": {
+        "title": "General info",
+        "description": "Short title and description so students recognize this interview set."
+      },
+      "style": {
+        "title": "Style & format"
+      },
+      "rules": {
+        "title": "Attempt rules"
+      },
+      "guidance": {
+        "title": "Guidance for AI",
+        "description": "Suggest question style, focus topics, or pitfalls to avoid."
+      }
+    },
+    "fields": {
+      "title": "Title",
+      "title_placeholder": "Enter interview title…",
+      "persona": "AI persona",
+      "mode": "Response format",
+      "duration_label": "Duration (minutes)",
+      "duration_hint": "Blank = unlimited",
+      "attempts_label": "Attempts",
+      "criteria_label": "Required criteria count",
+      "criteria_hint": "Minimum rubric outcomes to pass",
+      "lock_ef_label": "Lock quiz EF growth until pass",
+      "lock_ef_desc": "Students must pass the interview before spaced repetition expands review intervals.",
+      "supplementary_label": "Supplementary instructions",
+      "supplementary_placeholder": "e.g. Focus on real scenarios, avoid rote-memorization questions…"
+    },
+    "questions": {
+      "section_title": "Questions & rubric",
+      "section_description": "Bulk-generate from course materials with AI.",
+      "count_label": "Questions",
+      "weight_total": "Total weight",
+      "open_generator": "Open AI generator",
+      "empty": "No questions yet. Create some before publishing the interview."
+    },
+    "generate_modal": {
+      "description": "AI will generate interview questions from the module rubric."
+    },
+    "generate": {
+      "mode_label": "Generation mode",
+      "mode_outcome": "By rubric outcome",
+      "mode_topic": "By topic",
+      "mode_coverage": "Coverage",
+      "count_label": "Question count",
+      "focus_label": "Focus topics",
+      "focus_hint": "Topics for AI to focus on. Separate with commas.",
+      "focus_placeholder": "e.g. algorithms, data structures",
+      "avoid_label": "Topics to avoid",
+      "avoid_hint": "Topics to exclude.",
+      "avoid_placeholder": "e.g. deprecated libraries",
+      "supplementary_placeholder": "Specific instructions for this run…",
+      "in_progress": "Generating questions…",
+      "failed": "Generation failed",
+      "completed": "Completed",
+      "success_body": "New questions were added to the draft set. Close to view them.",
+      "processing": "Processing…",
+      "start_button": "Start generation"
+    }
+  },
+  "teacher_lesson_materials": {
+    "proc_status": {
+      "not_queued": "Not queued",
+      "pending": "Pending",
+      "extracting": "Extracting",
+      "chunking": "Chunking",
+      "embedding": "Embedding",
+      "building_kg": "Building KG",
+      "ready": "Ready",
+      "failed": "Failed"
+    },
+    "doc_type": {
+      "pdf": "PDF / Document",
+      "text": "Text / Markdown",
+      "code": "Source code",
+      "image": "Image",
+      "audio": "Audio"
+    },
+    "dropzone": {
+      "drop_active": "Drop file to upload",
+      "drop_idle": "Drag & drop or click to choose a file",
+      "formats": "PDF, Video, DOCX, PPTX, Code, Markdown · up to 5 GB (auto multipart >100 MB)"
+    },
+    "errors": {
+      "upload_url_missing": "Init response missing upload_url for single-part mode"
+    },
+    "toasts": {
+      "storage_not_ready": "Storage not ready. Please contact an admin.",
+      "upload_complete": "Uploaded - AI is processing",
+      "upload_failed": "Upload failed",
+      "reprocess_started": "Reprocessing started",
+      "reprocess_busy": "A previous run is still processing; please try again later",
+      "reprocess_forbidden": "You do not have permission to reprocess this material",
+      "reprocess_failed": "Reprocess failed",
+      "ai_enabled": "AI enabled and processing started",
+      "edit_forbidden": "You do not have permission to edit this material",
+      "hidden_from_students": "Hidden from students",
+      "shown_to_students": "Visible to students",
+      "deleted": "Material deleted",
+      "delete_forbidden": "You do not have permission to delete this material",
+      "delete_failed": "Delete failed"
+    },
+    "phase": {
+      "init": "Initializing upload session…",
+      "hashing": "Computing SHA-256 checksum…",
+      "uploading": "Uploading to S3…",
+      "completing": "Finalizing & queueing…"
+    },
+    "form": {
+      "title_label": "Title *",
+      "doc_type_label": "Document type",
+      "ai_processing": "AI processing",
+      "visible_to_students": "Visible to students",
+      "cancel_upload": "Cancel upload",
+      "uploading": "Uploading…",
+      "upload_button": "Upload & Process"
+    },
+    "processing": {
+      "building_kg": "Extracting concepts and building knowledge graph…",
+      "embedding": "Generating embeddings…",
+      "chunking": "Splitting content into semantic chunks…",
+      "extracting": "Extracting text from file…",
+      "queued": "Awaiting processing…",
+      "empty_title": "No files currently processing",
+      "empty_body": "Upload a file above to start AI processing",
+      "indexed_summary": "AI indexed {{count}} materials - knowledge graph ready for quiz generation"
+    },
+    "badge": {
+      "visible": "Visible",
+      "hidden": "Hidden"
+    },
+    "actions": {
+      "toggle_visibility_hide": "Hide from students",
+      "toggle_visibility_show": "Show to students",
+      "enable_ai": "Enable AI processing",
+      "reprocess": "Reprocess",
+      "confirm_delete": "Confirm delete"
+    },
+    "breadcrumb": {
+      "lesson_fallback": "Lesson",
+      "materials": "Materials"
+    },
+    "header": {
+      "subtitle_loading": "Loading…",
+      "subtitle_suffix": "· Upload materials so AI can build the knowledge graph",
+      "title": "Materials & AI Hub",
+      "processing_count": "{{count}} processing",
+      "ready_count": "{{count}} ready",
+      "failed_count": "{{count}} failed"
+    },
+    "kg": {
+      "title": "Knowledge graph",
+      "indexed_count": "Indexed {{count}} materials · concepts extracted",
+      "empty_hint": "Upload and process materials to build your knowledge graph",
+      "open_full": "Open full graph",
+      "viewer_coming_soon": "Knowledge graph viewer coming soon"
+    },
+    "history": {
+      "title": "Material history",
+      "total": "{{count}} materials",
+      "empty_title": "No materials yet",
+      "empty_body": "Upload your first file using the drag-and-drop panel on the left"
+    },
+    "confirm_delete": {
+      "inline": "Delete this material?"
+    }
+  },
+  "cooldown": {
+    "wait_prefix": "Wait",
+    "ready": "Ready"
+  },
+  "desktop_only": {
+    "title": "Best on a larger screen",
+    "description": "This area is optimized for screens 1024px and wider. Some data tables may be hard to read on smaller screens.",
+    "dismiss": "Got it"
   }
 }

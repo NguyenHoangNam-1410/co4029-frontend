@@ -1,5 +1,6 @@
 import { Link, useParams } from "@tanstack/react-router";
 import { ArrowLeft, FileText, Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/glass-card";
@@ -43,6 +44,7 @@ function formatDate(value: string): string {
 }
 
 export default function InterviewGapReportPage() {
+  const { t } = useTranslation();
   const { sessionId } = useParams({ strict: false }) as { sessionId: string };
   const { data: report, isLoading, isError, error } =
     useTeacherGapReport(sessionId);
@@ -66,17 +68,19 @@ export default function InterviewGapReportPage() {
         </div>
         <div>
           <p className="font-headline font-bold text-m3-on-surface">
-            Chưa có báo cáo lỗ hổng
+            {t("teacher_interview_gap_report.empty_states.no_report")}
           </p>
           <p className="text-sm mt-1 max-w-md mx-auto">
             {(error as Error | undefined)?.message ||
-              "Phiên phỏng vấn này chưa được chấm hoặc bạn không có quyền xem báo cáo."}
+              t(
+                "teacher_interview_gap_report.errors.no_view_permission_or_ungraded",
+              )}
           </p>
         </div>
         <Link to="/teacher/courses" className="inline-flex">
           <Button variant="outline" className="gap-2">
             <ArrowLeft className="h-4 w-4" />
-            Quay lại
+            {t("common.back")}
           </Button>
         </Link>
       </div>
@@ -115,6 +119,7 @@ function Header({
   report: GapReportAuthoringRead;
   session: InterviewSessionPublic | null;
 }) {
+  const { t } = useTranslation();
   const configId = session?.interview_config_id;
   return (
     <div className="flex items-start gap-3">
@@ -123,7 +128,7 @@ function Header({
           variant="ghost"
           size="icon"
           className="h-9 w-9 mt-1 shrink-0"
-          title="Quay lại"
+          title={t("common.back")}
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
@@ -131,14 +136,21 @@ function Header({
 
       <div className="space-y-1.5">
         <p className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">
-          Báo cáo lỗ hổng phỏng vấn
+          {t("teacher_interview_gap_report.sections.title")}
         </p>
         <h1 className="text-2xl lg:text-3xl font-extrabold font-headline tracking-tight text-gradient-primary leading-tight">
-          Phiên #{report.id.slice(0, 8)}
+          {t("teacher_interview_gap_report.labels.session_id", {
+            id: report.id.slice(0, 8),
+          })}
         </h1>
         <p className="text-xs text-m3-on-surface-variant">
-          Cập nhật lần cuối: {formatDate(report.generated_at)}
-          {configId && ` · Phỏng vấn ${configId.slice(0, 8)}`}
+          {t("teacher_interview_gap_report.labels.updated_at", {
+            date: formatDate(report.generated_at),
+          })}
+          {configId &&
+            t("teacher_interview_gap_report.labels.related_interview", {
+              id: configId.slice(0, 8),
+            })}
         </p>
       </div>
     </div>
@@ -152,11 +164,12 @@ function SummaryCard({
   summary: string | null | undefined;
   teacherSummary: string | null | undefined;
 }) {
+  const { t } = useTranslation();
   return (
     <GlassCard className="p-6 space-y-4">
       <div>
         <h2 className="font-headline font-bold text-base text-m3-on-surface mb-2">
-          Tổng quan khoảng cách
+          {t("teacher_interview_gap_report.sections.overview")}
         </h2>
         {summary ? (
           <p className="text-sm text-m3-on-surface-variant leading-relaxed">
@@ -164,14 +177,14 @@ function SummaryCard({
           </p>
         ) : (
           <p className="text-sm italic text-m3-on-surface-variant">
-            AI chưa sinh phần tổng quan.
+            {t("teacher_interview_gap_report.empty_states.no_overview")}
           </p>
         )}
       </div>
       {teacherSummary && (
         <div className="rounded-xl bg-m3-surface-container-low p-4 border border-m3-outline-variant/20">
           <p className="text-[11px] uppercase font-bold tracking-widest text-m3-on-surface-variant mb-1.5">
-            Ghi chú của giảng viên
+            {t("teacher_interview_gap_report.labels.teacher_notes")}
           </p>
           <p className="text-sm text-m3-on-surface leading-relaxed whitespace-pre-wrap">
             {teacherSummary}
@@ -187,21 +200,24 @@ function CriterionBreakdown({
 }: {
   breakdown: GapReportAuthoringRead["per_criterion_breakdown"];
 }) {
+  const { t } = useTranslation();
   const entries = Object.entries(breakdown ?? {});
   return (
     <GlassCard className="p-6 space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="font-headline font-bold text-base text-m3-on-surface">
-          Phân tích theo tiêu chí
+          {t("teacher_interview_gap_report.sections.by_criterion")}
         </h2>
         <span className="text-xs text-m3-on-surface-variant">
-          {entries.length} tiêu chí
+          {t("teacher_interview_gap_report.labels.criteria_count", {
+            count: entries.length,
+          })}
         </span>
       </div>
 
       {entries.length === 0 ? (
         <p className="text-sm italic text-m3-on-surface-variant">
-          Không có dữ liệu chi tiết theo tiêu chí.
+          {t("teacher_interview_gap_report.empty_states.no_detail")}
         </p>
       ) : (
         <ul className="space-y-3">
@@ -232,19 +248,25 @@ function CriterionBreakdown({
                           : "shrink-0 rounded-full bg-red-100 text-red-700 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1"
                       }
                     >
-                      {verdict ? "Đạt" : "Chưa đạt"}
+                      {verdict
+                        ? t("teacher_interview_gap_report.labels.passed")
+                        : t("teacher_interview_gap_report.labels.failed")}
                     </span>
                   )}
                 </div>
                 {evidence && (
                   <p className="text-xs text-m3-on-surface-variant leading-relaxed pl-1 border-l-2 border-m3-outline-variant/30">
-                    <span className="font-bold not-italic mr-1">Trích dẫn:</span>
+                    <span className="font-bold not-italic mr-1">
+                      {t("teacher_interview_gap_report.labels.quote")}
+                    </span>
                     <span className="italic">{evidence}</span>
                   </p>
                 )}
                 {rationale && (
                   <p className="text-xs text-m3-on-surface-variant leading-relaxed">
-                    <span className="font-bold mr-1">Phân tích:</span>
+                    <span className="font-bold mr-1">
+                      {t("teacher_interview_gap_report.labels.analysis")}
+                    </span>
                     {rationale}
                   </p>
                 )}
@@ -258,14 +280,15 @@ function CriterionBreakdown({
 }
 
 function StudyPlanCard({ items }: { items: StudyPlanItem[] }) {
+  const { t } = useTranslation();
   return (
     <GlassCard className="p-6 space-y-3">
       <h2 className="font-headline font-bold text-base text-m3-on-surface">
-        Kế hoạch học tập
+        {t("teacher_interview_gap_report.sections.study_plan")}
       </h2>
       {items.length === 0 ? (
         <p className="text-sm italic text-m3-on-surface-variant">
-          AI chưa đề xuất bước học cụ thể.
+          {t("teacher_interview_gap_report.empty_states.no_study_plan")}
         </p>
       ) : (
         <ol className="space-y-2.5">
@@ -298,13 +321,14 @@ function StudyPlanCard({ items }: { items: StudyPlanItem[] }) {
 }
 
 function SourceLinksCard({ report }: { report: GapReportAuthoringRead }) {
+  const { t } = useTranslation();
   const sources = [
     report.source_quiz_attempt_id && {
-      label: "Lượt làm quiz nguồn",
+      label: t("teacher_interview_gap_report.labels.source_quiz_attempt"),
       value: report.source_quiz_attempt_id,
     },
     report.source_interview_session_id && {
-      label: "Phiên phỏng vấn nguồn",
+      label: t("teacher_interview_gap_report.labels.source_interview_session"),
       value: report.source_interview_session_id,
     },
   ].filter(Boolean) as Array<{ label: string; value: string }>;
@@ -314,7 +338,7 @@ function SourceLinksCard({ report }: { report: GapReportAuthoringRead }) {
   return (
     <GlassCard className="p-6 space-y-3">
       <h2 className="font-headline font-bold text-base text-m3-on-surface">
-        Liên kết nguồn
+        {t("teacher_interview_gap_report.sections.sources")}
       </h2>
       <ul className="space-y-2">
         {sources.map((s) => (

@@ -1,6 +1,7 @@
 import { Fragment } from "react";
 import { Link } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export type BreadcrumbItem = {
   label: string;
@@ -8,10 +9,11 @@ export type BreadcrumbItem = {
 };
 
 export function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
+  const { t } = useTranslation();
   if (items.length === 0) return null;
   return (
     <nav
-      aria-label="Đường dẫn"
+      aria-label={t("common.breadcrumb_aria")}
       data-slot="breadcrumbs"
       className="mb-4 flex flex-wrap items-center gap-2 text-sm text-text-muted"
     >

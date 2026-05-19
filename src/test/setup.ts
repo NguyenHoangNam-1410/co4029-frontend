@@ -1,5 +1,7 @@
 import "@testing-library/jest-dom/vitest";
 import { afterAll, afterEach, beforeAll, beforeEach } from "vitest";
+import "@/i18n";
+import i18n from "@/i18n";
 import { server } from "./msw-handlers";
 
 class MemoryStorage implements Storage {
@@ -54,6 +56,7 @@ beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
 beforeEach(() => {
   localStorageShim.clear();
   sessionStorageShim.clear();
+  void i18n.changeLanguage("vi");
 });
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
   ArrowLeft,
@@ -38,18 +39,18 @@ interface ChatTurn {
   isFollowUp?: boolean;
 }
 
-function questionTypeLabel(type: string | null | undefined) {
+function questionTypeLabel(type: string | null | undefined, t: (k: string) => string) {
   switch (type) {
     case "conceptual":
-      return "Khái niệm";
+      return t("course_interview.question_types.conceptual");
     case "behavioral":
-      return "Hành vi";
+      return t("course_interview.question_types.behavioral");
     case "technical":
-      return "Kỹ thuật";
+      return t("course_interview.question_types.technical");
     case "situational":
-      return "Tình huống";
+      return t("course_interview.question_types.situational");
     case "system_design":
-      return "Thiết kế hệ thống";
+      return t("course_interview.question_types.system_design");
     default:
       return null;
   }
@@ -86,6 +87,7 @@ function makeUserTurn(text: string, key: string): ChatTurn {
 }
 
 export default function CourseInterviewPage() {
+  const { t } = useTranslation();
   const { slug, configId } = useParams({ strict: false }) as {
     slug: string;
     configId: string;
@@ -144,8 +146,8 @@ export default function CourseInterviewPage() {
     } catch (err) {
       toast.error(
         err instanceof ApiError && err.status === 429
-          ? "Quá nhiều yêu cầu, vui lòng thử lại sau"
-          : "Không thể bắt đầu phỏng vấn",
+          ? t("course_interview.errors.rate_limited")
+          : t("course_interview.errors.start_failed"),
       );
     }
   }
@@ -154,7 +156,7 @@ export default function CourseInterviewPage() {
     if (!currentQuestion || !sessionId) return;
     const trimmed = answerText.trim();
     if (!trimmed) {
-      toast.error("Vui lòng nhập câu trả lời");
+      toast.error(t("course_interview.errors.answer_required"));
       return;
     }
 
@@ -188,9 +190,11 @@ export default function CourseInterviewPage() {
       }
     } catch (err) {
       if (err instanceof ApiError && err.status === 429) {
-        toast.error("Quá nhiều yêu cầu, vui lòng thử lại sau");
+        toast.error(t("course_interview.errors.rate_limited"));
       } else {
-        toast.error((err as Error).message || "Không thể gửi câu trả lời");
+        toast.error(
+          (err as Error).message || t("course_interview.errors.send_failed"),
+        );
       }
     }
   }
@@ -201,13 +205,15 @@ export default function CourseInterviewPage() {
       const result = await finish.mutateAsync();
       setFinishResult(result);
     } catch (err) {
-      toast.error((err as Error).message || "Không thể kết thúc phỏng vấn");
+      toast.error(
+        (err as Error).message || t("course_interview.errors.finish_failed"),
+      );
     }
   }
 
   if (courseLoading || configLoading) {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center bg-m3-surface px-6">
+      <div className="min-h-[70vh] flex items-center justify-center px-6">
         <div className="space-y-3 w-full max-w-sm">
           <div className="h-4 rounded-full bg-m3-surface-container animate-pulse" />
           <div className="h-4 rounded-full bg-m3-surface-container animate-pulse w-4/5" />
@@ -219,19 +225,19 @@ export default function CourseInterviewPage() {
 
   if (!course || !config) {
     return (
-      <div className="min-h-[70vh] bg-m3-surface flex items-center justify-center p-8">
+      <div className="min-h-[70vh] flex items-center justify-center p-8">
         <GlassCard className="p-10 text-center max-w-md">
           <Bot className="h-10 w-10 text-m3-outline mx-auto mb-4" />
           <h2 className="font-headline font-bold text-xl text-m3-on-surface mb-2">
-            Không tìm thấy phỏng vấn
+            {t("course_interview.empty_states.no_interview_found")}
           </h2>
           <p className="text-sm text-m3-on-surface-variant mb-6">
-            Cấu hình phỏng vấn này không tải được cho khoá học.
+            {t("course_interview.empty_states.config_not_loadable")}
           </p>
           <Link to="/courses/$slug/learn" params={{ slug }}>
             <Button className="gradient-primary text-white rounded-xl font-bold gap-2">
               <ArrowLeft className="h-4 w-4" />
-              Quay lại khoá học
+              {t("course_interview.actions.back_to_course")}
             </Button>
           </Link>
         </GlassCard>
@@ -241,7 +247,7 @@ export default function CourseInterviewPage() {
 
   if (finishResult) {
     return (
-      <div className="min-h-[70vh] bg-m3-surface flex flex-col items-center justify-center p-6 sm:p-8">
+      <div className="min-h-[70vh] flex flex-col items-center justify-center p-6 sm:p-8">
         <div className="max-w-3xl w-full space-y-6">
           <GlassCard className="p-8 sm:p-10 text-center">
             <div
@@ -255,12 +261,16 @@ export default function CourseInterviewPage() {
               {finishResult.pass_verdict ? "✓" : "—"}
             </div>
             <h2 className="font-headline font-extrabold text-2xl text-m3-primary mb-1">
-              {finishResult.pass_verdict ? "Đạt yêu cầu" : "Đã hoàn tất phỏng vấn"}
+              {finishResult.pass_verdict
+                ? t("course_interview.results.passed")
+                : t("course_interview.results.completed")}
             </h2>
             <p className="text-m3-on-surface-variant text-sm mb-6">
               {finishResult.total_score
-                ? `Điểm tổng: ${finishResult.total_score}`
-                : "Hệ thống đang tổng hợp kết quả của bạn."}
+                ? t("course_interview.results.total_score", {
+                    score: finishResult.total_score,
+                  })
+                : t("course_interview.results.summary_loading")}
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 text-left">
@@ -297,14 +307,16 @@ export default function CourseInterviewPage() {
             <Link to="/courses/$slug/learn" params={{ slug }}>
               <Button variant="outline" className="rounded-xl ghost-border font-bold text-sm gap-2">
                 <ArrowLeft className="h-4 w-4" />
-                Quay lại khoá học
+                {t("course_interview.actions.back_to_course")}
               </Button>
             </Link>
           </GlassCard>
 
           {gapReport && (
             <GlassCard className="p-6">
-              <h3 className="font-headline font-bold text-m3-primary mb-3">Báo cáo lỗ hổng</h3>
+              <h3 className="font-headline font-bold text-m3-primary mb-3">
+                {t("course_interview.sections.gap_report")}
+              </h3>
               {gapReport.discrepancy_summary && (
                 <p className="text-sm text-m3-on-surface-variant mb-4 leading-relaxed">
                   {gapReport.discrepancy_summary}
@@ -313,7 +325,7 @@ export default function CourseInterviewPage() {
               {gapReport.study_plan.length > 0 && (
                 <div className="space-y-2">
                   <h4 className="text-xs font-bold text-m3-outline uppercase tracking-widest">
-                    Kế hoạch học tập
+                    {t("course_interview.sections.study_plan")}
                   </h4>
                   <ul className="space-y-2">
                     {gapReport.study_plan.map((item, idx) => (
@@ -341,44 +353,47 @@ export default function CourseInterviewPage() {
 
   if (!sessionId) {
     return (
-      <div className="min-h-[70vh] bg-m3-surface flex items-center justify-center px-4 sm:px-6 py-10">
+      <div className="min-h-[70vh] flex items-center justify-center px-4 sm:px-6 py-10">
         <div className="max-w-2xl w-full mx-auto space-y-6">
           <GlassCard className="p-8 sm:p-10 text-center">
             <h1 className="font-headline font-extrabold text-3xl text-m3-primary mb-3">
               {config.title}
             </h1>
             <p className="text-m3-on-surface-variant mb-6">
-              Phỏng vấn AI chấm điểm theo các tiêu chí của module. Trả lời từng câu một và xem
-              phản hồi cuối phiên.
+              {t("course_interview.intro.description")}
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-8 text-left">
               <div className="rounded-xl bg-m3-surface-container-low p-4">
                 <span className="block text-[10px] text-m3-outline uppercase font-bold mb-1 tracking-wider">
-                  Phong cách
+                  {t("course_interview.labels.persona")}
                 </span>
                 <span className="text-base font-bold text-m3-primary">
                   {config.persona === "strict"
-                    ? "Nghiêm khắc"
+                    ? t("course_interview.values.persona.strict")
                     : config.persona === "supportive"
-                      ? "Hỗ trợ"
-                      : "Trung lập"}
+                      ? t("course_interview.values.persona.supportive")
+                      : t("course_interview.values.persona.neutral")}
                 </span>
               </div>
               <div className="rounded-xl bg-m3-surface-container-low p-4">
                 <span className="block text-[10px] text-m3-outline uppercase font-bold mb-1 tracking-wider">
-                  Thời gian
+                  {t("course_interview.labels.time")}
                 </span>
                 <span className="text-base font-bold text-m3-on-surface">
-                  {config.time_limit_minutes ? `${config.time_limit_minutes} phút` : "Không giới hạn"}
+                  {config.time_limit_minutes
+                    ? t("course_interview.values.time_limit_minutes", {
+                        minutes: config.time_limit_minutes,
+                      })
+                    : t("course_interview.values.no_limit")}
                 </span>
               </div>
               <div className="rounded-xl bg-m3-surface-container-low p-4">
                 <span className="block text-[10px] text-m3-outline uppercase font-bold mb-1 tracking-wider">
-                  Lượt tối đa
+                  {t("course_interview.labels.max_attempts")}
                 </span>
                 <span className="text-base font-bold text-m3-secondary">
-                  {config.max_attempts ?? "Không giới hạn"}
+                  {config.max_attempts ?? t("course_interview.values.no_limit")}
                 </span>
               </div>
             </div>
@@ -396,7 +411,9 @@ export default function CourseInterviewPage() {
                     )}
                   >
                     {mode === "voice" ? <Mic className="h-3 w-3" /> : <MicOff className="h-3 w-3" />}
-                    {mode === "voice" ? "Giọng nói" : "Văn bản"}
+                    {mode === "voice"
+                      ? t("course_interview.values.mode.voice")
+                      : t("course_interview.values.mode.text")}
                   </Button>
                 ))}
               </div>
@@ -407,7 +424,9 @@ export default function CourseInterviewPage() {
               disabled={startSession.isPending}
               className="gradient-primary text-white rounded-xl font-bold gap-2 px-8 py-3 h-auto"
             >
-              {startSession.isPending ? "Đang khởi tạo..." : "Bắt đầu phỏng vấn"}
+              {startSession.isPending
+                ? t("course_interview.actions.starting")
+                : t("course_interview.actions.start")}
               <ArrowRight className="h-4 w-4" />
             </Button>
           </GlassCard>
@@ -417,7 +436,7 @@ export default function CourseInterviewPage() {
   }
 
   return (
-    <div className="min-h-[70vh] bg-m3-surface pb-20">
+    <div className="min-h-[70vh] pb-20">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
           <div className="flex items-center gap-3 flex-wrap">
@@ -428,7 +447,7 @@ export default function CourseInterviewPage() {
                 className="rounded-xl text-m3-on-surface-variant hover:text-m3-primary gap-1.5 text-xs font-bold px-3"
               >
                 <ArrowLeft className="h-4 w-4" />
-                Khoá học
+                {t("course_interview.actions.course")}
               </Button>
             </Link>
             <span className="text-m3-on-surface-variant text-sm font-medium hidden sm:block">
@@ -438,7 +457,7 @@ export default function CourseInterviewPage() {
 
           <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-m3-surface-container text-m3-primary font-bold text-sm">
             <Sparkles className="h-4 w-4" />
-            Phỏng vấn AI
+            {t("course_interview.labels.ai_interview")}
           </div>
         </div>
 
@@ -448,7 +467,7 @@ export default function CourseInterviewPage() {
 
         <div className="space-y-4 mb-6">
           {transcript.map((turn) => {
-            const label = questionTypeLabel(turn.questionType);
+            const label = questionTypeLabel(turn.questionType, t);
             return (
               <div
                 key={turn.id}
@@ -472,7 +491,7 @@ export default function CourseInterviewPage() {
                   )}
                   {turn.role === "ai" && turn.isFollowUp && (
                     <span className="block text-[10px] uppercase tracking-widest font-bold text-m3-outline mb-1">
-                      Tiếp theo
+                      {t("course_interview.sections.follow_up")}
                     </span>
                   )}
                   <p className="text-sm leading-relaxed whitespace-pre-wrap">{turn.text}</p>
@@ -489,7 +508,7 @@ export default function CourseInterviewPage() {
               htmlFor="answer"
               className="block text-xs font-bold text-m3-outline uppercase tracking-widest mb-2"
             >
-              Câu trả lời của bạn
+              {t("course_interview.labels.answer")}
             </label>
             <textarea
               id="answer"
@@ -497,12 +516,14 @@ export default function CourseInterviewPage() {
               onChange={(e) => setAnswerText(e.target.value)}
               rows={5}
               disabled={respond.isPending}
-              placeholder="Nhập câu trả lời..."
+              placeholder={t("course_interview.placeholders.answer")}
               className="w-full rounded-xl border border-m3-outline-variant/30 bg-surface-elev px-4 py-3 text-sm text-m3-on-surface resize-none focus:outline-none focus:border-m3-primary focus:ring-2 focus:ring-m3-primary/20"
             />
             <div className="flex items-center justify-between mt-3 flex-wrap gap-3">
               <span className="text-xs text-m3-outline">
-                {answerText.length} ký tự
+                {t("course_interview.labels.character_count", {
+                  count: answerText.length,
+                })}
               </span>
               <div className="flex items-center gap-3 flex-wrap justify-end">
                 <Button
@@ -512,14 +533,16 @@ export default function CourseInterviewPage() {
                   className="font-bold text-m3-outline hover:text-m3-on-surface rounded-xl gap-2 text-sm"
                 >
                   <Clock className="h-4 w-4" />
-                  Kết thúc sớm
+                  {t("course_interview.actions.finish_early")}
                 </Button>
                 <Button
                   onClick={() => void handleRespond()}
                   disabled={respond.isPending || answerText.trim().length === 0}
                   className="gradient-primary text-white font-bold rounded-xl gap-2 shadow-ai-glow px-6 py-3 h-auto hover:opacity-90 active:scale-95 transition-all"
                 >
-                  {respond.isPending ? "Đang gửi..." : "Gửi câu trả lời"}
+                  {respond.isPending
+                    ? t("course_interview.actions.sending")
+                    : t("course_interview.actions.send_answer")}
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </div>
@@ -528,7 +551,7 @@ export default function CourseInterviewPage() {
         ) : (
           <GlassCard className="p-6 text-center">
             <p className="text-sm text-m3-on-surface-variant">
-              Đang tổng hợp kết quả phỏng vấn...
+              {t("course_interview.status.compiling_results")}
             </p>
           </GlassCard>
         )}

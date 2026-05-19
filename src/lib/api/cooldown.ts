@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export type UseCardCooldownResult = {
   remainingMs: number;
@@ -14,6 +15,7 @@ function computeRemainingMs(targetMs: number | null): number {
 export function useCardCooldown(
   retryAvailableAt: string | null,
 ): UseCardCooldownResult {
+  const { t } = useTranslation();
   const targetMs = useMemo(() => {
     if (!retryAvailableAt) return null;
     const parsed = Date.parse(retryAvailableAt);
@@ -38,7 +40,7 @@ export function useCardCooldown(
   const isExpired = remainingMs <= 0;
 
   const formatRemaining = (): string => {
-    if (isExpired) return "Sẵn sàng";
+    if (isExpired) return t("cooldown.ready");
     const totalSeconds = Math.ceil(remainingMs / 1000);
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;

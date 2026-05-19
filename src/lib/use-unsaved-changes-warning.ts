@@ -1,17 +1,17 @@
 import { useEffect } from "react";
-
-const DEFAULT_MESSAGE =
-  "Bạn có thay đổi chưa được lưu. Rời khỏi trang sẽ làm mất các thay đổi này.";
+import { useTranslation } from "react-i18next";
 
 export function useUnsavedChangesWarning(isDirty: boolean, message?: string) {
+  const { t } = useTranslation();
   useEffect(() => {
     if (!isDirty) return;
+    const fallback = t("common.unsaved_changes_warning");
     const onBeforeUnload = (event: BeforeUnloadEvent) => {
       event.preventDefault();
-      event.returnValue = message ?? DEFAULT_MESSAGE;
-      return message ?? DEFAULT_MESSAGE;
+      event.returnValue = message ?? fallback;
+      return message ?? fallback;
     };
     window.addEventListener("beforeunload", onBeforeUnload);
     return () => window.removeEventListener("beforeunload", onBeforeUnload);
-  }, [isDirty, message]);
+  }, [isDirty, message, t]);
 }

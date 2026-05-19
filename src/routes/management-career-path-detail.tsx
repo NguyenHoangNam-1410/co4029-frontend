@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
   Archive,
@@ -41,17 +42,11 @@ import { cn } from "@/lib/utils";
 
 type TabKey = "courses" | "students" | "progress";
 
-const TABS: { key: TabKey; label: string; icon: typeof BookOpen }[] = [
-  { key: "courses", label: "Khóa học", icon: BookOpen },
-  { key: "students", label: "Sinh viên", icon: Users },
-  { key: "progress", label: "Tiến độ", icon: Upload },
+const TAB_DEFS: { key: TabKey; icon: typeof BookOpen }[] = [
+  { key: "courses", icon: BookOpen },
+  { key: "students", icon: Users },
+  { key: "progress", icon: Upload },
 ];
-
-const STATUS_LABEL: Record<string, string> = {
-  draft: "Bản nháp",
-  published: "Đã xuất bản",
-  archived: "Đã lưu trữ",
-};
 
 const STATUS_COLOR: Record<string, string> = {
   draft: "bg-amber-100 text-amber-700",
@@ -60,6 +55,7 @@ const STATUS_COLOR: Record<string, string> = {
 };
 
 export default function ManagementCareerPathDetailPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams({ strict: false }) as { id: string };
   const permissions = useMyPermissions();
@@ -71,10 +67,10 @@ export default function ManagementCareerPathDetailPage() {
   useEffect(() => {
     if (permissions.isLoading) return;
     if (!canManage) {
-      toast.error("Không có quyền truy cập");
+      toast.error(t("admin.users.roles.errors.no_permission"));
       void navigate({ to: "/dashboard", replace: true });
     }
-  }, [permissions.isLoading, canManage, navigate]);
+  }, [permissions.isLoading, canManage, navigate, t]);
 
   const enabled = !permissions.isLoading && canManage;
   const path = useManagedCareerPath(enabled ? id : undefined);
@@ -99,7 +95,7 @@ export default function ManagementCareerPathDetailPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="rounded-xl bg-m3-error-container border border-m3-error/20 p-6 text-center">
           <p className="text-m3-on-error-container text-sm font-semibold">
-            Không thể tải lộ trình
+            {t("management_career_path_detail.errors.load_failed")}
           </p>
         </div>
       </div>
@@ -108,15 +104,26 @@ export default function ManagementCareerPathDetailPage() {
 
   const data = path.data;
   const statusCls = STATUS_COLOR[data.status] ?? "bg-slate-100 text-slate-700";
-  const statusLabel = STATUS_LABEL[data.status] ?? data.status;
+  const statusLabel =
+    t(`management_career_path_detail.status.${data.status}`, {
+      defaultValue: data.status,
+    });
 
   return (
     <div className="max-w-[1200px] mx-auto pb-16 space-y-6 px-4 sm:px-6 lg:px-8">
       <div className="pt-4">
         <Breadcrumbs
           items={[
-            { label: "Quản lý", to: "/management/career-paths" },
-            { label: "Lộ trình nghề nghiệp", to: "/management/career-paths" },
+            {
+              label: t("management_career_path_detail.breadcrumbs.management"),
+              to: "/management/career-paths",
+            },
+            {
+              label: t(
+                "management_career_path_detail.breadcrumbs.career_paths",
+              ),
+              to: "/management/career-paths",
+            },
             { label: data.name },
           ]}
         />
@@ -158,14 +165,14 @@ export default function ManagementCareerPathDetailPage() {
       />
 
       <div className="flex gap-1 border-b border-m3-outline-variant/30">
-        {TABS.map((t) => {
-          const Icon = t.icon;
-          const active = t.key === tab;
+        {TAB_DEFS.map((tabDef) => {
+          const Icon = tabDef.icon;
+          const active = tabDef.key === tab;
           return (
             <button
-              key={t.key}
+              key={tabDef.key}
               type="button"
-              onClick={() => setTab(t.key)}
+              onClick={() => setTab(tabDef.key)}
               className={cn(
                 "flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition-colors border-b-2 -mb-px cursor-pointer",
                 active
@@ -174,7 +181,7 @@ export default function ManagementCareerPathDetailPage() {
               )}
             >
               <Icon className="h-4 w-4" />
-              {t.label}
+              {t(`management_career_path_detail.tabs.${tabDef.key}`)}
             </button>
           );
         })}
@@ -196,6 +203,7 @@ function PathActions({
   status: string;
   organizationId: string;
 }) {
+  const { t } = useTranslation();
   const publish = usePublishCareerPath(id);
   const archive = useArchiveCareerPath(id);
   const [confirming, setConfirming] = useState<"publish" | "archive" | null>(
@@ -205,15 +213,16 @@ function PathActions({
   function handlePublish() {
     publish.mutate(undefined, {
       onSuccess: () => {
-        toast.success("Đã xuất bản lộ trình");
+        toast.success(t("management_career_path_detail.toasts.published"));
         setConfirming(null);
       },
       onError: (err) => {
         const e = err as { status?: number; message?: string };
         const message =
           e.status && e.status >= 400 && e.status < 500
-            ? "Thêm ít nhất một khóa học trước khi xuất bản"
-            : e.message || "Xuất bản thất bại";
+            ? t("management_career_path_detail.errors.publish_needs_course")
+            : e.message ||
+              t("management_career_path_detail.errors.publish_failed");
         toast.error(message);
         setConfirming(null);
       },
@@ -223,11 +232,14 @@ function PathActions({
   function handleArchive() {
     archive.mutate(undefined, {
       onSuccess: () => {
-        toast.success("Đã lưu trữ lộ trình");
+        toast.success(t("management_career_path_detail.toasts.archived"));
         setConfirming(null);
       },
       onError: (err) => {
-        toast.error((err as Error).message || "Lưu trữ thất bại");
+        toast.error(
+          (err as Error).message ||
+            t("management_career_path_detail.errors.archive_failed"),
+        );
         setConfirming(null);
       },
     });
@@ -243,7 +255,7 @@ function PathActions({
           className="gap-2"
         >
           {publish.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-          Xác nhận xuất bản
+          {t("management_career_path_detail.dialogs.confirm_publish")}
         </Button>
         <Button
           size="sm"
@@ -251,7 +263,7 @@ function PathActions({
           onClick={() => setConfirming(null)}
           disabled={publish.isPending}
         >
-          Huỷ
+          {t("common.cancel")}
         </Button>
       </div>
     );
@@ -268,7 +280,7 @@ function PathActions({
           className="gap-2"
         >
           {archive.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-          Xác nhận lưu trữ
+          {t("management_career_path_detail.dialogs.confirm_archive")}
         </Button>
         <Button
           size="sm"
@@ -276,7 +288,7 @@ function PathActions({
           onClick={() => setConfirming(null)}
           disabled={archive.isPending}
         >
-          Huỷ
+          {t("common.cancel")}
         </Button>
       </div>
     );
@@ -286,7 +298,7 @@ function PathActions({
     <div className="flex items-center gap-1.5 shrink-0">
       {status !== "published" && status !== "archived" && (
         <Button size="sm" onClick={() => setConfirming("publish")}>
-          Xuất bản
+          {t("management_career_path_detail.actions.publish")}
         </Button>
       )}
       {status !== "archived" && (
@@ -297,7 +309,7 @@ function PathActions({
           className="gap-2"
         >
           <Archive className="h-4 w-4" />
-          Lưu trữ
+          {t("management_career_path_detail.actions.archive")}
         </Button>
       )}
     </div>
@@ -315,6 +327,7 @@ function EditForm({
   initialDescription: string;
   initialOrgUnitId: string;
 }) {
+  const { t } = useTranslation();
   const patch = usePatchCareerPath(id);
   const [name, setName] = useState(initialName);
   const [description, setDescription] = useState(initialDescription);
@@ -348,9 +361,13 @@ function EditForm({
             : undefined,
       },
       {
-        onSuccess: () => toast.success("Đã lưu thay đổi"),
+        onSuccess: () =>
+          toast.success(t("management_career_path_detail.toasts.saved_changes")),
         onError: (err) =>
-          toast.error((err as Error).message || "Lưu thất bại"),
+          toast.error(
+            (err as Error).message ||
+              t("management_career_path_detail.errors.save_failed"),
+          ),
       },
     );
   }
@@ -363,25 +380,27 @@ function EditForm({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1.5">
           <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">
-            Tên
+            {t("management_career_path_detail.fields.name")}
           </label>
           <Input value={name} onChange={(e) => setName(e.target.value)} />
         </div>
         <div className="space-y-1.5">
           <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">
-            Đơn vị (org_unit_id)
+            {t("management_career_path_detail.fields.org_unit")}
           </label>
           <Input
             value={orgUnitId}
             onChange={(e) => setOrgUnitId(e.target.value)}
-            placeholder="UUID đơn vị (tuỳ chọn)"
+            placeholder={t(
+              "management_career_path_detail.placeholders.org_unit_uuid_optional",
+            )}
             className="font-mono text-sm"
           />
         </div>
       </div>
       <div className="space-y-1.5">
         <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">
-          Mô tả
+          {t("management_career_path_detail.fields.description")}
         </label>
         <textarea
           value={description}
@@ -398,7 +417,7 @@ function EditForm({
           className="gap-2"
         >
           {patch.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-          Lưu
+          {t("common.save")}
         </Button>
       </div>
     </form>
@@ -406,6 +425,7 @@ function EditForm({
 }
 
 function CoursesTab({ id }: { id: string }) {
+  const { t } = useTranslation();
   const list = useCareerPathCourses(id);
   const add = useAddCareerPathCourse(id);
   const reorder = useReorderCareerPathCourses(id);
@@ -428,7 +448,7 @@ function CoursesTab({ id }: { id: string }) {
   function handleAdd(e: React.FormEvent) {
     e.preventDefault();
     if (!courseIdInput.trim()) {
-      toast.error("Hãy nhập UUID khóa học");
+      toast.error(t("management_career_path_detail.errors.enter_course_uuid"));
       return;
     }
     add.mutate(
@@ -439,14 +459,17 @@ function CoursesTab({ id }: { id: string }) {
       },
       {
         onSuccess: () => {
-          toast.success("Đã thêm khóa học");
+          toast.success(t("management_career_path_detail.toasts.course_added"));
           setCourseIdInput("");
           setPosition("");
           setIsRequired(true);
           setOrder(null);
         },
         onError: (err) =>
-          toast.error((err as Error).message || "Thêm khóa học thất bại"),
+          toast.error(
+            (err as Error).message ||
+              t("management_career_path_detail.errors.add_course_failed"),
+          ),
       },
     );
   }
@@ -465,11 +488,14 @@ function CoursesTab({ id }: { id: string }) {
       order.map((r) => r.course_id),
       {
         onSuccess: () => {
-          toast.success("Đã cập nhật thứ tự");
+          toast.success(t("management_career_path_detail.toasts.order_updated"));
           setOrder(null);
         },
         onError: (err) =>
-          toast.error((err as Error).message || "Cập nhật thứ tự thất bại"),
+          toast.error(
+            (err as Error).message ||
+              t("management_career_path_detail.errors.update_order_failed"),
+          ),
       },
     );
   }
@@ -493,11 +519,13 @@ function CoursesTab({ id }: { id: string }) {
         onSubmit={handleAdd}
         className="bg-m3-surface-container-lowest rounded-xl border border-m3-outline-variant/20 p-5 space-y-4"
       >
-        <h3 className="text-sm font-bold text-m3-on-surface">Thêm khóa học</h3>
+        <h3 className="text-sm font-bold text-m3-on-surface">
+          {t("management_career_path_detail.sections.add_course")}
+        </h3>
         <div className="grid grid-cols-1 sm:grid-cols-[1fr_120px_140px_auto] gap-3 items-end">
           <div className="space-y-1.5">
             <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">
-              UUID khóa học <span className="text-red-600">*</span>
+              {t("management_career_path_detail.fields.course_uuid")}
             </label>
             <Input
               value={courseIdInput}
@@ -509,14 +537,16 @@ function CoursesTab({ id }: { id: string }) {
           </div>
           <div className="space-y-1.5">
             <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">
-              Vị trí
+              {t("management_career_path_detail.fields.position")}
             </label>
             <Input
               type="number"
               min={1}
               value={position}
               onChange={(e) => setPosition(e.target.value)}
-              placeholder="Cuối"
+              placeholder={t(
+                "management_career_path_detail.placeholders.position_end",
+              )}
               className="text-sm"
             />
           </div>
@@ -527,7 +557,9 @@ function CoursesTab({ id }: { id: string }) {
               onChange={(e) => setIsRequired(e.target.checked)}
               className="h-4 w-4 rounded border-m3-outline-variant accent-m3-primary"
             />
-            <span className="font-medium text-m3-on-surface">Bắt buộc</span>
+            <span className="font-medium text-m3-on-surface">
+              {t("management_career_path_detail.fields.required")}
+            </span>
           </label>
           <Button
             type="submit"
@@ -540,7 +572,7 @@ function CoursesTab({ id }: { id: string }) {
             ) : (
               <Plus className="h-4 w-4" />
             )}
-            Thêm
+            {t("management_career_path_detail.actions.add")}
           </Button>
         </div>
       </form>
@@ -549,7 +581,7 @@ function CoursesTab({ id }: { id: string }) {
         <div className="rounded-xl bg-m3-surface-container-lowest ghost-border p-10 text-center">
           <BookOpen className="h-8 w-8 mx-auto mb-3 text-m3-outline" />
           <p className="text-sm text-m3-on-surface-variant">
-            Chưa có khóa học nào trong lộ trình.
+            {t("management_career_path_detail.empty_states.no_courses")}
           </p>
         </div>
       ) : (
@@ -557,7 +589,7 @@ function CoursesTab({ id }: { id: string }) {
           {hasReorderChanges && (
             <div className="flex items-center justify-between gap-3 rounded-lg bg-amber-50 border border-amber-200 px-4 py-2.5">
               <p className="text-xs font-semibold text-amber-900">
-                Thứ tự đã thay đổi. Lưu để áp dụng.
+                {t("management_career_path_detail.hints.reorder_dirty")}
               </p>
               <div className="flex gap-1.5">
                 <Button
@@ -566,7 +598,7 @@ function CoursesTab({ id }: { id: string }) {
                   onClick={() => setOrder(null)}
                   disabled={reorder.isPending}
                 >
-                  Huỷ
+                  {t("common.cancel")}
                 </Button>
                 <Button
                   size="xs"
@@ -577,7 +609,7 @@ function CoursesTab({ id }: { id: string }) {
                   {reorder.isPending && (
                     <Loader2 className="h-3 w-3 animate-spin" />
                   )}
-                  Lưu thứ tự
+                  {t("management_career_path_detail.actions.save_order")}
                 </Button>
               </div>
             </div>
@@ -619,18 +651,22 @@ function CourseInPathRow({
   onMoveDown: () => void;
   onLocalRemove: () => void;
 }) {
+  const { t } = useTranslation();
   const remove = useRemoveCareerPathCourse(pathId, row.course_id);
   const [confirming, setConfirming] = useState(false);
 
   function handleRemove() {
     remove.mutate(undefined, {
       onSuccess: () => {
-        toast.success("Đã xoá khóa học khỏi lộ trình");
+        toast.success(t("management_career_path_detail.toasts.course_removed"));
         setConfirming(false);
         onLocalRemove();
       },
       onError: (err) =>
-        toast.error((err as Error).message || "Xoá thất bại"),
+        toast.error(
+          (err as Error).message ||
+            t("management_career_path_detail.errors.remove_course_failed"),
+        ),
     });
   }
 
@@ -642,7 +678,7 @@ function CourseInPathRow({
           onClick={onMoveUp}
           disabled={index === 0}
           className="p-1 rounded hover:bg-m3-surface-container disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-          title="Chuyển lên"
+          title={t("management_career_path_detail.actions.move_up")}
         >
           <ArrowUp className="h-3 w-3 text-m3-on-surface-variant" />
         </button>
@@ -651,7 +687,7 @@ function CourseInPathRow({
           onClick={onMoveDown}
           disabled={index === total - 1}
           className="p-1 rounded hover:bg-m3-surface-container disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-          title="Chuyển xuống"
+          title={t("management_career_path_detail.actions.move_down")}
         >
           <ArrowDown className="h-3 w-3 text-m3-on-surface-variant" />
         </button>
@@ -674,7 +710,9 @@ function CourseInPathRow({
                 : "text-[10px] font-bold uppercase text-m3-on-surface-variant"
             }
           >
-            {row.is_required ? "Bắt buộc" : "Tự chọn"}
+            {t("management_career_path_detail.labels.required_or_optional")
+              .split(" / ")[row.is_required ? 0 : 1] ??
+              t("management_career_path_detail.labels.required_or_optional")}
           </span>
         </div>
       </div>
@@ -689,7 +727,7 @@ function CourseInPathRow({
             {remove.isPending ? (
               <Loader2 className="h-3 w-3 animate-spin" />
             ) : (
-              "Xác nhận"
+              t("common.confirm")
             )}
           </Button>
           <Button
@@ -698,7 +736,7 @@ function CourseInPathRow({
             onClick={() => setConfirming(false)}
             disabled={remove.isPending}
           >
-            Huỷ
+            {t("common.cancel")}
           </Button>
         </div>
       ) : (
@@ -716,6 +754,7 @@ function CourseInPathRow({
 }
 
 function StudentsTab({ id }: { id: string }) {
+  const { t } = useTranslation();
   const add = useAddCareerPathStudent(id);
   const progress = useTeacherCareerPathProgress(id);
   const [studentId, setStudentId] = useState("");
@@ -723,18 +762,21 @@ function StudentsTab({ id }: { id: string }) {
   function handleAdd(e: React.FormEvent) {
     e.preventDefault();
     if (!studentId.trim()) {
-      toast.error("Hãy nhập UUID sinh viên");
+      toast.error(t("management_career_path_detail.errors.enter_student_uuid"));
       return;
     }
     add.mutate(
       { student_id: studentId.trim() },
       {
         onSuccess: () => {
-          toast.success("Đã thêm sinh viên");
+          toast.success(t("management_career_path_detail.toasts.student_added"));
           setStudentId("");
         },
         onError: (err) =>
-          toast.error((err as Error).message || "Thêm sinh viên thất bại"),
+          toast.error(
+            (err as Error).message ||
+              t("management_career_path_detail.errors.add_student_failed"),
+          ),
       },
     );
   }
@@ -747,11 +789,13 @@ function StudentsTab({ id }: { id: string }) {
         onSubmit={handleAdd}
         className="bg-m3-surface-container-lowest rounded-xl border border-m3-outline-variant/20 p-5 space-y-4"
       >
-        <h3 className="text-sm font-bold text-m3-on-surface">Đăng ký sinh viên</h3>
+        <h3 className="text-sm font-bold text-m3-on-surface">
+          {t("management_career_path_detail.sections.register_student")}
+        </h3>
         <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3 items-end">
           <div className="space-y-1.5">
             <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">
-              UUID sinh viên <span className="text-red-600">*</span>
+              {t("management_career_path_detail.fields.student_uuid")}
             </label>
             <Input
               value={studentId}
@@ -772,7 +816,7 @@ function StudentsTab({ id }: { id: string }) {
             ) : (
               <UserPlus className="h-4 w-4" />
             )}
-            Đăng ký
+            {t("management_career_path_detail.actions.register")}
           </Button>
         </div>
       </form>
@@ -790,7 +834,7 @@ function StudentsTab({ id }: { id: string }) {
         <div className="rounded-xl bg-m3-surface-container-lowest ghost-border p-10 text-center">
           <Users className="h-8 w-8 mx-auto mb-3 text-m3-outline" />
           <p className="text-sm text-m3-on-surface-variant">
-            Chưa có sinh viên nào đăng ký.
+            {t("management_career_path_detail.empty_states.no_students")}
           </p>
         </div>
       ) : (
@@ -811,17 +855,23 @@ function StudentRow({
   pathId: string;
   row: StudentPathProgressAuthoring;
 }) {
+  const { t } = useTranslation();
   const remove = useRemoveCareerPathStudent(pathId, row.student_id);
   const [confirming, setConfirming] = useState(false);
 
   function handleRemove() {
     remove.mutate(undefined, {
       onSuccess: () => {
-        toast.success("Đã huỷ đăng ký");
+        toast.success(
+          t("management_career_path_detail.toasts.student_unregistered"),
+        );
         setConfirming(false);
       },
       onError: (err) =>
-        toast.error((err as Error).message || "Huỷ đăng ký thất bại"),
+        toast.error(
+          (err as Error).message ||
+            t("management_career_path_detail.errors.unregister_student_failed"),
+        ),
     });
   }
 
@@ -837,7 +887,10 @@ function StudentRow({
       </div>
       <div className="text-right shrink-0 min-w-[120px]">
         <p className="text-xs text-m3-on-surface font-semibold">
-          Đã hoàn thành {row.completed_courses}/{row.course_count} khóa học
+          {t("management_career_path_detail.labels.student_completion", {
+            completed: row.completed_courses,
+            total: row.course_count,
+          })}
         </p>
         <div className="mt-1 h-1.5 w-full bg-m3-surface-container rounded-full overflow-hidden">
           <div
@@ -859,7 +912,7 @@ function StudentRow({
             {remove.isPending ? (
               <Loader2 className="h-3 w-3 animate-spin" />
             ) : (
-              "Xác nhận"
+              t("common.confirm")
             )}
           </Button>
           <Button
@@ -868,7 +921,7 @@ function StudentRow({
             onClick={() => setConfirming(false)}
             disabled={remove.isPending}
           >
-            Huỷ
+            {t("common.cancel")}
           </Button>
         </div>
       ) : (
@@ -886,6 +939,7 @@ function StudentRow({
 }
 
 function ProgressTab({ id }: { id: string }) {
+  const { t } = useTranslation();
   const progress = useTeacherCareerPathProgress(id);
 
   if (progress.isLoading) {
@@ -905,7 +959,7 @@ function ProgressTab({ id }: { id: string }) {
     return (
       <div className="rounded-xl bg-m3-error-container border border-m3-error/20 p-6 text-center">
         <p className="text-m3-on-error-container text-sm font-semibold">
-          Không thể tải tiến độ sinh viên
+          {t("management_career_path_detail.errors.load_student_progress_failed")}
         </p>
       </div>
     );
@@ -918,7 +972,7 @@ function ProgressTab({ id }: { id: string }) {
       <div className="rounded-xl bg-m3-surface-container-lowest ghost-border p-10 text-center">
         <Users className="h-8 w-8 mx-auto mb-3 text-m3-outline" />
         <p className="text-sm text-m3-on-surface-variant">
-          Chưa có sinh viên nào đăng ký lộ trình.
+          {t("management_career_path_detail.empty_states.no_student_path_progress")}
         </p>
       </div>
     );
@@ -927,9 +981,11 @@ function ProgressTab({ id }: { id: string }) {
   return (
     <div className="bg-m3-surface-container-lowest rounded-xl border border-m3-outline-variant/20 overflow-hidden">
       <div className="hidden sm:grid grid-cols-[1fr_140px_180px] gap-4 px-5 py-3 border-b border-m3-outline-variant/10 text-[10px] font-bold uppercase tracking-wider text-m3-on-surface-variant">
-        <span>Sinh viên</span>
-        <span>Khóa học hoàn thành</span>
-        <span>Tổng tiến độ</span>
+        <span>{t("management_career_path_detail.columns.student")}</span>
+        <span>
+          {t("management_career_path_detail.columns.completed_courses")}
+        </span>
+        <span>{t("management_career_path_detail.columns.total_progress")}</span>
       </div>
       <div className="divide-y divide-m3-outline-variant/10">
         {rows.map((row) => (

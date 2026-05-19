@@ -6,6 +6,7 @@ import {
   Eye, EyeOff, Trash2, Brain, CloudUpload, X,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
@@ -35,15 +36,15 @@ import { uploadMultipart } from "@/lib/upload/multipart";
 import { ApiError } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
 
-const PROC_STATUS: Record<string, { label: string; color: string; spin?: boolean }> = {
-  not_queued:  { label: "Chưa xếp hàng",     color: "bg-amber-50 text-amber-600" },
-  pending:     { label: "Đang chờ",          color: "bg-slate-100 text-slate-500" },
-  extracting:  { label: "Trích xuất",        color: "bg-blue-100 text-blue-700",     spin: true },
-  chunking:    { label: "Phân đoạn",         color: "bg-blue-100 text-blue-800",     spin: true },
-  embedding:   { label: "Nhúng vector",      color: "bg-blue-100 text-blue-800",     spin: true },
-  building_kg: { label: "Xây dựng KG",       color: "bg-fuchsia-100 text-fuchsia-700", spin: true },
-  ready:       { label: "Sẵn sàng",          color: "bg-emerald-100 text-emerald-700" },
-  failed:      { label: "Thất bại",          color: "bg-red-100 text-red-700" },
+const PROC_STATUS: Record<string, { color: string; spin?: boolean }> = {
+  not_queued:  { color: "bg-amber-50 text-amber-600" },
+  pending:     { color: "bg-slate-100 text-slate-500" },
+  extracting:  { color: "bg-blue-100 text-blue-700",     spin: true },
+  chunking:    { color: "bg-blue-100 text-blue-800",     spin: true },
+  embedding:   { color: "bg-blue-100 text-blue-800",     spin: true },
+  building_kg: { color: "bg-fuchsia-100 text-fuchsia-700", spin: true },
+  ready:       { color: "bg-emerald-100 text-emerald-700" },
+  failed:      { color: "bg-red-100 text-red-700" },
 };
 
 const MATERIAL_TYPE_ICON: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -53,17 +54,18 @@ const MATERIAL_TYPE_ICON: Record<string, React.ComponentType<{ className?: strin
 
 const MATERIAL_TYPE_OPTIONS: ReadonlyArray<{
   value: MaterialUploadInit["material_type"];
-  label: string;
+  labelKey?: string;
+  labelText?: string;
 }> = [
-  { value: "pdf",   label: "PDF / Tài liệu" },
-  { value: "video", label: "Video" },
-  { value: "text",  label: "Văn bản / Markdown" },
-  { value: "pptx",  label: "Slide (PPTX)" },
-  { value: "docx",  label: "Word (DOCX)" },
-  { value: "code",  label: "Mã nguồn" },
-  { value: "audio", label: "Âm thanh" },
-  { value: "image", label: "Hình ảnh" },
-  { value: "xlsx",  label: "Excel (XLSX)" },
+  { value: "pdf",   labelKey: "pdf" },
+  { value: "video", labelText: "Video" },
+  { value: "text",  labelKey: "text" },
+  { value: "pptx",  labelText: "Slide (PPTX)" },
+  { value: "docx",  labelText: "Word (DOCX)" },
+  { value: "code",  labelKey: "code" },
+  { value: "audio", labelKey: "audio" },
+  { value: "image", labelKey: "image" },
+  { value: "xlsx",  labelText: "Excel (XLSX)" },
 ];
 
 function detectMaterialType(file: File): MaterialUploadInit["material_type"] {
@@ -114,6 +116,7 @@ function UploadDropzone({
   onFile: (file: File) => void;
   disabled?: boolean;
 }) {
+  const { t } = useTranslation();
   const [dragging, setDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -165,10 +168,10 @@ function UploadDropzone({
       </div>
 
       <p className="font-headline font-bold text-m3-on-surface text-base mb-1">
-        {dragging ? "Thả tệp để tải lên" : "Kéo & thả hoặc nhấn để chọn tệp"}
+        {dragging ? t("teacher_lesson_materials.dropzone.drop_active") : t("teacher_lesson_materials.dropzone.drop_idle")}
       </p>
       <p className="text-sm text-m3-on-surface-variant">
-        PDF, Video, DOCX, PPTX, Code, Markdown · tới 5 GB (multipart tự động khi &gt;100 MB)
+        {t("teacher_lesson_materials.dropzone.formats")}
       </p>
     </div>
   );
@@ -207,6 +210,7 @@ function SelectedFileForm({
   onDone: () => void;
   onCancel: () => void;
 }) {
+  const { t } = useTranslation();
   const initUpload = useInitMaterialUpload(lessonId);
   const completeUpload = useCompleteMaterialUpload();
   const fetchParts = useFetchMultipartParts();
@@ -232,7 +236,7 @@ function SelectedFileForm({
 
   async function runSingleUpload(init: MaterialUploadInitOut, contentType: string) {
     if (!init.upload_url) {
-      throw new Error("Phản hồi init thiếu upload_url cho chế độ single");
+      throw new Error(t("teacher_lesson_materials.errors.upload_url_missing"));
     }
     setPhase("hashing");
     const checksum = await sha256Hex(file);
@@ -249,7 +253,7 @@ function SelectedFileForm({
       }
     } catch (err) {
       if (isLikelyCorsError(err)) {
-        toast.error("Cấu hình lưu trữ chưa sẵn sàng. Vui lòng liên hệ admin.");
+        toast.error(t("teacher_lesson_materials.toasts.storage_not_ready"));
       }
       throw err;
     }
@@ -309,7 +313,7 @@ function SelectedFileForm({
         }
       }
       if (isLikelyCorsError(err)) {
-        toast.error("Cấu hình lưu trữ chưa sẵn sàng. Vui lòng liên hệ admin.");
+        toast.error(t("teacher_lesson_materials.toasts.storage_not_ready"));
       }
       throw err;
     } finally {
@@ -340,10 +344,10 @@ function SelectedFileForm({
         await runMultipartUpload(init);
       }
 
-      toast.success("Đã tải lên — AI đang xử lý");
+      toast.success(t("teacher_lesson_materials.toasts.upload_complete"));
       onDone();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Tải lên thất bại";
+      const msg = err instanceof Error ? err.message : t("teacher_lesson_materials.toasts.upload_failed");
       toast.error(msg);
     } finally {
       setUploading(false);
@@ -357,10 +361,10 @@ function SelectedFileForm({
   }
 
   const phaseLabel =
-    phase === "init" ? "Khởi tạo phiên tải lên…"
-    : phase === "hashing" ? "Tính checksum SHA-256…"
-    : phase === "uploading" ? "Đang tải lên S3…"
-    : phase === "completing" ? "Đang hoàn tất & xếp hàng xử lý…"
+    phase === "init" ? t("teacher_lesson_materials.phase.init")
+    : phase === "hashing" ? t("teacher_lesson_materials.phase.hashing")
+    : phase === "uploading" ? t("teacher_lesson_materials.phase.uploading")
+    : phase === "completing" ? t("teacher_lesson_materials.phase.completing")
     : "";
 
   return (
@@ -386,7 +390,7 @@ function SelectedFileForm({
 
       <div className="space-y-1.5">
         <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">
-          Tiêu đề *
+          {t("teacher_lesson_materials.form.title_label")}
         </label>
         <input
           required
@@ -399,7 +403,7 @@ function SelectedFileForm({
 
       <div className="space-y-1.5">
         <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">
-          Loại tài liệu
+          {t("teacher_lesson_materials.form.doc_type_label")}
         </label>
         <select
           disabled={uploading}
@@ -411,7 +415,9 @@ function SelectedFileForm({
         >
           {MATERIAL_TYPE_OPTIONS.map((opt) => (
             <option key={opt.value ?? "pdf"} value={opt.value ?? "pdf"}>
-              {opt.label}
+              {opt.labelKey
+                ? t(`teacher_lesson_materials.doc_type.${opt.labelKey}`)
+                : opt.labelText}
             </option>
           ))}
         </select>
@@ -427,7 +433,7 @@ function SelectedFileForm({
             className="rounded"
           />
           <Sparkles className="h-3.5 w-3.5 text-m3-secondary" />
-          Xử lý AI
+          {t("teacher_lesson_materials.form.ai_processing")}
         </label>
         <label className="flex items-center gap-2 text-xs text-m3-on-surface cursor-pointer">
           <input
@@ -438,7 +444,7 @@ function SelectedFileForm({
             className="rounded"
           />
           <Eye className="h-3.5 w-3.5" />
-          Hiển thị cho học viên
+          {t("teacher_lesson_materials.form.visible_to_students")}
         </label>
       </div>
 
@@ -454,7 +460,7 @@ function SelectedFileForm({
               className="gap-1.5 text-xs text-m3-error hover:text-m3-error hover:bg-m3-error-container/30"
             >
               <X className="h-3 w-3" />
-              Huỷ tải lên
+              {t("teacher_lesson_materials.form.cancel_upload")}
             </Button>
           )}
         </div>
@@ -467,13 +473,13 @@ function SelectedFileForm({
           className="flex-1 gap-2 gradient-primary text-white border-0 shadow-ai-glow"
         >
           {uploading ? (
-            <><Loader2 className="h-4 w-4 animate-spin" /> Đang tải lên…</>
+            <><Loader2 className="h-4 w-4 animate-spin" /> {t("teacher_lesson_materials.form.uploading")}</>
           ) : (
-            <><Upload className="h-4 w-4" /> Tải lên & Xử lý</>
+            <><Upload className="h-4 w-4" /> {t("teacher_lesson_materials.form.upload_button")}</>
           )}
         </Button>
         <Button type="button" variant="ghost" onClick={onCancel} disabled={uploading} className="px-4">
-          Đóng
+          {t("common.close")}
         </Button>
       </div>
     </form>
@@ -481,8 +487,10 @@ function SelectedFileForm({
 }
 
 function ProcessingStatusCard({ material }: { material: LearningMaterial }) {
+  const { t } = useTranslation();
   const { data: status } = useTeacherMaterialStatus(material.id);
   const proc = PROC_STATUS[status?.processing_status ?? "pending"] ?? PROC_STATUS.pending;
+  const procKey = status?.processing_status ?? "pending";
   const Icon = materialIcon(material.material_type);
 
   const steps = ["extracting", "chunking", "embedding", "building_kg"];
@@ -498,7 +506,7 @@ function ProcessingStatusCard({ material }: { material: LearningMaterial }) {
           <p className="text-sm font-semibold text-m3-on-surface truncate">{material.title}</p>
           <Badge className={cn("text-[10px] border-0 mt-0.5", proc.color)}>
             {proc.spin && <Loader2 className="h-2.5 w-2.5 mr-1 animate-spin inline-block" />}
-            {proc.label}
+            {t(`teacher_lesson_materials.proc_status.${procKey}`)}
           </Badge>
         </div>
       </div>
@@ -521,14 +529,14 @@ function ProcessingStatusCard({ material }: { material: LearningMaterial }) {
         </div>
         <p className="text-[11px] text-m3-on-surface-variant">
           {status?.processing_status === "building_kg"
-            ? "Trích xuất khái niệm và xây dựng đồ thị tri thức…"
+            ? t("teacher_lesson_materials.processing.building_kg")
             : status?.processing_status === "embedding"
-            ? "Tạo vector nhúng…"
+            ? t("teacher_lesson_materials.processing.embedding")
             : status?.processing_status === "chunking"
-            ? "Phân đoạn nội dung thành các chunk ngữ nghĩa…"
+            ? t("teacher_lesson_materials.processing.chunking")
             : status?.processing_status === "extracting"
-            ? "Trích xuất văn bản từ tệp…"
-            : "Đang chờ xử lý…"}
+            ? t("teacher_lesson_materials.processing.extracting")
+            : t("teacher_lesson_materials.processing.queued")}
         </p>
       </div>
     </div>
@@ -542,6 +550,7 @@ function MaterialCard({
   material: LearningMaterial;
   onDelete: (id: string) => void;
 }) {
+  const { t } = useTranslation();
   const { data: status } = useTeacherMaterialStatus(material.id);
   const reprocess = useReprocessMaterial(material.id);
   const updateMaterial = useUpdateMaterial(material.id);
@@ -553,17 +562,17 @@ function MaterialCard({
 
   function handleReprocess() {
     reprocess.mutate(undefined, {
-      onSuccess: () => toast.success("Đã bắt đầu xử lý lại"),
+      onSuccess: () => toast.success(t("teacher_lesson_materials.toasts.reprocess_started")),
       onError: (err) => {
         if (err instanceof ApiError && err.status === 409 && err.code === "concurrent_reprocess") {
-          toast.error("Đang xử lý lần trước; vui lòng thử lại sau");
+          toast.error(t("teacher_lesson_materials.toasts.reprocess_busy"));
           return;
         }
         if (err instanceof ApiError && err.status === 403) {
-          toast.error("Bạn không có quyền xử lý lại tài liệu này");
+          toast.error(t("teacher_lesson_materials.toasts.reprocess_forbidden"));
           return;
         }
-        toast.error((err as Error).message || "Xử lý lại thất bại");
+        toast.error((err as Error).message || t("teacher_lesson_materials.toasts.reprocess_failed"));
       },
     });
   }
@@ -574,10 +583,10 @@ function MaterialCard({
       {
         onSuccess: () =>
           reprocess.mutate(undefined, {
-            onSuccess: () => toast.success("Đã bật AI và bắt đầu xử lý"),
+            onSuccess: () => toast.success(t("teacher_lesson_materials.toasts.ai_enabled")),
             onError: (err) => {
               if (err instanceof ApiError && err.status === 409 && err.code === "concurrent_reprocess") {
-                toast.error("Đang xử lý lần trước; vui lòng thử lại sau");
+                toast.error(t("teacher_lesson_materials.toasts.reprocess_busy"));
                 return;
               }
               toast.error((err as Error).message);
@@ -585,7 +594,7 @@ function MaterialCard({
           }),
         onError: (err) => {
           if (err instanceof ApiError && err.status === 403) {
-            toast.error("Bạn không có quyền chỉnh sửa tài liệu này");
+            toast.error(t("teacher_lesson_materials.toasts.edit_forbidden"));
             return;
           }
           toast.error((err as Error).message);
@@ -601,12 +610,12 @@ function MaterialCard({
         onSuccess: () =>
           toast.success(
             material.visible_to_students
-              ? "Đã ẩn khỏi học viên"
-              : "Đã hiển thị cho học viên",
+              ? t("teacher_lesson_materials.toasts.hidden_from_students")
+              : t("teacher_lesson_materials.toasts.shown_to_students"),
           ),
         onError: (err) => {
           if (err instanceof ApiError && err.status === 403) {
-            toast.error("Bạn không có quyền chỉnh sửa tài liệu này");
+            toast.error(t("teacher_lesson_materials.toasts.edit_forbidden"));
             return;
           }
           toast.error((err as Error).message);
@@ -628,7 +637,7 @@ function MaterialCard({
         <div className="flex items-center gap-1.5 mt-1 flex-wrap">
           <Badge className={cn("text-[10px] border-0", proc.color)}>
             {proc.spin && <Loader2 className="h-2.5 w-2.5 mr-1 animate-spin inline-block" />}
-            {proc.label}
+            {t(`teacher_lesson_materials.proc_status.${procKey}`)}
           </Badge>
           <span className="text-[11px] text-m3-on-surface-variant capitalize">{material.material_type}</span>
           {material.ai_processing_enabled && (
@@ -638,11 +647,11 @@ function MaterialCard({
           )}
           {material.visible_to_students ? (
             <Badge className="text-[10px] border-0 bg-emerald-50 text-emerald-700 gap-1">
-              <Eye className="h-2.5 w-2.5" /> Hiển thị
+              <Eye className="h-2.5 w-2.5" /> {t("teacher_lesson_materials.badge.visible")}
             </Badge>
           ) : (
             <Badge className="text-[10px] border-0 bg-slate-100 text-slate-500 gap-1">
-              <EyeOff className="h-2.5 w-2.5" /> Ẩn
+              <EyeOff className="h-2.5 w-2.5" /> {t("teacher_lesson_materials.badge.hidden")}
             </Badge>
           )}
         </div>
@@ -656,7 +665,7 @@ function MaterialCard({
           variant="ghost"
           size="icon"
           className="h-8 w-8"
-          title={material.visible_to_students ? "Ẩn khỏi học viên" : "Hiển thị cho học viên"}
+          title={material.visible_to_students ? t("teacher_lesson_materials.actions.toggle_visibility_hide") : t("teacher_lesson_materials.actions.toggle_visibility_show")}
           disabled={updateMaterial.isPending}
           onClick={handleToggleVisibility}
         >
@@ -671,7 +680,7 @@ function MaterialCard({
             variant="ghost"
             size="icon"
             className="h-8 w-8 text-m3-secondary hover:text-m3-secondary hover:bg-m3-secondary-fixed/30"
-            title="Bật xử lý AI"
+            title={t("teacher_lesson_materials.actions.enable_ai")}
             disabled={enablingAI}
             onClick={handleEnableAI}
           >
@@ -686,7 +695,7 @@ function MaterialCard({
             variant="ghost"
             size="icon"
             className="h-8 w-8"
-            title="Xử lý lại"
+            title={t("teacher_lesson_materials.actions.reprocess")}
             disabled={reprocess.isPending}
             onClick={handleReprocess}
           >
@@ -697,7 +706,7 @@ function MaterialCard({
           variant="ghost"
           size="icon"
           className="h-8 w-8 text-m3-error hover:text-m3-error hover:bg-m3-error-container/30"
-          title="Xoá"
+          title={t("common.delete")}
           onClick={() => onDelete(material.id)}
         >
           <Trash2 className="h-3.5 w-3.5" />
@@ -708,6 +717,7 @@ function MaterialCard({
 }
 
 function MaterialDeleteButton({ id, onDeleted }: { id: string; onDeleted: () => void }) {
+  const { t } = useTranslation();
   const del = useDeleteMaterial(id);
   return (
     <Button
@@ -717,25 +727,26 @@ function MaterialDeleteButton({ id, onDeleted }: { id: string; onDeleted: () => 
       onClick={() =>
         del.mutate(undefined, {
           onSuccess: () => {
-            toast.success("Đã xoá tài liệu");
+            toast.success(t("teacher_lesson_materials.toasts.deleted"));
             onDeleted();
           },
           onError: (err) => {
             if (err instanceof ApiError && err.status === 403) {
-              toast.error("Bạn không có quyền xoá tài liệu này");
+              toast.error(t("teacher_lesson_materials.toasts.delete_forbidden"));
               return;
             }
-            toast.error((err as Error).message || "Xoá thất bại");
+            toast.error((err as Error).message || t("teacher_lesson_materials.toasts.delete_failed"));
           },
         })
       }
     >
-      {del.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Xác nhận xoá"}
+      {del.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : t("teacher_lesson_materials.actions.confirm_delete")}
     </Button>
   );
 }
 
 function KnowledgeGraphPreview({ readyCount }: { readyCount: number }) {
+  const { t } = useTranslation();
   const [toastVisible, setToastVisible] = useState(false);
 
   return (
@@ -743,7 +754,7 @@ function KnowledgeGraphPreview({ readyCount }: { readyCount: number }) {
       <div className="flex items-center justify-center gap-2">
         <Brain className="h-5 w-5 text-m3-secondary" />
         <h3 className="font-headline font-bold text-lg text-m3-on-surface">
-          Đồ thị Tri thức
+          {t("teacher_lesson_materials.kg.title")}
         </h3>
       </div>
 
@@ -782,11 +793,11 @@ function KnowledgeGraphPreview({ readyCount }: { readyCount: number }) {
 
       {readyCount > 0 ? (
         <p className="text-xs text-m3-on-surface-variant font-medium">
-          Đã lập chỉ mục {readyCount} tài liệu · khái niệm đã trích xuất
+          {t("teacher_lesson_materials.kg.indexed_count", { count: readyCount })}
         </p>
       ) : (
         <p className="text-xs text-m3-on-surface-variant font-medium">
-          Tải lên & xử lý tài liệu để xây dựng đồ thị tri thức của bạn
+          {t("teacher_lesson_materials.kg.empty_hint")}
         </p>
       )}
 
@@ -795,11 +806,11 @@ function KnowledgeGraphPreview({ readyCount }: { readyCount: number }) {
         onClick={() => { setToastVisible(true); setTimeout(() => setToastVisible(false), 2500); }}
         className="border border-m3-outline-variant/20 rounded-xl px-5 py-2.5 text-sm font-bold text-m3-on-surface hover:bg-m3-surface-container-low transition-colors"
       >
-        Mở đồ thị đầy đủ
+        {t("teacher_lesson_materials.kg.open_full")}
       </button>
       {toastVisible && (
         <p className="text-xs text-m3-secondary font-semibold animate-pulse">
-          Trình xem đồ thị tri thức sẽ sớm có
+          {t("teacher_lesson_materials.kg.viewer_coming_soon")}
         </p>
       )}
     </div>
@@ -807,6 +818,7 @@ function KnowledgeGraphPreview({ readyCount }: { readyCount: number }) {
 }
 
 export default function LessonMaterialsPage() {
+  const { t } = useTranslation();
   const params = useParams({ strict: false }) as { courseId: string; lessonId: string };
   const { courseId, lessonId } = params;
 
@@ -830,13 +842,13 @@ export default function LessonMaterialsPage() {
 
       <Breadcrumbs
         items={[
-          { label: "Giảng dạy", to: "/teacher/courses" },
+          { label: t("teacher_common.breadcrumb_teaching"), to: "/teacher/courses" },
           {
-            label: course?.title ?? "Khóa học",
+            label: course?.title ?? t("teacher_common.breadcrumb_course"),
             to: "/teacher/courses/$courseId",
           },
-          { label: lesson?.title ?? "Bài học" },
-          { label: "Tài liệu" },
+          { label: lesson?.title ?? t("teacher_common.lesson_fallback") },
+          { label: t("teacher_lesson_materials.breadcrumb.materials") },
         ]}
       />
 
@@ -849,11 +861,11 @@ export default function LessonMaterialsPage() {
               </Button>
             </Link>
             <h1 className="text-3xl lg:text-4xl font-extrabold font-headline tracking-tight text-m3-primary leading-tight">
-              Tài liệu &amp; AI Hub
+              {t("teacher_lesson_materials.header.title")}
             </h1>
           </div>
           <p className="text-m3-on-surface-variant text-base leading-relaxed pl-11">
-            {lessonLoading ? "Đang tải…" : lesson?.title} · Tải tài liệu để AI dựng đồ thị tri thức
+            {lessonLoading ? t("teacher_lesson_materials.header.subtitle_loading") : lesson?.title} {t("teacher_lesson_materials.header.subtitle_suffix")}
           </p>
         </div>
 
@@ -862,19 +874,19 @@ export default function LessonMaterialsPage() {
             {processingCount > 0 && (
               <Badge className="bg-blue-100 text-blue-700 border-0 gap-1.5 text-xs">
                 <Loader2 className="h-3 w-3 animate-spin" />
-                {processingCount} đang xử lý
+                {t("teacher_lesson_materials.header.processing_count", { count: processingCount })}
               </Badge>
             )}
             {readyCount > 0 && (
               <Badge className="bg-emerald-100 text-emerald-700 border-0 gap-1.5 text-xs">
                 <CheckCircle className="h-3 w-3" />
-                {readyCount} sẵn sàng
+                {t("teacher_lesson_materials.header.ready_count", { count: readyCount })}
               </Badge>
             )}
             {(summary.failed_versions ?? 0) > 0 && (
               <Badge className="bg-red-100 text-red-700 border-0 gap-1.5 text-xs">
                 <AlertCircle className="h-3 w-3" />
-                {summary.failed_versions} thất bại
+                {t("teacher_lesson_materials.header.failed_count", { count: summary.failed_versions })}
               </Badge>
             )}
           </div>
@@ -904,10 +916,10 @@ export default function LessonMaterialsPage() {
                 <Brain className="h-6 w-6 text-m3-on-surface-variant" />
               </div>
               <p className="font-headline font-bold text-m3-on-surface text-sm mb-1">
-                Không có tệp nào đang xử lý
+                {t("teacher_lesson_materials.processing.empty_title")}
               </p>
               <p className="text-xs text-m3-on-surface-variant">
-                Tải tệp lên ở khung trên để bắt đầu xử lý AI
+                {t("teacher_lesson_materials.processing.empty_body")}
               </p>
             </div>
           )}
@@ -916,7 +928,7 @@ export default function LessonMaterialsPage() {
             <div className="flex items-center gap-3 p-4 bg-m3-secondary-fixed/30 rounded-xl border border-m3-secondary/10">
               <Sparkles className="h-5 w-5 text-m3-secondary shrink-0" />
               <p className="text-sm font-medium text-m3-on-surface">
-                AI đã lập chỉ mục {readyCount} tài liệu — đồ thị tri thức sẵn sàng cho việc tạo quiz
+                {t("teacher_lesson_materials.processing.indexed_summary", { count: readyCount })}
               </p>
             </div>
           )}
@@ -926,11 +938,11 @@ export default function LessonMaterialsPage() {
 
           <div className="flex items-center justify-between">
             <h2 className="font-headline font-bold text-m3-on-surface text-lg">
-              Lịch sử tài liệu
+              {t("teacher_lesson_materials.history.title")}
             </h2>
             {summary && (
               <span className="text-sm text-m3-on-surface-variant">
-                {summary.materials_total} tài liệu
+                {t("teacher_lesson_materials.history.total", { count: summary.materials_total })}
               </span>
             )}
           </div>
@@ -944,9 +956,9 @@ export default function LessonMaterialsPage() {
           ) : materials.length === 0 ? (
             <div className="text-center py-10 text-m3-on-surface-variant bg-m3-surface-container-low/50 rounded-xl">
               <FileText className="h-9 w-9 mx-auto mb-3 opacity-20" />
-              <p className="text-sm font-medium">Chưa có tài liệu nào</p>
+              <p className="text-sm font-medium">{t("teacher_lesson_materials.history.empty_title")}</p>
               <p className="text-xs mt-1 text-m3-on-surface-variant/70">
-                Tải tệp đầu tiên bằng khung kéo-thả ở bên trái
+                {t("teacher_lesson_materials.history.empty_body")}
               </p>
             </div>
           ) : (
@@ -959,13 +971,13 @@ export default function LessonMaterialsPage() {
                   />
                   {pendingDeleteId === material.id && (
                     <div className="mt-2 flex items-center justify-end gap-2 px-4 py-3 rounded-xl bg-m3-error-container/20 border border-m3-error/20 text-xs text-m3-on-surface">
-                      <span className="text-m3-error font-medium">Xoá tài liệu này?</span>
+                      <span className="text-m3-error font-medium">{t("teacher_lesson_materials.confirm_delete.inline")}</span>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => setPendingDeleteId(null)}
                       >
-                        Huỷ
+                        {t("common.cancel")}
                       </Button>
                       <MaterialDeleteButton
                         id={material.id}

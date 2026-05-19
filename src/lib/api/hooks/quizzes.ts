@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import i18n from "@/i18n";
 import { apiDelete, apiFetch, apiPatch, apiPost } from "../client";
 import { ApiError } from "../client";
 import { queryKeys } from "../query-keys";
@@ -140,8 +141,7 @@ export function usePatchQuiz(quizId: string | null | undefined) {
   });
 }
 
-const PUBLISH_MISSING_TEXP_MESSAGE =
-  "Cần đặt thời gian dự kiến cho mọi câu hỏi trước khi xuất bản. Dùng nút 'Đặt nhanh thời gian'.";
+const PUBLISH_MISSING_TEXP_KEY = "teacher_quiz_manage.errors.publish_missing_t_exp";
 
 export function usePublishQuiz(quizId: string | null | undefined) {
   const qc = useQueryClient();
@@ -164,7 +164,7 @@ export function usePublishQuiz(quizId: string | null | undefined) {
           err.code === "missing_expected_response_time" ||
           err.code === "missing_expected_time")
       ) {
-        toast.error(PUBLISH_MISSING_TEXP_MESSAGE);
+        toast.error(i18n.t(PUBLISH_MISSING_TEXP_KEY));
       }
     },
   });
@@ -325,10 +325,10 @@ export function useBulkSetExpectedTime(quizId: string | null | undefined) {
       expected_seconds: number;
     }) => {
       if (question_ids.length === 0) {
-        throw new Error("Hãy chọn ít nhất một câu hỏi.");
+        throw new Error(i18n.t("teacher_quiz_manage.errors.bulk_select_required"));
       }
       if (!Number.isFinite(expected_seconds) || expected_seconds <= 0) {
-        throw new Error("Thời gian dự kiến phải lớn hơn 0 giây.");
+        throw new Error(i18n.t("teacher_quiz_manage.errors.bulk_seconds_positive"));
       }
       const body: BulkSetExpectedTimeRequest = {
         items: question_ids.map((qid) => ({

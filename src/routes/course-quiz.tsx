@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
   ArrowLeft,
@@ -79,30 +80,43 @@ function QuizStudyModeCard({
   showHints: boolean;
   cooldownHours: number | null | undefined;
 }) {
+  const { t } = useTranslation();
   return (
     <GlassCard className="p-6">
-      <h4 className="font-headline font-bold text-m3-primary text-sm mb-4">Cấu hình bài quiz</h4>
+      <h4 className="font-headline font-bold text-m3-primary text-sm mb-4">
+        {t("course_quiz.sections.config")}
+      </h4>
       <div className="space-y-3 text-sm">
         <div className="flex items-start justify-between gap-4">
-          <span className="text-m3-on-surface-variant">Gợi ý</span>
+          <span className="text-m3-on-surface-variant">
+            {t("course_quiz.labels.hint")}
+          </span>
           <span className="font-semibold text-m3-on-surface">
-            {showHints ? "Có sẵn" : "Tắt"}
+            {showHints
+              ? t("course_quiz.values.hint_available")
+              : t("course_quiz.values.hint_off")}
           </span>
         </div>
         <div className="flex items-start justify-between gap-4">
-          <span className="text-m3-on-surface-variant">Làm lại</span>
+          <span className="text-m3-on-surface-variant">
+            {t("course_quiz.labels.retake")}
+          </span>
           <span className="font-semibold text-m3-on-surface">
             {allowRetakes
               ? maxAttempts != null
-                ? `Tối đa ${maxAttempts} lần`
-                : "Cho phép"
-              : "Không cho phép"}
+                ? t("course_quiz.values.retake_max_attempts", { count: maxAttempts })
+                : t("course_quiz.values.allowed")
+              : t("course_quiz.values.disallowed")}
           </span>
         </div>
         {cooldownHours != null && cooldownHours > 0 && (
           <div className="flex items-start justify-between gap-4">
-            <span className="text-m3-on-surface-variant">Thời gian chờ</span>
-            <span className="font-semibold text-m3-on-surface">{cooldownHours} giờ</span>
+            <span className="text-m3-on-surface-variant">
+              {t("course_quiz.labels.cooldown")}
+            </span>
+            <span className="font-semibold text-m3-on-surface">
+              {t("course_quiz.values.cooldown_hours", { hours: cooldownHours })}
+            </span>
           </div>
         )}
       </div>
@@ -121,6 +135,7 @@ function QuizIntroPanel({
   onStart: () => void;
   starting: boolean;
 }) {
+  const { t } = useTranslation();
   const completed = attempts.filter((a) => a.status === "submitted" || a.status === "graded").length;
   const passingScore = Math.round(Number(quiz.passing_score_percent));
   const maxAttemptsReached =
@@ -141,7 +156,7 @@ function QuizIntroPanel({
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-8 text-left">
           <div className="rounded-xl bg-m3-surface-container-low p-4">
             <span className="block text-[10px] text-m3-outline uppercase font-bold mb-1 tracking-wider">
-              Điểm đạt
+              {t("course_quiz.labels.passing_score")}
             </span>
             <span className="text-xl font-black font-headline text-m3-primary">
               {passingScore}%
@@ -149,15 +164,17 @@ function QuizIntroPanel({
           </div>
           <div className="rounded-xl bg-m3-surface-container-low p-4">
             <span className="block text-[10px] text-m3-outline uppercase font-bold mb-1 tracking-wider">
-              Thời gian
+              {t("course_quiz.labels.time")}
             </span>
             <span className="text-xl font-black font-headline text-m3-on-surface">
-              {quiz.time_limit_seconds ? formatTime(quiz.time_limit_seconds) : "Không giới hạn"}
+              {quiz.time_limit_seconds
+                ? formatTime(quiz.time_limit_seconds)
+                : t("course_quiz.values.no_limit")}
             </span>
           </div>
           <div className="rounded-xl bg-m3-surface-container-low p-4">
             <span className="block text-[10px] text-m3-outline uppercase font-bold mb-1 tracking-wider">
-              Lượt đã làm
+              {t("course_quiz.labels.attempts")}
             </span>
             <span className="text-xl font-black font-headline text-m3-secondary">
               {completed}
@@ -172,8 +189,9 @@ function QuizIntroPanel({
 
         {blocked ? (
           <div className="rounded-xl bg-m3-surface-container-low px-4 py-3 text-sm text-m3-on-surface-variant">
-            {noRetakesLeft && "Bài quiz này không cho phép làm lại."}
-            {maxAttemptsReached && ` Bạn đã sử dụng hết ${quiz.max_attempts} lượt.`}
+            {noRetakesLeft && t("course_quiz.messages.no_retakes")}
+            {maxAttemptsReached &&
+              ` ${t("course_quiz.messages.max_attempts_reached", { count: quiz.max_attempts ?? 0 })}`}
           </div>
         ) : (
           <Button
@@ -181,7 +199,9 @@ function QuizIntroPanel({
             disabled={starting}
             className="gradient-primary text-white rounded-xl font-bold gap-2 px-8 py-3 h-auto"
           >
-            {starting ? "Đang khởi tạo..." : "Bắt đầu làm bài"}
+            {starting
+              ? t("course_quiz.actions.starting")
+              : t("course_quiz.actions.start")}
             <ArrowRight className="h-4 w-4" />
           </Button>
         )}
@@ -209,6 +229,7 @@ function QuestionSubmitButton({
   onSaveNext: () => void;
   onFinalSubmit: () => void;
 }) {
+  const { t } = useTranslation();
   const cooldown = useCardCooldown(cooldownAt);
   const cooldownActive = !!cooldownAt && !cooldown.isExpired;
   const disabled =
@@ -224,10 +245,10 @@ function QuestionSubmitButton({
           className="gradient-primary text-white font-bold rounded-xl gap-2 shadow-ai-glow px-6 py-3 h-auto hover:opacity-90 active:scale-95 transition-all"
         >
           {isFinalSubmitting
-            ? "Đang nộp..."
+            ? t("course_quiz.actions.submitting")
             : isSavingAnswer
-              ? "Đang lưu..."
-              : "Nộp bài"}
+              ? t("course_quiz.actions.saving")
+              : t("course_quiz.actions.submit")}
           <ArrowRight className="h-4 w-4" />
         </Button>
       </div>
@@ -243,10 +264,10 @@ function QuestionSubmitButton({
         className="gradient-primary text-white font-bold rounded-xl gap-2 shadow-ai-glow px-6 py-3 h-auto hover:opacity-90 active:scale-95 transition-all"
       >
         {isSavingAnswer
-          ? "Đang lưu..."
+          ? t("course_quiz.actions.saving")
           : isSavedAnswer
-            ? "Tiếp theo"
-            : "Lưu & tiếp tục"}
+            ? t("course_quiz.actions.next")
+            : t("course_quiz.actions.save_and_continue")}
         <ArrowRight className="h-4 w-4" />
       </Button>
     </div>
@@ -254,6 +275,7 @@ function QuestionSubmitButton({
 }
 
 export default function CourseQuizPage() {
+  const { t } = useTranslation();
   const { slug, quizId } = useParams({ strict: false }) as { slug: string; quizId: string };
 
   const { data: course, isLoading: courseLoading } = useCourseBySlug(slug);
@@ -320,8 +342,8 @@ export default function CourseQuizPage() {
     } catch (err) {
       toast.error(
         err instanceof ApiError && err.status === 429
-          ? "Quá nhiều yêu cầu, vui lòng thử lại sau"
-          : "Không thể bắt đầu bài quiz",
+          ? t("course_quiz.errors.rate_limited")
+          : t("course_quiz.errors.start_failed"),
       );
     }
   }
@@ -363,14 +385,14 @@ export default function CourseQuizPage() {
         if (retryAt) {
           setPerQuestionCooldown((prev) => ({ ...prev, [question.id]: retryAt }));
         }
-        toast.error("Câu hỏi đang trong thời gian chờ");
+        toast.error(t("course_quiz.errors.cooldown_active"));
         return false;
       }
       if (err instanceof ApiError && err.status === 429) {
-        toast.error("Quá nhiều yêu cầu, vui lòng thử lại sau");
+        toast.error(t("course_quiz.errors.rate_limited"));
         return false;
       }
-      toast.error((err as Error).message || "Không thể lưu câu trả lời");
+      toast.error((err as Error).message || t("course_quiz.errors.save_answer_failed"));
       return false;
     }
   }
@@ -398,10 +420,10 @@ export default function CourseQuizPage() {
       const result = await submitAttempt.mutateAsync();
       setSubmittedSummary(result);
       if (trigger === "timeout") {
-        toast.error("Đã hết giờ. Bài quiz đã được nộp tự động.");
+        toast.error(t("course_quiz.errors.auto_submitted_timeout"));
       }
     } catch (err) {
-      toast.error((err as Error).message || "Không thể nộp bài quiz");
+      toast.error((err as Error).message || t("course_quiz.errors.submit_failed"));
     }
   }
 
@@ -445,15 +467,15 @@ export default function CourseQuizPage() {
         <GlassCard className="p-10 text-center max-w-md">
           <BookOpen className="h-10 w-10 text-m3-outline mx-auto mb-4" />
           <h2 className="font-headline font-bold text-xl text-m3-on-surface mb-2">
-            Không tìm thấy bài quiz
+            {t("course_quiz.empty_states.no_quiz_found")}
           </h2>
           <p className="text-sm text-m3-on-surface-variant mb-6">
-            Bài quiz này không tải được cho khoá học.
+            {t("course_quiz.empty_states.quiz_not_loadable")}
           </p>
           <Link to="/courses/$slug/learn" params={{ slug }}>
             <Button className="gradient-primary text-white rounded-xl font-bold gap-2">
               <ArrowLeft className="h-4 w-4" />
-              Quay lại khoá học
+              {t("course_quiz.actions.back_to_course")}
             </Button>
           </Link>
         </GlassCard>
@@ -481,23 +503,34 @@ export default function CourseQuizPage() {
               {Math.round(score)}%
             </div>
             <h2 className="font-headline font-extrabold text-2xl text-m3-primary mb-1">
-              {passed ? "Đạt yêu cầu" : "Bài đã được nộp"}
+              {passed
+                ? t("course_quiz.results.passed")
+                : t("course_quiz.results.submitted")}
             </h2>
             <p className="text-m3-on-surface-variant text-sm mb-2">
               {passed
-                ? `Bạn đã hoàn thành ${quiz.title} với ${Math.round(score)}%.`
-                : `Bạn đạt ${Math.round(score)}% và cần ${passingScore}% để qua.`}
+                ? t("course_quiz.results.passed_summary", {
+                    title: quiz.title,
+                    score: Math.round(score),
+                  })
+                : t("course_quiz.results.failed_summary", {
+                    score: Math.round(score),
+                    passing: passingScore,
+                  })}
             </p>
             <p className="text-xs text-m3-outline mb-6">
-              Lượt {submittedSummary.attempt_number} • {submittedSummary.correct_count ?? 0}/
-              {submittedSummary.total_questions ?? displayQuestions.length} câu đúng
+              {t("course_quiz.labels.attempt_summary", {
+                attempt: submittedSummary.attempt_number,
+                correct: submittedSummary.correct_count ?? 0,
+                total: submittedSummary.total_questions ?? displayQuestions.length,
+              })}
             </p>
 
             <div className="flex gap-3 justify-center flex-wrap">
               <Link to="/courses/$slug/learn" params={{ slug }}>
                 <Button variant="outline" className="rounded-xl ghost-border font-bold text-sm gap-2">
                   <ArrowLeft className="h-4 w-4" />
-                  Quay lại khoá học
+                  {t("course_quiz.actions.back_to_course")}
                 </Button>
               </Link>
             </div>
@@ -554,7 +587,7 @@ export default function CourseQuizPage() {
             <Link to="/courses/$slug/learn" params={{ slug }}>
               <Button variant="ghost" size="sm" className="rounded-xl text-m3-on-surface-variant hover:text-m3-primary gap-1.5 text-xs font-bold px-3">
                 <ArrowLeft className="h-4 w-4" />
-                Khoá học
+                {t("course_interview.actions.course")}
               </Button>
             </Link>
             <span className="text-m3-on-surface-variant text-sm font-medium hidden sm:block">
@@ -576,7 +609,7 @@ export default function CourseQuizPage() {
             ) : (
               <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-m3-surface-container text-m3-primary font-bold text-sm">
                 <Clock className="h-4 w-4" />
-                Không giới hạn thời gian
+                {t("course_quiz.labels.no_time_limit")}
               </div>
             )}
           </div>
@@ -588,7 +621,9 @@ export default function CourseQuizPage() {
               <h1 className="font-headline font-extrabold text-3xl sm:text-4xl text-m3-primary tracking-tight leading-none mb-1">
                 {quiz.title}
               </h1>
-              <p className="text-m3-on-surface-variant text-base">Đánh giá module</p>
+              <p className="text-m3-on-surface-variant text-base">
+                {t("course_quiz.sections.module_review")}
+              </p>
             </div>
             <div className="text-right shrink-0">
               <span className="block font-headline font-bold text-2xl text-m3-secondary">
@@ -598,7 +633,7 @@ export default function CourseQuizPage() {
                 </span>
               </span>
               <span className="text-[10px] uppercase tracking-widest font-bold text-m3-outline">
-                {attempts.length} lượt trước
+                {t("course_quiz.labels.attempts_before", { count: attempts.length })}
               </span>
             </div>
           </div>
@@ -611,13 +646,15 @@ export default function CourseQuizPage() {
               <div className="absolute top-0 right-0 m-5">
                 <Badge className="bg-m3-secondary-fixed text-m3-on-surface border-0 font-bold text-[10px] px-3 py-1.5 gap-1.5 rounded-full">
                   <Sparkles className="h-3 w-3" />
-                  ĐANG LÀM
+                  {t("course_quiz.status.currently_doing")}
                 </Badge>
               </div>
 
               <div className="mb-8 pt-2">
                 <span className="text-m3-secondary font-headline font-bold text-xs tracking-widest uppercase mb-3 block">
-                  Câu hỏi {String(activeIdx + 1).padStart(2, "0")}
+                  {t("course_quiz.labels.question_label_short", {
+                    index: String(activeIdx + 1).padStart(2, "0"),
+                  })}
                 </span>
                 <h2 className="text-xl sm:text-2xl font-headline font-bold text-m3-on-surface leading-snug">
                   {activeQuestion.prompt_text}
@@ -690,7 +727,7 @@ export default function CourseQuizPage() {
                 className="font-bold text-m3-primary hover:bg-m3-primary-fixed/30 rounded-xl gap-2"
               >
                 <ArrowLeft className="h-4 w-4" />
-                Trước
+                {t("course_quiz.actions.previous")}
               </Button>
 
               <div className="flex items-center gap-3 flex-wrap justify-end">
@@ -712,7 +749,9 @@ export default function CourseQuizPage() {
                   )}
                 >
                   <Flag className="h-4 w-4" />
-                  {activeStatus.flagged ? "Bỏ đánh dấu" : "Đánh dấu"}
+                  {activeStatus.flagged
+                    ? t("course_quiz.actions.unflag")
+                    : t("course_quiz.actions.flag")}
                 </Button>
 
                 <QuestionSubmitButton
@@ -736,9 +775,11 @@ export default function CourseQuizPage() {
                   <Bot className="h-5 w-5" />
                 </div>
                 <div>
-                  <h4 className="font-headline font-bold text-m3-primary text-sm">Hướng dẫn</h4>
+                  <h4 className="font-headline font-bold text-m3-primary text-sm">
+                    {t("course_quiz.sections.instructions")}
+                  </h4>
                   <p className="text-[10px] text-m3-outline uppercase font-bold tracking-wider">
-                    Học viên
+                    {t("course_quiz.labels.student")}
                   </p>
                 </div>
               </div>
@@ -746,7 +787,9 @@ export default function CourseQuizPage() {
               {quiz.show_hints && activeQuestion.hint_text ? (
                 activeStatus.hintViewed ? (
                   <p className="text-sm text-m3-on-surface-variant leading-relaxed">
-                    <span className="text-m3-secondary font-bold">Gợi ý: </span>
+                    <span className="text-m3-secondary font-bold">
+                      {t("course_quiz.labels.hint_prefix")}
+                    </span>
                     {activeQuestion.hint_text}
                   </p>
                 ) : (
@@ -761,12 +804,12 @@ export default function CourseQuizPage() {
                       );
                     }}
                   >
-                    Xem gợi ý
+                    {t("course_quiz.actions.show_hint")}
                   </Button>
                 )
               ) : (
                 <p className="text-sm text-m3-on-surface-variant leading-relaxed">
-                  Chọn đáp án phù hợp nhất; có thể đánh dấu để xem lại sau.
+                  {t("course_quiz.instructions.choose_best")}
                 </p>
               )}
             </GlassCard>
@@ -774,7 +817,7 @@ export default function CourseQuizPage() {
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-surface-elev rounded-xl p-4 shadow-sm">
                 <span className="block text-[10px] text-m3-outline uppercase font-bold mb-1 tracking-wider">
-                  Đã trả lời
+                  {t("course_quiz.labels.answered")}
                 </span>
                 <span className="text-xl font-black font-headline text-m3-primary">
                   {completedCount}
@@ -785,13 +828,13 @@ export default function CourseQuizPage() {
               </div>
               <div className="bg-surface-elev rounded-xl p-4 shadow-sm">
                 <span className="block text-[10px] text-m3-outline uppercase font-bold mb-1 tracking-wider">
-                  Đánh dấu
+                  {t("course_quiz.labels.flagged")}
                 </span>
                 <span className="text-xl font-black font-headline text-amber-500">{flaggedCount}</span>
               </div>
               <div className="bg-surface-elev rounded-xl p-4 shadow-sm col-span-2">
                 <span className="block text-[10px] text-m3-outline uppercase font-bold mb-1 tracking-wider">
-                  Điểm đạt
+                  {t("course_quiz.labels.passing_score")}
                 </span>
                 <span className="text-xl font-black font-headline text-m3-secondary">
                   {passingScore}%
@@ -810,7 +853,7 @@ export default function CourseQuizPage() {
 
         <div className="mt-12 pt-8 border-t border-m3-outline-variant/15">
           <h4 className="text-xs font-bold text-m3-outline uppercase tracking-widest mb-5 text-center">
-            Tổng quan câu hỏi
+            {t("course_quiz.sections.question_overview")}
           </h4>
           <div className="flex flex-wrap justify-center gap-2.5">
             {displayQuestions.map((question, index) => {
