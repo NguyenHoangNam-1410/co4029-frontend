@@ -1,0 +1,122 @@
+{
+  "common": {
+    "loading": "Đang tải…",
+    "error": "Đã xảy ra lỗi",
+    "save": "Lưu",
+    "cancel": "Huỷ",
+    "delete": "Xoá",
+    "confirm": "Xác nhận",
+    "back": "Quay lại",
+    "next": "Tiếp",
+    "previous": "Trước",
+    "search": "Tìm kiếm",
+    "submit": "Gửi",
+    "close": "Đóng",
+    "yes": "Có",
+    "no": "Không"
+  },
+  "nav": {
+    "dashboard": "Bảng điều khiển",
+    "courses": "Khoá học",
+    "progress": "Tiến độ",
+    "career_paths": "Lộ trình nghề nghiệp",
+    "overview": "Tổng quan",
+    "my_courses": "Khoá của tôi",
+    "department_courses": "Khoá của khoa",
+    "active_users": "Người dùng đang hoạt động",
+    "content": "Nội dung",
+    "users": "Người dùng",
+    "processing": "Đang xử lý",
+    "ai_costs": "Chi phí AI",
+    "health": "Tình trạng hệ thống",
+    "settings": "Cài đặt",
+    "profile": "Hồ sơ",
+    "logout": "Đăng xuất"
+  },
+  "auth": {
+    "sign_in": "Đăng nhập",
+    "sign_in_with_google": "Đăng nhập bằng Google",
+    "sign_out": "Đăng xuất",
+    "not_provisioned_title": "Tài khoản chưa được đăng ký",
+    "not_provisioned_body": "Email này chưa được đăng ký. Vui lòng liên hệ quản trị viên để được thêm tài khoản trước khi đăng nhập."
+  },
+  "admin": {
+    "users": {
+      "title": "Người dùng",
+      "list_title": "Danh sách người dùng",
+      "back_to_list": "Quay lại danh sách",
+      "status": {
+        "active": "Đang hoạt động",
+        "invited": "Đã mời",
+        "disabled": "Vô hiệu hoá",
+        "inactive": "Vô hiệu hoá",
+        "pending": "Chờ duyệt",
+        "suspended": "Tạm khoá"
+      },
+      "actions": {
+        "disable": "Vô hiệu hoá",
+        "enable": "Kích hoạt",
+        "disabling": "Đang xử lý…"
+      },
+      "fields": {
+        "last_login": "Đăng nhập gần nhất",
+        "created_at": "Ngày tạo",
+        "updated_at": "Cập nhật gần nhất",
+        "display_name": "Tên hiển thị",
+        "full_name": "Họ tên",
+        "bio": "Giới thiệu"
+      },
+      "roles": {
+        "title": "Vai trò & phân quyền",
+        "count": "{{count}} vai trò",
+        "count_plural": "{{count}} vai trò",
+        "empty": "Người dùng chưa được gán vai trò nào.",
+        "assign_new": "Gán vai trò mới",
+        "role": "Vai trò",
+        "scope": "Phạm vi",
+        "organization_id": "ID tổ chức",
+        "org_unit_id": "ID đơn vị",
+        "course_id": "ID khoá học",
+        "select_role": "— Chọn vai trò —",
+        "scope_organization": "Tổ chức",
+        "scope_org_unit": "Đơn vị",
+        "scope_course": "Khoá học",
+        "scope_global": "Toàn cục",
+        "grant": "Gán vai trò",
+        "granting": "Đang gán…",
+        "revoke": "Thu hồi",
+        "revoke_confirm": "Thu hồi vai trò \"{{role}}\" cho người dùng này?",
+        "active_sessions": "Phiên đăng nhập đang hoạt động",
+        "session_expires": "hết hạn",
+        "session_ip": "IP",
+        "errors": {
+          "select_role": "Hãy chọn vai trò",
+          "need_org_id": "Phạm vi 'organization' cần ID tổ chức",
+          "need_unit_id": "Phạm vi 'org_unit' cần ID đơn vị",
+          "need_course_id": "Phạm vi 'course' cần ID khoá học",
+          "no_permission": "Không có quyền truy cập",
+          "load_failed": "Không thể tải thông tin người dùng.",
+          "grant_failed": "Không thể gán vai trò",
+          "revoke_failed": "Không thể thu hồi",
+          "disable_failed": "Không thể vô hiệu hoá",
+          "enable_failed": "Không thể kích hoạt"
+        },
+        "success": {
+          "granted": "Đã gán vai trò {{role}}",
+          "revoked": "Đã thu hồi vai trò",
+          "disabled": "Đã vô hiệu hoá. Đã thu hồi {{count}} phiên.",
+          "enabled": "Đã kích hoạt lại người dùng"
+        }
+      },
+      "confirm_disable": {
+        "title": "Vô hiệu hoá người dùng?",
+        "body": "Tất cả phiên đăng nhập sẽ bị huỷ. Người dùng không thể đăng nhập cho đến khi được kích hoạt lại."
+      }
+    }
+  },
+  "languages": {
+    "en": "English",
+    "vi": "Tiếng Việt",
+    "switch": "Ngôn ngữ"
+  }
+}

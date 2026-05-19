@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Bell, Loader2, Settings, LogOut, User } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -12,9 +13,11 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { getAuthDisplayName, getAuthUserInitials } from "@/lib/auth";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 export default function ContentTopBar() {
   const { logout, user } = useAuth();
+  const { t } = useTranslation();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const displayName = getAuthDisplayName(user);
 
@@ -29,7 +32,9 @@ export default function ContentTopBar() {
 
   return (
     <header className="w-full sticky top-0 z-20 bg-surface/85 backdrop-blur-md border-b border-border flex items-center justify-end px-8 h-16">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2">
+        <LanguageSwitcher />
+
         <button
           className="relative text-text-muted cursor-pointer hover:bg-surface-muted hover:text-primary p-2.5 rounded-md transition-colors"
           aria-label="Notifications"
@@ -68,14 +73,14 @@ export default function ContentTopBar() {
               <DropdownMenuItem className="rounded-md px-3 py-2 gap-3 cursor-pointer text-m3-on-surface hover:bg-primary-soft focus:bg-primary-soft focus:text-primary">
                 <Link to="/settings" className="flex items-center gap-3 w-full">
                   <Settings className="h-4 w-4 text-m3-on-surface-variant" />
-                  <span className="text-sm font-medium">Settings</span>
+                  <span className="text-sm font-medium">{t("nav.settings")}</span>
                 </Link>
               </DropdownMenuItem>
 
               <DropdownMenuItem className="rounded-md px-3 py-2 gap-3 cursor-pointer text-m3-on-surface hover:bg-primary-soft focus:bg-primary-soft focus:text-primary">
                 <Link to="/settings" className="flex items-center gap-3 w-full">
                   <User className="h-4 w-4 text-m3-on-surface-variant" />
-                  <span className="text-sm font-medium">Profile</span>
+                  <span className="text-sm font-medium">{t("nav.profile")}</span>
                 </Link>
               </DropdownMenuItem>
             </DropdownMenuGroup>
@@ -93,7 +98,7 @@ export default function ContentTopBar() {
               ) : (
                 <LogOut className="h-4 w-4" />
               )}
-              <span className="text-sm font-medium">Log out</span>
+              <span className="text-sm font-medium">{t("nav.logout")}</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -101,3 +106,4 @@ export default function ContentTopBar() {
     </header>
   );
 }
+

@@ -1,0 +1,122 @@
+{
+  "common": {
+    "loading": "Loading…",
+    "error": "Something went wrong",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "search": "Search",
+    "submit": "Submit",
+    "close": "Close",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "courses": "Courses",
+    "progress": "Progress",
+    "career_paths": "Career Paths",
+    "overview": "Overview",
+    "my_courses": "My Courses",
+    "department_courses": "Department Courses",
+    "active_users": "Active Users",
+    "content": "Content",
+    "users": "Users",
+    "processing": "Processing",
+    "ai_costs": "AI Costs",
+    "health": "Health",
+    "settings": "Settings",
+    "profile": "Profile",
+    "logout": "Log Out"
+  },
+  "auth": {
+    "sign_in": "Sign in",
+    "sign_in_with_google": "Sign in with Google",
+    "sign_out": "Sign out",
+    "not_provisioned_title": "Account not provisioned",
+    "not_provisioned_body": "This email is not registered. Ask an administrator to add your account before signing in."
+  },
+  "admin": {
+    "users": {
+      "title": "Users",
+      "list_title": "User list",
+      "back_to_list": "Back to list",
+      "status": {
+        "active": "Active",
+        "invited": "Invited",
+        "disabled": "Disabled",
+        "inactive": "Disabled",
+        "pending": "Pending",
+        "suspended": "Suspended"
+      },
+      "actions": {
+        "disable": "Disable",
+        "enable": "Activate",
+        "disabling": "Disabling…"
+      },
+      "fields": {
+        "last_login": "Last login",
+        "created_at": "Created at",
+        "updated_at": "Last updated",
+        "display_name": "Display name",
+        "full_name": "Full name",
+        "bio": "Bio"
+      },
+      "roles": {
+        "title": "Roles & permissions",
+        "count": "{{count}} role",
+        "count_plural": "{{count}} roles",
+        "empty": "No roles assigned to this user.",
+        "assign_new": "Assign new role",
+        "role": "Role",
+        "scope": "Scope",
+        "organization_id": "Organization ID",
+        "org_unit_id": "Org unit ID",
+        "course_id": "Course ID",
+        "select_role": "— Select role —",
+        "scope_organization": "Organization",
+        "scope_org_unit": "Org unit",
+        "scope_course": "Course",
+        "scope_global": "Global",
+        "grant": "Grant role",
+        "granting": "Granting…",
+        "revoke": "Revoke",
+        "revoke_confirm": "Revoke role \"{{role}}\" from this user?",
+        "active_sessions": "Active sessions",
+        "session_expires": "expires",
+        "session_ip": "IP",
+        "errors": {
+          "select_role": "Pick a role",
+          "need_org_id": "Organization scope needs an organization ID",
+          "need_unit_id": "Org-unit scope needs an org unit ID",
+          "need_course_id": "Course scope needs a course ID",
+          "no_permission": "You do not have permission to access this page",
+          "load_failed": "Failed to load user details.",
+          "grant_failed": "Failed to grant role",
+          "revoke_failed": "Failed to revoke role",
+          "disable_failed": "Failed to disable",
+          "enable_failed": "Failed to activate"
+        },
+        "success": {
+          "granted": "Role {{role}} granted",
+          "revoked": "Role revoked",
+          "disabled": "Disabled. Revoked {{count}} session(s).",
+          "enabled": "User reactivated"
+        }
+      },
+      "confirm_disable": {
+        "title": "Disable user?",
+        "body": "All login sessions will be revoked. The user will not be able to sign in until they are reactivated."
+      }
+    }
+  },
+  "languages": {
+    "en": "English",
+    "vi": "Tiếng Việt",
+    "switch": "Language"
+  }
+}
