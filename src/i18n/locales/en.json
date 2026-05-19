@@ -79,6 +79,30 @@
       "locked": "Locked"
     }
   },
+  "course_detail": {
+    "unavailable_title": "Course unavailable",
+    "unavailable_body": "This course isn't open or has been temporarily hidden.",
+    "browse_courses": "Browse courses",
+    "breadcrumb_courses": "Courses",
+    "ai_enhanced": "AI-enhanced",
+    "modules_count": "{{count}} module",
+    "modules_count_plural": "{{count}} modules",
+    "instructor_unknown": "Unknown instructor",
+    "created_by": "Created by",
+    "what_youll_learn": "What you'll learn",
+    "course_content": "Course content",
+    "no_modules": "No modules available yet.",
+    "no_items": "No items added yet.",
+    "item_quiz": "Quiz",
+    "item_interview": "AI mock interview",
+    "item_lesson": "Lesson",
+    "about_instructor": "About the instructor",
+    "instructor_role": "Instructor",
+    "ai_mock_title": "AI mock interviews included",
+    "ai_mock_body": "Complete each module to unlock an AI-powered mock interview. Get real-time feedback, adaptive follow-up questions, and a detailed assessment of your technical explanations.",
+    "start_learning": "Start learning",
+    "modules": "Modules"
+  },
   "settings_security": {
     "title": "Account security",
     "intro": "Manage two-factor authentication (TOTP) and recovery codes for your account.",

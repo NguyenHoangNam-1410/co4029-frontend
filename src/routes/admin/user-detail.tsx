@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -25,15 +26,6 @@ import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { RoleAssignmentRead } from "@/lib/api/types";
 
-const STATUS_LABEL: Record<string, string> = {
-  active: "Đang hoạt động",
-  invited: "Đã mời",
-  disabled: "Vô hiệu hoá",
-  inactive: "Vô hiệu hoá",
-  pending: "Chờ duyệt",
-  suspended: "Tạm khoá",
-};
-
 const STATUS_COLOR: Record<string, string> = {
   active: "bg-emerald-100 text-emerald-700",
   invited: "bg-amber-100 text-amber-700",
@@ -44,8 +36,9 @@ const STATUS_COLOR: Record<string, string> = {
 };
 
 function StatusBadge({ status }: { status: string }) {
+  const { t } = useTranslation();
   const cls = STATUS_COLOR[status] ?? "bg-slate-100 text-slate-700";
-  const label = STATUS_LABEL[status] ?? status;
+  const label = t(`admin.users.status.${status}`, { defaultValue: status });
   return (
     <span
       className={`inline-block px-2 py-0.5 text-xs font-semibold rounded-md ${cls}`}
@@ -55,9 +48,9 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function formatDate(iso: string | null | undefined): string {
+function formatDate(iso: string | null | undefined, locale: string): string {
   if (!iso) return "—";
-  return new Intl.DateTimeFormat("vi-VN", {
+  return new Intl.DateTimeFormat(locale === "vi" ? "vi-VN" : "en-US", {
     dateStyle: "short",
     timeStyle: "short",
   }).format(new Date(iso));
@@ -72,6 +65,7 @@ function ConfirmDisableDialog({
   onCancel: () => void;
   isPending: boolean;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div className="bg-surface-elev border border-border rounded-xl shadow-xl max-w-md w-full p-6">
@@ -81,11 +75,10 @@ function ConfirmDisableDialog({
           </div>
           <div className="flex-1">
             <h2 className="text-base font-headline font-bold text-text-strong">
-              Vô hiệu hoá người dùng?
+              {t("admin.users.confirm_disable.title")}
             </h2>
             <p className="text-sm text-text-muted mt-1">
-              Tất cả phiên đăng nhập sẽ bị huỷ. Người dùng không thể đăng nhập
-              cho đến khi được kích hoạt lại.
+              {t("admin.users.confirm_disable.body")}
             </p>
           </div>
         </div>
@@ -96,7 +89,7 @@ function ConfirmDisableDialog({
             disabled={isPending}
             className="px-3 py-1.5 text-sm font-medium rounded-md text-text-strong border border-border hover:bg-surface-muted disabled:opacity-50"
           >
-            Huỷ
+            {t("common.cancel")}
           </button>
           <button
             type="button"
@@ -104,7 +97,7 @@ function ConfirmDisableDialog({
             disabled={isPending}
             className="px-3 py-1.5 text-sm font-semibold rounded-md bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
           >
-            {isPending ? "Đang xử lý..." : "Vô hiệu hoá"}
+            {isPending ? t("admin.users.actions.disabling") : t("admin.users.actions.disable")}
           </button>
         </div>
       </div>
@@ -119,6 +112,7 @@ function RoleAssignmentsSection({
   userId: string;
   assignments: RoleAssignmentRead[];
 }) {
+  const { t } = useTranslation();
   const roles = useListRoles();
   const grant = useGrantUserAssignment(userId);
   const revoke = useRevokeUserAssignment(userId);
@@ -142,19 +136,19 @@ function RoleAssignmentsSection({
   const handleGrant = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!roleCode) {
-      toast.error("Hãy chọn vai trò");
+      toast.error(t("admin.users.roles.errors.select_role"));
       return;
     }
     if (scopeKind === "organization" && !organizationId.trim()) {
-      toast.error("Cần ID tổ chức cho phạm vi 'organization'");
+      toast.error(t("admin.users.roles.errors.need_org_id"));
       return;
     }
     if (scopeKind === "org_unit" && !orgUnitId.trim()) {
-      toast.error("Cần ID đơn vị cho phạm vi 'org_unit'");
+      toast.error(t("admin.users.roles.errors.need_unit_id"));
       return;
     }
     if (scopeKind === "course" && !courseId.trim()) {
-      toast.error("Cần ID khoá học cho phạm vi 'course'");
+      toast.error(t("admin.users.roles.errors.need_course_id"));
       return;
     }
     grant.mutate(
@@ -168,14 +162,16 @@ function RoleAssignmentsSection({
       },
       {
         onSuccess: () => {
-          toast.success(`Đã gán vai trò ${roleCode}`);
+          toast.success(t("admin.users.roles.success.granted", { role: roleCode }));
           setRoleCode("");
           setOrganizationId("");
           setOrgUnitId("");
           setCourseId("");
         },
         onError: (err) =>
-          toast.error((err as Error).message || "Không thể gán vai trò"),
+          toast.error(
+            (err as Error).message || t("admin.users.roles.errors.grant_failed"),
+          ),
       },
     );
   };
@@ -184,16 +180,16 @@ function RoleAssignmentsSection({
     <div className="bg-surface-elev border border-border rounded-lg p-5">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-sm font-headline font-bold text-text-strong">
-          Vai trò &amp; phân quyền
+          {t("admin.users.roles.title")}
         </h2>
         <span className="text-xs text-text-muted">
-          {assignments.length} vai trò
+          {t("admin.users.roles.count", { count: assignments.length })}
         </span>
       </div>
 
       {assignments.length === 0 ? (
         <p className="text-sm text-text-muted py-4 text-center">
-          Người dùng chưa được gán vai trò nào.
+          {t("admin.users.roles.empty")}
         </p>
       ) : (
         <ul className="divide-y divide-border">
@@ -209,7 +205,7 @@ function RoleAssignmentsSection({
                     {roleName}
                   </p>
                   <p className="text-xs text-text-muted mt-0.5 font-mono break-all">
-                    Phạm vi: {a.scope_kind}
+                    {t("admin.users.roles.scope")}: {a.scope_kind}
                     {a.organization_id ? ` · org=${a.organization_id}` : ""}
                     {a.org_unit_id ? ` · unit=${a.org_unit_id}` : ""}
                     {a.course_id ? ` · course=${a.course_id}` : ""}
@@ -220,14 +216,16 @@ function RoleAssignmentsSection({
                   onClick={() => {
                     if (
                       window.confirm(
-                        `Thu hồi vai trò "${roleName}" cho người dùng này?`,
+                        t("admin.users.roles.revoke_confirm", { role: roleName }),
                       )
                     ) {
                       revoke.mutate(a.id, {
-                        onSuccess: () => toast.success("Đã thu hồi vai trò"),
+                        onSuccess: () =>
+                          toast.success(t("admin.users.roles.success.revoked")),
                         onError: (err) =>
                           toast.error(
-                            (err as Error).message || "Không thể thu hồi",
+                            (err as Error).message ||
+                              t("admin.users.roles.errors.revoke_failed"),
                           ),
                       });
                     }
@@ -236,7 +234,7 @@ function RoleAssignmentsSection({
                   className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-md text-red-700 hover:bg-red-50 disabled:opacity-50"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
-                  Thu hồi
+                  {t("admin.users.roles.revoke")}
                 </button>
               </li>
             );
@@ -249,18 +247,18 @@ function RoleAssignmentsSection({
         className="mt-4 pt-4 border-t border-border space-y-3"
       >
         <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wide">
-          Gán vai trò mới
+          {t("admin.users.roles.assign_new")}
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <label className="text-xs text-text-muted">
-            Vai trò
+            {t("admin.users.roles.role")}
             <select
               value={roleCode}
               onChange={(e) => setRoleCode(e.target.value)}
               className="mt-1 block w-full rounded-md border border-border bg-surface-elev px-2 py-1.5 text-sm"
               required
             >
-              <option value="">— Chọn vai trò —</option>
+              <option value="">{t("admin.users.roles.select_role")}</option>
               {roleOptions.map((r) => (
                 <option key={r.id} value={r.code}>
                   {r.name} ({r.code})
@@ -269,21 +267,21 @@ function RoleAssignmentsSection({
             </select>
           </label>
           <label className="text-xs text-text-muted">
-            Phạm vi
+            {t("admin.users.roles.scope")}
             <select
               value={scopeKind}
               onChange={(e) => setScopeKind(e.target.value)}
               className="mt-1 block w-full rounded-md border border-border bg-surface-elev px-2 py-1.5 text-sm"
             >
-              <option value="organization">Tổ chức</option>
-              <option value="org_unit">Đơn vị</option>
-              <option value="course">Khoá học</option>
-              <option value="global">Toàn cục</option>
+              <option value="organization">{t("admin.users.roles.scope_organization")}</option>
+              <option value="org_unit">{t("admin.users.roles.scope_org_unit")}</option>
+              <option value="course">{t("admin.users.roles.scope_course")}</option>
+              <option value="global">{t("admin.users.roles.scope_global")}</option>
             </select>
           </label>
           {scopeKind === "organization" || scopeKind === "org_unit" ? (
             <label className="text-xs text-text-muted">
-              ID tổ chức
+              {t("admin.users.roles.organization_id")}
               <input
                 type="text"
                 value={organizationId}
@@ -296,7 +294,7 @@ function RoleAssignmentsSection({
           ) : null}
           {scopeKind === "org_unit" ? (
             <label className="text-xs text-text-muted">
-              ID đơn vị
+              {t("admin.users.roles.org_unit_id")}
               <input
                 type="text"
                 value={orgUnitId}
@@ -308,7 +306,7 @@ function RoleAssignmentsSection({
           ) : null}
           {scopeKind === "course" ? (
             <label className="text-xs text-text-muted">
-              ID khoá học
+              {t("admin.users.roles.course_id")}
               <input
                 type="text"
                 value={courseId}
@@ -325,7 +323,7 @@ function RoleAssignmentsSection({
           className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md bg-m3-primary text-white hover:bg-m3-primary/90 disabled:opacity-50"
         >
           <Plus className="h-3.5 w-3.5" />
-          {grant.isPending ? "Đang gán..." : "Gán vai trò"}
+          {grant.isPending ? t("admin.users.roles.granting") : t("admin.users.roles.grant")}
         </button>
       </form>
     </div>
@@ -333,9 +331,11 @@ function RoleAssignmentsSection({
 }
 
 export default function AdminUserDetailPage() {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const params = useParams({ strict: false }) as { userId?: string };
   const userId = params.userId ?? "";
+  const locale = i18n.resolvedLanguage ?? i18n.language ?? "en";
 
   const permissions = useMyPermissions();
   const canAdmin =
@@ -346,10 +346,10 @@ export default function AdminUserDetailPage() {
   useEffect(() => {
     if (permissions.isLoading) return;
     if (!canAdmin) {
-      toast.error("Không có quyền truy cập");
+      toast.error(t("admin.users.roles.errors.no_permission"));
       void navigate({ to: "/dashboard", replace: true });
     }
-  }, [permissions.isLoading, canAdmin, navigate]);
+  }, [permissions.isLoading, canAdmin, navigate, t]);
 
   const enabled = !permissions.isLoading && canAdmin && Boolean(userId);
   const detail = useAdminUser(enabled ? userId : "");
@@ -370,18 +370,24 @@ export default function AdminUserDetailPage() {
     disable.mutate(undefined, {
       onSuccess: (out) =>
         toast.success(
-          `Đã vô hiệu hoá. Đã thu hồi ${out.revoked_session_count} phiên.`,
+          t("admin.users.roles.success.disabled", {
+            count: out.revoked_session_count,
+          }),
         ),
       onError: (err) =>
-        toast.error((err as Error).message || "Không thể vô hiệu hoá"),
+        toast.error(
+          (err as Error).message || t("admin.users.roles.errors.disable_failed"),
+        ),
     });
   };
 
   const handleEnable = () => {
     enable.mutate(undefined, {
-      onSuccess: () => toast.success("Đã kích hoạt lại người dùng"),
+      onSuccess: () => toast.success(t("admin.users.roles.success.enabled")),
       onError: (err) =>
-        toast.error((err as Error).message || "Không thể kích hoạt"),
+        toast.error(
+          (err as Error).message || t("admin.users.roles.errors.enable_failed"),
+        ),
     });
   };
 
@@ -395,8 +401,8 @@ export default function AdminUserDetailPage() {
     <div className="space-y-6 pb-12">
       <Breadcrumbs
         items={[
-          { label: "Quản trị", to: "/admin/stats" },
-          { label: "Người dùng", to: "/admin/users" },
+          { label: t("sections.admin"), to: "/admin/stats" },
+          { label: t("admin.users.title"), to: "/admin/users" },
           { label: displayName },
         ]}
       />
@@ -405,13 +411,13 @@ export default function AdminUserDetailPage() {
         className="inline-flex items-center gap-2 text-sm text-text-muted hover:text-text-strong"
       >
         <ArrowLeft className="h-4 w-4" />
-        Quay lại danh sách
+        {t("admin.users.back_to_list")}
       </Link>
 
       {detail.isError ? (
         <div className="bg-surface-elev border border-border rounded-lg p-5">
           <p className="text-sm text-danger">
-            Không thể tải thông tin người dùng.
+            {t("admin.users.roles.errors.load_failed")}
           </p>
         </div>
       ) : detail.isLoading ? (
@@ -428,7 +434,7 @@ export default function AdminUserDetailPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h1 className="text-xl font-headline font-bold text-text-strong">
+                  <h1 className="text-2xl font-headline font-bold text-text-strong">
                     {displayName}
                   </h1>
                   <StatusBadge status={user.status} />
@@ -451,7 +457,9 @@ export default function AdminUserDetailPage() {
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50"
                   >
                     <CheckCircle2 className="h-3.5 w-3.5" />
-                    {enable.isPending ? "Đang xử lý..." : "Kích hoạt"}
+                    {enable.isPending
+                      ? t("admin.users.actions.disabling")
+                      : t("admin.users.actions.enable")}
                   </button>
                 ) : (
                   <button
@@ -461,7 +469,7 @@ export default function AdminUserDetailPage() {
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
                   >
                     <ShieldOff className="h-3.5 w-3.5" />
-                    Vô hiệu hoá
+                    {t("admin.users.actions.disable")}
                   </button>
                 )}
               </div>
@@ -471,27 +479,27 @@ export default function AdminUserDetailPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-surface-elev border border-border rounded-lg p-4">
               <p className="text-xs font-semibold text-text-muted uppercase tracking-wide">
-                Đăng nhập gần nhất
+                {t("admin.users.fields.last_login")}
               </p>
               <p className="text-sm text-text-strong mt-1 flex items-center gap-1.5">
                 <Clock className="h-3.5 w-3.5 text-text-muted" />
-                {formatDate(user.last_login_at)}
+                {formatDate(user.last_login_at, locale)}
               </p>
             </div>
             <div className="bg-surface-elev border border-border rounded-lg p-4">
               <p className="text-xs font-semibold text-text-muted uppercase tracking-wide">
-                Ngày tạo
+                {t("admin.users.fields.created_at")}
               </p>
               <p className="text-sm text-text-strong mt-1">
-                {formatDate(user.created_at)}
+                {formatDate(user.created_at, locale)}
               </p>
             </div>
             <div className="bg-surface-elev border border-border rounded-lg p-4">
               <p className="text-xs font-semibold text-text-muted uppercase tracking-wide">
-                Cập nhật gần nhất
+                {t("admin.users.fields.updated_at")}
               </p>
               <p className="text-sm text-text-strong mt-1">
-                {formatDate(user.updated_at)}
+                {formatDate(user.updated_at, locale)}
               </p>
             </div>
           </div>
@@ -499,12 +507,12 @@ export default function AdminUserDetailPage() {
           {user.profile ? (
             <div className="bg-surface-elev border border-border rounded-lg p-5">
               <h2 className="text-sm font-headline font-bold text-text-strong mb-3">
-                Hồ sơ
+                {t("admin.users.profile_section", { defaultValue: "Profile" })}
               </h2>
               <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
                 <div>
                   <dt className="text-xs font-semibold text-text-muted">
-                    Tên hiển thị
+                    {t("admin.users.fields.display_name")}
                   </dt>
                   <dd className="text-text-strong mt-0.5">
                     {user.profile.display_name || "—"}
@@ -512,7 +520,7 @@ export default function AdminUserDetailPage() {
                 </div>
                 <div>
                   <dt className="text-xs font-semibold text-text-muted">
-                    Họ tên
+                    {t("admin.users.fields.full_name")}
                   </dt>
                   <dd className="text-text-strong mt-0.5">
                     {[user.profile.given_name, user.profile.family_name]
@@ -523,7 +531,7 @@ export default function AdminUserDetailPage() {
                 {user.profile.bio ? (
                   <div className="sm:col-span-2">
                     <dt className="text-xs font-semibold text-text-muted">
-                      Giới thiệu
+                      {t("admin.users.fields.bio")}
                     </dt>
                     <dd className="text-text-strong mt-0.5 whitespace-pre-wrap">
                       {user.profile.bio}
@@ -542,14 +550,16 @@ export default function AdminUserDetailPage() {
           {data.active_sessions.length > 0 ? (
             <div className="bg-surface-elev border border-border rounded-lg p-5">
               <h2 className="text-sm font-headline font-bold text-text-strong mb-3">
-                Phiên đăng nhập đang hoạt động ({data.active_sessions.length})
+                {t("admin.users.roles.active_sessions")} (
+                {data.active_sessions.length})
               </h2>
               <ul className="divide-y divide-border">
                 {data.active_sessions.map((s) => (
                   <li key={s.id} className="py-2 text-xs text-text-muted">
-                    <span className="font-mono">{s.id}</span> — IP{" "}
-                    {s.ip_address ?? "—"} · hết hạn{" "}
-                    {formatDate(s.expires_at)}
+                    <span className="font-mono">{s.id}</span> —{" "}
+                    {t("admin.users.roles.session_ip")}{" "}
+                    {s.ip_address ?? "—"} · {t("admin.users.roles.session_expires")}{" "}
+                    {formatDate(s.expires_at, locale)}
                   </li>
                 ))}
               </ul>

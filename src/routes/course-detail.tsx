@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useParams } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import {
   CheckCircle2,
   ChevronDown,
@@ -68,6 +69,7 @@ function initials(name: string) {
 }
 
 export default function CourseDetailPage() {
+  const { t } = useTranslation();
   const { slug } = useParams({ strict: false }) as { slug: string };
 
   const courseQuery = useCourseBySlug(slug);
@@ -100,14 +102,14 @@ export default function CourseDetailPage() {
       <div className="min-h-screen bg-m3-surface flex items-center justify-center">
         <div className="text-center space-y-4 max-w-md px-6">
           <p className="text-m3-on-surface font-headline font-bold text-xl">
-            Khóa học không khả dụng
+            {t("course_detail.unavailable_title")}
           </p>
           <p className="text-sm text-m3-on-surface-variant">
-            Khóa học này hiện chưa được mở hoặc đã bị tạm ẩn.
+            {t("course_detail.unavailable_body")}
           </p>
           <Link to="/courses">
             <Button className="gradient-primary text-white rounded-xl gap-2">
-              Browse Courses <ArrowRight className="h-4 w-4" />
+              {t("course_detail.browse_courses")} <ArrowRight className="h-4 w-4" />
             </Button>
           </Link>
         </div>
@@ -134,7 +136,7 @@ export default function CourseDetailPage() {
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJub2lzZSI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9IjAuNjUiIG51bU9jdGF2ZXM9IjMiIHN0aXRjaFRpbGVzPSJzdGl0Y2giLz48ZmVCbGVuZCBtb2RlPSJzY3JlZW4iLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsdGVyPSJ1cmwoI25vaXNlKSIgb3BhY2l0eT0iMC4wNSIvPjwvc3ZnPg==')] opacity-20 pointer-events-none" />
         <div className="max-w-6xl mx-auto">
           <nav className="flex items-center gap-2 text-xs text-white/60 mb-6">
-            <Link to="/courses" className="hover:text-white transition-colors">Courses</Link>
+            <Link to="/courses" className="hover:text-white transition-colors">{t("course_detail.breadcrumb_courses")}</Link>
             <span>/</span>
             <span className="text-white/90 truncate">{course.title}</span>
           </nav>
@@ -144,7 +146,7 @@ export default function CourseDetailPage() {
               <div className="flex flex-wrap items-center gap-2">
                 <AIInsightChip className="bg-white/10 text-white border-0">
                   <Sparkles className="h-2.5 w-2.5 mr-1" />
-                  AI Enhanced
+                  {t("course_detail.ai_enhanced")}
                 </AIInsightChip>
               </div>
 
@@ -162,7 +164,7 @@ export default function CourseDetailPage() {
                 {moduleCount > 0 && (
                   <span className="flex items-center gap-1.5">
                     <GraduationCap className="h-4 w-4" />
-                    {moduleCount} modules
+                    {t("course_detail.modules_count", { count: moduleCount })}
                   </span>
                 )}
               </div>
@@ -200,7 +202,7 @@ export default function CourseDetailPage() {
                 <div className="flex items-center gap-2 mb-5">
                   <GraduationCap className="h-5 w-5 text-m3-secondary" />
                   <h2 className="font-headline font-bold text-xl text-m3-on-surface">
-                    What You'll Learn
+                    {t("course_detail.what_youll_learn")}
                   </h2>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -218,10 +220,10 @@ export default function CourseDetailPage() {
 
             <div className="space-y-3">
               <div className="flex items-center justify-between flex-wrap gap-2">
-                <h2 className="font-headline font-bold text-xl text-m3-on-surface">Course Content</h2>
+                <h2 className="font-headline font-bold text-xl text-m3-on-surface">{t("course_detail.course_content")}</h2>
                 {!contentLoading && content && (
                   <span className="text-xs text-m3-on-surface-variant">
-                    {moduleCount} module{moduleCount !== 1 ? "s" : ""}
+                    {t("course_detail.modules_count", { count: moduleCount })}
                   </span>
                 )}
               </div>
@@ -234,7 +236,7 @@ export default function CourseDetailPage() {
                 <ModuleAccordion modules={content.modules} />
               ) : (
                 <div className="rounded-xl border border-dashed border-m3-outline-variant p-10 text-center">
-                  <p className="text-sm text-m3-on-surface-variant">No modules available yet.</p>
+                  <p className="text-sm text-m3-on-surface-variant">{t("course_detail.no_modules")}</p>
                 </div>
               )}
             </div>
@@ -250,11 +252,10 @@ export default function CourseDetailPage() {
                 </div>
                 <div className="flex-1 space-y-2">
                   <h3 className="font-headline font-bold text-m3-primary text-base">
-                    AI Mock Interviews Included
+                    {t("course_detail.ai_mock_title")}
                   </h3>
                   <p className="text-sm text-m3-on-surface-variant leading-relaxed">
-                    Complete each module to unlock an AI-powered mock interview. Get real-time feedback,
-                    adaptive follow-up questions, and a detailed assessment of your technical explanations.
+                    {t("course_detail.ai_mock_body")}
                   </p>
                 </div>
               </div>
@@ -269,6 +270,7 @@ export default function CourseDetailPage() {
 }
 
 function InstructorLine({ instructor }: { instructor: InstructorRead | null }) {
+  const { t } = useTranslation();
   if (!instructor) {
     return (
       <div className="flex items-center gap-2.5 text-sm text-white/70">
@@ -277,7 +279,7 @@ function InstructorLine({ instructor }: { instructor: InstructorRead | null }) {
             ?
           </AvatarFallback>
         </Avatar>
-        <span>Giảng viên không xác định</span>
+        <span>{t("course_detail.instructor_unknown")}</span>
       </div>
     );
   }
@@ -293,7 +295,7 @@ function InstructorLine({ instructor }: { instructor: InstructorRead | null }) {
         </AvatarFallback>
       </Avatar>
       <span>
-        Created by{" "}
+        {t("course_detail.created_by")}{" "}
         <span className="text-white font-semibold">{instructor.display_name}</span>
         {instructor.headline && (
           <span className="text-white/60"> · {instructor.headline}</span>
@@ -358,6 +360,7 @@ function ModuleAccordion({ modules }: { modules: ModulePublic[] }) {
 }
 
 function ModuleItemsPanel({ moduleId }: { moduleId: string }) {
+  const { t } = useTranslation();
   const { data: items, isLoading } = useModuleItems(moduleId);
 
   if (isLoading) {
@@ -371,7 +374,7 @@ function ModuleItemsPanel({ moduleId }: { moduleId: string }) {
   if (!items || items.length === 0) {
     return (
       <div className="border-t border-m3-outline-variant/20 px-5 py-4 text-sm text-m3-outline">
-        No items added yet.
+        {t("course_detail.no_items")}
       </div>
     );
   }
@@ -383,10 +386,10 @@ function ModuleItemsPanel({ moduleId }: { moduleId: string }) {
       {sorted.map((item) => {
         const label =
           item.item_type === "quiz"
-            ? "Bài kiểm tra"
+            ? t("course_detail.item_quiz")
             : item.item_type === "interview"
-              ? "AI Mock Interview"
-              : item.target?.title ?? "Bài học";
+              ? t("course_detail.item_interview")
+              : item.target?.title ?? t("course_detail.item_lesson");
         return (
           <div
             key={item.id}
@@ -404,11 +407,12 @@ function ModuleItemsPanel({ moduleId }: { moduleId: string }) {
 }
 
 function InstructorCard({ instructor }: { instructor: InstructorRead }) {
+  const { t } = useTranslation();
   const inits = initials(instructor.display_name);
 
   return (
     <GlassCard className="p-6 sm:p-8">
-      <h2 className="font-headline font-bold text-xl text-m3-on-surface mb-5">About the Instructor</h2>
+      <h2 className="font-headline font-bold text-xl text-m3-on-surface mb-5">{t("course_detail.about_instructor")}</h2>
       <div className="flex flex-col sm:flex-row gap-5">
         <Avatar className="h-20 w-20 shrink-0 ring-4 ring-white shadow-xl self-start">
           {instructor.avatar_url ? (
@@ -423,7 +427,7 @@ function InstructorCard({ instructor }: { instructor: InstructorRead }) {
             <h3 className="font-headline font-bold text-m3-primary text-lg">
               {instructor.display_name}
             </h3>
-            <p className="text-m3-secondary text-sm font-semibold mt-0.5">Instructor</p>
+            <p className="text-m3-secondary text-sm font-semibold mt-0.5">{t("course_detail.instructor_role")}</p>
           </div>
           {instructor.headline && (
             <p className="text-sm text-m3-on-surface-variant leading-relaxed">{instructor.headline}</p>
@@ -445,6 +449,7 @@ function CtaCard({
   moduleCount: number;
   tags: TagPublic[] | undefined;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="rounded-xl overflow-hidden shadow-editorial ghost-border bg-m3-surface-container-lowest">
       <div className={cn("relative h-44 bg-gradient-to-br", gradientClass)}>
@@ -459,7 +464,7 @@ function CtaCard({
       <div className="p-5 space-y-5">
         <Link to="/courses/$slug/learn" params={{ slug: course.slug }} className="block">
           <Button className="w-full gradient-primary text-white font-bold rounded-xl py-5 h-auto text-base gap-2 shadow-ai-glow hover:opacity-90 transition-opacity">
-            Start Learning
+            {t("course_detail.start_learning")}
             <ArrowRight className="h-5 w-5" />
           </Button>
         </Link>
@@ -468,7 +473,7 @@ function CtaCard({
           <div className="flex items-center justify-between text-sm pt-1">
             <span className="flex items-center gap-2 text-m3-on-surface-variant">
               <BookOpen className="h-4 w-4 text-m3-outline" />
-              Modules
+              {t("course_detail.modules")}
             </span>
             <span className="font-semibold text-m3-on-surface text-xs">{moduleCount}</span>
           </div>
@@ -501,7 +506,7 @@ function CtaCard({
               <p className="text-xs font-semibold text-m3-on-surface truncate">
                 {course.instructor.display_name}
               </p>
-              <p className="text-[10px] text-m3-on-surface-variant">Instructor</p>
+              <p className="text-[10px] text-m3-on-surface-variant">{t("course_detail.instructor_role")}</p>
             </div>
           </div>
         )}

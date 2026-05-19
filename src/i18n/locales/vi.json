@@ -79,6 +79,30 @@
       "locked": "Đã khóa"
     }
   },
+  "course_detail": {
+    "unavailable_title": "Khóa học không khả dụng",
+    "unavailable_body": "Khóa học này hiện chưa được mở hoặc đã bị tạm ẩn.",
+    "browse_courses": "Khám phá khóa học",
+    "breadcrumb_courses": "Khóa học",
+    "ai_enhanced": "Tăng cường AI",
+    "modules_count": "{{count}} module",
+    "modules_count_plural": "{{count}} modules",
+    "instructor_unknown": "Giảng viên không xác định",
+    "created_by": "Bởi",
+    "what_youll_learn": "Bạn sẽ học được",
+    "course_content": "Nội dung khóa học",
+    "no_modules": "Chưa có module nào.",
+    "no_items": "Chưa có nội dung nào.",
+    "item_quiz": "Bài kiểm tra",
+    "item_interview": "Phỏng vấn AI",
+    "item_lesson": "Bài học",
+    "about_instructor": "Giới thiệu giảng viên",
+    "instructor_role": "Giảng viên",
+    "ai_mock_title": "Bao gồm phỏng vấn AI",
+    "ai_mock_body": "Hoàn thành từng module để mở khóa buổi phỏng vấn AI. Nhận phản hồi thời gian thực, câu hỏi tiếp theo thích ứng và đánh giá chi tiết về cách bạn giải thích kỹ thuật.",
+    "start_learning": "Bắt đầu học",
+    "modules": "Modules"
+  },
   "settings_security": {
     "title": "Bảo mật tài khoản",
     "intro": "Quản lý xác thực hai bước (TOTP) và mã khôi phục cho tài khoản của bạn.",
