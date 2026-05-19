@@ -66,7 +66,7 @@ export function useTeacherLesson(lessonId: string | undefined) {
 export function useLessonOutline(lessonId: string | undefined) {
   return useQuery({
     queryKey: ["teacher", "lessons", lessonId, "outline"],
-    queryFn: () => apiFetch<LessonOutlineRead>(`/lessons/${lessonId}/outline`),
+    queryFn: () => apiFetch<LessonOutlineRead>(`/teacher/lessons/${lessonId}/outline`),
     enabled: !!lessonId,
     staleTime: 1000 * 60 * 5,
   });
