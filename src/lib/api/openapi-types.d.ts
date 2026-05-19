@@ -138,6 +138,32 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read My Roles
+         * @description Return the distinct role codes the caller currently holds.
+         *
+         *     Powers the SPA's ``useMyRoles`` hook, which gates UI for
+         *     multi-role users (e.g. show the manager dashboard tile only when
+         *     the caller actually has ``manager``). Active = not soft-deleted
+         *     AND ``active_until`` is NULL or in the future. Codes are
+         *     de-duplicated across scopes.
+         */
+        get: operations["read_my_roles_api_v1_me_roles_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/me/mfa/totp/enroll": {
         parameters: {
             query?: never;
@@ -673,7 +699,17 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * List Authoring Courses
+         * @description Courses the caller can author (owned + scope=course teacher assignments).
+         *
+         *     Drafts and archived rows are visible to the author. Permission is
+         *     intentionally lax (``course.read.draft`` OR ``course.create``) — the
+         *     visibility filter happens in the service via owner/assignment match,
+         *     not via permission gating, so a teacher seeing nothing is a UX
+         *     problem rather than a 403.
+         */
+        get: operations["list_authoring_courses_api_v1_teacher_courses_get"];
         put?: never;
         /**
          * Create Course
@@ -690,6 +726,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/teacher/courses/check-slug": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Check Course Slug
+         * @description Pre-flight check for the new-course form.
+         *
+         *     Returns ``{"available": true}`` when ``slug`` is free in the caller's
+         *     primary organization, ``false`` otherwise. Same auth as ``POST
+         *     /teacher/courses`` so a 200 here implies the create attempt would not
+         *     be rejected for permission reasons.
+         */
+        get: operations["check_course_slug_api_v1_teacher_courses_check_slug_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/teacher/courses/{course_id}": {
         parameters: {
             query?: never;
@@ -697,7 +758,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Get Authoring Course */
+        get: operations["get_authoring_course_api_v1_teacher_courses__course_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -705,6 +767,50 @@ export interface paths {
         head?: never;
         /** Update Course */
         patch: operations["update_course_api_v1_teacher_courses__course_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/teacher/courses/{course_id}/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Authoring Course Content
+         * @description Authoring content tree (drafts included) for ``course_id``.
+         */
+        get: operations["get_authoring_course_content_api_v1_teacher_courses__course_id__content_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teacher/courses/{course_id}/roster": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Authoring Course Roster
+         * @description Roster of enrolled students for the teacher's course view.
+         *
+         *     Same response shape as ``GET /dept/courses/{id}/roster`` (HOD-scope)
+         *     but gated on ``course.update`` so the course owner / assigned teacher
+         *     can read their own roster without HOD privileges.
+         */
+        get: operations["get_authoring_course_roster_api_v1_teacher_courses__course_id__roster_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/teacher/courses/{course_id}/publish": {
@@ -815,6 +921,33 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/teacher/module-items/{module_item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Module Item
+         * @description Soft-delete a module item (un-pins from the order; target survives).
+         */
+        delete: operations["delete_module_item_api_v1_teacher_module_items__module_item_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Update Module Item
+         * @description Patch an item's ``unlock_rule_json`` (only mutable field).
+         *
+         *     Position changes go through ``PUT /modules/{id}/items/reorder``;
+         *     identity (lesson_id / quiz_id / interview_config_id) is immutable.
+         */
+        patch: operations["update_module_item_api_v1_teacher_module_items__module_item_id__patch"];
+        trace?: never;
+    };
     "/api/v1/teacher/modules/{module_id}/lessons": {
         parameters: {
             query?: never;
@@ -845,7 +978,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * Get Authoring Lesson
+         * @description Authoring detail for a single lesson (drafts included).
+         */
+        get: operations["get_authoring_lesson_api_v1_teacher_lessons__lesson_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -855,6 +992,33 @@ export interface paths {
         patch: operations["update_lesson_api_v1_teacher_lessons__lesson_id__patch"];
         trace?: never;
     };
+    "/api/v1/teacher/lessons/{lesson_id}/outline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Lesson Outline
+         * @description Authoring outline preview (drafts visible).
+         *
+         *     Surfaces under the teacher router (rather than the learner one) so
+         *     the auth boundary matches the SPA's ``useLessonOutline`` consumer
+         *     pages, and so drafts surface during course assembly. Returns a
+         *     single synthetic ``body`` section until ``build_lesson_outline``
+         *     lands; the contract matches the eventual semantic-section
+         *     response field-for-field.
+         */
+        get: operations["get_lesson_outline_api_v1_teacher_lessons__lesson_id__outline_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/teacher/lessons/{lesson_id}/resources": {
         parameters: {
             query?: never;
@@ -862,7 +1026,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * List Authoring Lesson Resources
+         * @description All resources attached to ``lesson_id`` (drafts + hidden included).
+         *
+         *     The learner-side ``/lessons/{id}/resources`` endpoint applies a
+         *     ``visible_to_students=TRUE`` filter; this authoring sibling does
+         *     not, so the teacher can see and reorder hidden / draft resources.
+         */
+        get: operations["list_authoring_lesson_resources_api_v1_teacher_lessons__lesson_id__resources_get"];
         put?: never;
         /** Create Lesson Resource */
         post: operations["create_lesson_resource_api_v1_teacher_lessons__lesson_id__resources_post"];
@@ -887,6 +1059,31 @@ export interface paths {
          * @description Soft-delete a lesson resource via :func:`soft_delete_cascade` (T0.15).
          */
         delete: operations["delete_lesson_resource_api_v1_teacher_lesson_resources__resource_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teacher/lesson-resources/{resource_id}/download-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Authoring Resource Download Url
+         * @description Mint a presigned GET URL for a teacher-visible resource.
+         *
+         *     Same auth as the DELETE sibling — caller must have authoring access
+         *     on the owning course (owner OR scope=course teacher assignment).
+         *     Unlike the learner-side ``/lesson-resources/{id}/download-url`` this
+         *     surfaces hidden / draft resources too.
+         */
+        get: operations["get_authoring_resource_download_url_api_v1_teacher_lesson_resources__resource_id__download_url_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1333,6 +1530,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/teacher/lessons/{lesson_id}/processing-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Lesson Processing Summary
+         * @description Roll-up of processing-status counts across the lesson's materials.
+         *
+         *     Lets the teacher's lesson-manage page render one badge instead of
+         *     polling every material's individual progress endpoint.
+         */
+        get: operations["lesson_processing_summary_api_v1_teacher_lessons__lesson_id__processing_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/teacher/materials/{material_id}": {
         parameters: {
             query?: never;
@@ -1372,6 +1592,32 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/teacher/materials/{material_id}/stream-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Material Stream Url
+         * @description Mint a presigned GET URL for the teacher's preview pane.
+         *
+         *     Authoring sibling of ``GET /materials/{material_id}/stream-url`` —
+         *     skips the learner ``visible_to_students`` and ``processing_status='ready'``
+         *     gates so a teacher can preview hidden / mid-pipeline materials. Auth
+         *     same as the other ``/teacher/materials/{id}`` endpoints (course
+         *     authoring scope).
+         */
+        get: operations["get_material_stream_url_api_v1_teacher_materials__material_id__stream_url_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/teacher/materials/{material_id}/reprocess": {
         parameters: {
             query?: never;
@@ -1389,6 +1635,32 @@ export interface paths {
          *     ``running`` (concurrency guard).
          */
         post: operations["reprocess_material_api_v1_teacher_materials__material_id__reprocess_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/materials/upload-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Request Upload Url
+         * @description Mint a presigned PUT URL + storage_objects row for a teacher upload.
+         *
+         *     Powers the SPA's lesson-resource attach flow on the lesson-manage
+         *     page (PDFs, slides, ZIPs, etc.). The teacher uploads directly to S3,
+         *     then POSTs to ``/teacher/lessons/{id}/resources`` with the returned
+         *     storage_object_id. The init/complete pipeline (T4.5) is reserved for
+         *     AI-processed materials.
+         */
+        post: operations["request_upload_url_api_v1_materials_upload_url_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2157,6 +2429,31 @@ export interface paths {
         patch: operations["update_invitation_code_api_v1_management_invitation_codes__code_id__patch"];
         trace?: never;
     };
+    "/api/v1/teacher/course-enrollments/{enrollment_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Patch Enrollment
+         * @description Drop / reactivate an individual enrollment from the teacher's roster.
+         *
+         *     Powers the SPA's drop / reactivate buttons on the
+         *     course-student-detail page. The schema allowlist (status,
+         *     completed_at, dropped_at) keeps identity (course_id, student_id,
+         *     source) immutable.
+         */
+        patch: operations["patch_enrollment_api_v1_teacher_course_enrollments__enrollment_id__patch"];
+        trace?: never;
+    };
     "/api/v1/me/progress/lessons/{lesson_id}": {
         parameters: {
             query?: never;
@@ -2317,7 +2614,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Career Paths */
+        /**
+         * List Career Paths
+         * @description List career paths for an organization.
+         *
+         *     ``organization_id`` is OPTIONAL: when omitted the caller's primary
+         *     org is resolved from the bearer token, matching the contract used by
+         *     POST. An explicit value is honoured (so platform admins can list any
+         *     org); managers without scope and no override get a 400 instead of a
+         *     confusing empty list.
+         */
         get: operations["list_career_paths_api_v1_management_career_paths_get"];
         put?: never;
         /** Create Career Path */
@@ -3142,6 +3448,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/healthz": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Healthz Simple
+         * @description Lightweight liveness probe. Always 200, no dependency checks.
+         */
+        get: operations["healthz_simple_api_v1_healthz_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/healthz/deep": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Healthz Deep
+         * @description Composite dependency-status report. Admin-only.
+         *
+         *     Each check runs concurrently with a 3s individual ceiling; the whole
+         *     response is bounded at 10s. A check that exceeds either ceiling is
+         *     reported ``unhealthy`` so a single slow dependency cannot starve the
+         *     probe.
+         */
+        get: operations["healthz_deep_api_v1_healthz_deep_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/readyz": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Readyz
+         * @description Kubernetes readiness probe.
+         *
+         *     Returns 200 iff postgres + redis are reachable AND the alembic schema
+         *     is at head; 503 otherwise. No auth required so kubelet can hit it.
+         */
+        get: operations["readyz_api_v1_readyz_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -3648,6 +4022,22 @@ export interface components {
             deleted_by?: string | null;
         };
         /**
+         * CourseContentAuthoring
+         * @description Composed authoring tree — course + draft + published modules.
+         *
+         *     The nested item / lesson / resource trees are composed by the
+         *     service layer (T3.5); this DTO carries the top-level slices that
+         *     every authoring view shares.
+         */
+        CourseContentAuthoring: {
+            course: components["schemas"]["CourseAuthoring"];
+            /**
+             * Modules
+             * @default []
+             */
+            modules: components["schemas"]["ModuleAuthoring"][];
+        };
+        /**
          * CourseContentPublic
          * @description Composed course tree (course + modules) returned by the learner router.
          *
@@ -3985,6 +4375,24 @@ export interface components {
             created_by?: string | null;
             /** Updated By */
             updated_by?: string | null;
+        };
+        /**
+         * EnrollmentPatch
+         * @description Patch payload for ``PATCH /teacher/course-enrollments/{id}``.
+         *
+         *     Only ``status``, ``completed_at`` and ``dropped_at`` are mutable
+         *     here — identity (course_id, student_id, source) is immutable so a
+         *     teacher cannot use PATCH to migrate an enrollment between courses
+         *     or relabel its origin. Status transitions follow the values the
+         *     public ``EnrollmentRead`` schema already exposes.
+         */
+        EnrollmentPatch: {
+            /** Status */
+            status?: ("active" | "completed" | "dropped" | "waitlisted") | null;
+            /** Completed At */
+            completed_at?: string | null;
+            /** Dropped At */
+            dropped_at?: string | null;
         };
         /** EnrollmentRead */
         EnrollmentRead: {
@@ -5196,6 +5604,33 @@ export interface components {
             /** Due Count */
             due_count: number;
         };
+        /**
+         * LessonProcessingSummary
+         * @description Aggregate processing-status counts for every material under a lesson.
+         *
+         *     Used by the teacher's lesson-manage page to render a single roll-up
+         *     badge ("3 of 5 processed") instead of polling every material's
+         *     progress separately.
+         */
+        LessonProcessingSummary: {
+            /**
+             * Lesson Id
+             * Format: uuid
+             */
+            lesson_id: string;
+            /** Materials Total */
+            materials_total: number;
+            /** Versions Total */
+            versions_total: number;
+            /** Pending Versions */
+            pending_versions: number;
+            /** Processing Versions */
+            processing_versions: number;
+            /** Completed Versions */
+            completed_versions: number;
+            /** Failed Versions */
+            failed_versions: number;
+        };
         /** LessonProgressPublic */
         LessonProgressPublic: {
             /**
@@ -5994,6 +6429,22 @@ export interface components {
             module_id: string;
             /** New Order */
             new_order: string[];
+        };
+        /**
+         * ModuleItemUpdate
+         * @description Patch payload for ``PATCH /teacher/module-items/{item_id}``.
+         *
+         *     Only the unstructured ``unlock_rule_json`` carrier is mutable; the
+         *     polymorphic identity (lesson_id / quiz_id / interview_config_id),
+         *     item_type, and position are managed via reorder + create / delete
+         *     flows so a teacher cannot use PATCH to violate the XOR check or
+         *     the position UNIQUE.
+         */
+        ModuleItemUpdate: {
+            /** Unlock Rule Json */
+            unlock_rule_json?: {
+                [key: string]: unknown;
+            } | null;
         };
         /**
          * ModulePrerequisiteSet
@@ -7653,12 +8104,189 @@ export interface components {
             /** Etag */
             etag: string;
         };
+        /** _LessonOutline */
+        _LessonOutline: {
+            /**
+             * Lesson Id
+             * Format: uuid
+             */
+            lesson_id: string;
+            /** Lesson Title */
+            lesson_title: string;
+            /** Sections */
+            sections: components["schemas"]["_OutlineSection"][];
+            /**
+             * Suggested Question Count
+             * @default 0
+             */
+            suggested_question_count: number;
+            /**
+             * Min For Full Coverage
+             * @default 0
+             */
+            min_for_full_coverage: number;
+        };
         /** _MultipartPartOut */
         _MultipartPartOut: {
             /** Part Number */
             part_number: number;
             /** Url */
             url: string;
+        };
+        /**
+         * _OutlineSection
+         * @description One section row in ``GET /lessons/{id}/outline``.
+         *
+         *     Mirrors the SPA's ``OutlineSectionRead`` interface verbatim. Today
+         *     this surface returns a single synthetic ``body`` section per lesson
+         *     until the legacy ``build_lesson_outline`` semantic-section pipeline
+         *     is ported (see ``quizzes/ai/pipelines/coverage.py:104``). The
+         *     contract is deliberately stable so the SPA can render today and
+         *     the section list can grow without an API break.
+         */
+        _OutlineSection: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+            /**
+             * Depth
+             * @default 0
+             */
+            depth: number;
+            /**
+             * Chunk Count
+             * @default 0
+             */
+            chunk_count: number;
+            /**
+             * Char Count
+             * @default 0
+             */
+            char_count: number;
+            /**
+             * Page Range
+             * @default [
+             *       0,
+             *       0
+             *     ]
+             */
+            page_range: [
+                number,
+                number
+            ];
+            /**
+             * Content Role
+             * @default body
+             * @enum {string}
+             */
+            content_role: "body" | "summary" | "review";
+            /**
+             * Preview
+             * @default
+             */
+            preview: string;
+        };
+        /**
+         * _RosterEntry
+         * @description Roster row for ``GET /teacher/courses/{course_id}/roster``.
+         *
+         *     Same shape as the HOD-scope ``RosterEntry`` in ``assignment.py`` —
+         *     duplicated here intentionally to keep the authoring router free of
+         *     cross-router imports. Both should evolve together; if Phase 7 lands
+         *     a canonical ``EnrollmentRead`` shared schema, both can replace this.
+         */
+        _RosterEntry: {
+            /**
+             * Enrollment Id
+             * Format: uuid
+             */
+            enrollment_id: string;
+            /**
+             * Student Id
+             * Format: uuid
+             */
+            student_id: string;
+            /** Display Name */
+            display_name?: string | null;
+            /** Primary Email */
+            primary_email: string;
+            /** Status */
+            status: string;
+            /**
+             * Enrolled At
+             * Format: date-time
+             */
+            enrolled_at: string;
+            /** Completed At */
+            completed_at?: string | null;
+            /** Dropped At */
+            dropped_at?: string | null;
+        };
+        /** _SlugAvailability */
+        _SlugAvailability: {
+            /** Available */
+            available: boolean;
+        };
+        /**
+         * _StreamUrlResponse
+         * @description Response shape for ``GET /teacher/lesson-resources/{id}/download-url``.
+         *
+         *     Field name ``stream_url`` (not ``url``) matches the SPA's
+         *     ``StreamUrlResponse`` TypeScript interface so the existing
+         *     ``fetchTeacherResourceDownloadUrl`` helper works unchanged.
+         */
+        _StreamUrlResponse: {
+            /** Stream Url */
+            stream_url: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+        };
+        /**
+         * _UploadUrlRequest
+         * @description Request body for ``POST /materials/upload-url``.
+         *
+         *     Lets the SPA pre-create a ``storage_objects`` row + presigned PUT URL
+         *     for direct browser → S3 uploads (lesson resources flow). The simpler
+         *     sibling of ``init_upload`` which is reserved for the AI material
+         *     pipeline.
+         */
+        _UploadUrlRequest: {
+            /** Original Filename */
+            original_filename: string;
+            /** Mime Type */
+            mime_type: string;
+            /** Size Bytes */
+            size_bytes?: number | null;
+        };
+        /** _UploadUrlResponse */
+        _UploadUrlResponse: {
+            storage_object: components["schemas"]["_UploadUrlStorageObject"];
+            /** Upload Url */
+            upload_url: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+        };
+        /** _UploadUrlStorageObject */
+        _UploadUrlStorageObject: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Object Key */
+            object_key: string;
+            /** Bucket */
+            bucket: string;
         };
     };
     responses: never;
@@ -7701,6 +8329,7 @@ export type SchemaClassKrDistributionRead = components['schemas']['ClassKRDistri
 export type SchemaContentOut = components['schemas']['ContentOut'];
 export type SchemaCostTotals = components['schemas']['CostTotals'];
 export type SchemaCourseAuthoring = components['schemas']['CourseAuthoring'];
+export type SchemaCourseContentAuthoring = components['schemas']['CourseContentAuthoring'];
 export type SchemaCourseContentPublic = components['schemas']['CourseContentPublic'];
 export type SchemaCourseCreate = components['schemas']['CourseCreate'];
 export type SchemaCourseLearningOutcomeAuthoring = components['schemas']['CourseLearningOutcomeAuthoring'];
@@ -7717,6 +8346,7 @@ export type SchemaDifficultCardRead = components['schemas']['DifficultCardRead']
 export type SchemaDisableUserOut = components['schemas']['DisableUserOut'];
 export type SchemaEnableUserOut = components['schemas']['EnableUserOut'];
 export type SchemaEnrollmentAuthoring = components['schemas']['EnrollmentAuthoring'];
+export type SchemaEnrollmentPatch = components['schemas']['EnrollmentPatch'];
 export type SchemaEnrollmentRead = components['schemas']['EnrollmentRead'];
 export type SchemaGapReportAuthoringRead = components['schemas']['GapReportAuthoringRead'];
 export type SchemaGapReportRead = components['schemas']['GapReportRead'];
@@ -7755,6 +8385,7 @@ export type SchemaInvitationCodePatch = components['schemas']['InvitationCodePat
 export type SchemaLessonAuthoring = components['schemas']['LessonAuthoring'];
 export type SchemaLessonCreate = components['schemas']['LessonCreate'];
 export type SchemaLessonOverviewItem = components['schemas']['LessonOverviewItem'];
+export type SchemaLessonProcessingSummary = components['schemas']['LessonProcessingSummary'];
 export type SchemaLessonProgressPublic = components['schemas']['LessonProgressPublic'];
 export type SchemaLessonProgressSummary = components['schemas']['LessonProgressSummary'];
 export type SchemaLessonPublic = components['schemas']['LessonPublic'];
@@ -7784,6 +8415,7 @@ export type SchemaModuleCreate = components['schemas']['ModuleCreate'];
 export type SchemaModuleItemAuthoring = components['schemas']['ModuleItemAuthoring'];
 export type SchemaModuleItemPublic = components['schemas']['ModuleItemPublic'];
 export type SchemaModuleItemReorder = components['schemas']['ModuleItemReorder'];
+export type SchemaModuleItemUpdate = components['schemas']['ModuleItemUpdate'];
 export type SchemaModulePrerequisiteSet = components['schemas']['ModulePrerequisiteSet'];
 export type SchemaModulePublic = components['schemas']['ModulePublic'];
 export type SchemaModuleUpdate = components['schemas']['ModuleUpdate'];
@@ -7857,7 +8489,15 @@ export type SchemaUserRead = components['schemas']['UserRead'];
 export type SchemaUserSpendOut = components['schemas']['UserSpendOut'];
 export type SchemaValidationError = components['schemas']['ValidationError'];
 export type SchemaCompletedPartIn = components['schemas']['_CompletedPartIn'];
+export type SchemaLessonOutline = components['schemas']['_LessonOutline'];
 export type SchemaMultipartPartOut = components['schemas']['_MultipartPartOut'];
+export type SchemaOutlineSection = components['schemas']['_OutlineSection'];
+export type SchemaRosterEntry_2 = components['schemas']['_RosterEntry'];
+export type SchemaSlugAvailability = components['schemas']['_SlugAvailability'];
+export type SchemaStreamUrlResponse = components['schemas']['_StreamUrlResponse'];
+export type SchemaUploadUrlRequest = components['schemas']['_UploadUrlRequest'];
+export type SchemaUploadUrlResponse = components['schemas']['_UploadUrlResponse'];
+export type SchemaUploadUrlStorageObject = components['schemas']['_UploadUrlStorageObject'];
 export type $defs = Record<string, never>;
 export interface operations {
     google_login_api_v1_auth_google_login_get: {
@@ -8031,6 +8671,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserPermissionsRead"];
+                };
+            };
+        };
+    };
+    read_my_roles_api_v1_me_roles_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string[];
                 };
             };
         };
@@ -8956,6 +9616,37 @@ export interface operations {
             };
         };
     };
+    list_authoring_courses_api_v1_teacher_courses_get: {
+        parameters: {
+            query?: {
+                include_archived?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourseAuthoring"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     create_course_api_v1_teacher_courses_post: {
         parameters: {
             query?: never;
@@ -8971,6 +9662,68 @@ export interface operations {
         responses: {
             /** @description Successful Response */
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourseAuthoring"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    check_course_slug_api_v1_teacher_courses_check_slug_get: {
+        parameters: {
+            query: {
+                slug: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["_SlugAvailability"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_authoring_course_api_v1_teacher_courses__course_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -9011,6 +9764,70 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CourseAuthoring"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_authoring_course_content_api_v1_teacher_courses__course_id__content_get: {
+        parameters: {
+            query?: {
+                include_archived?: boolean;
+            };
+            header?: never;
+            path: {
+                course_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourseContentAuthoring"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_authoring_course_roster_api_v1_teacher_courses__course_id__roster_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["_RosterEntry"][];
                 };
             };
             /** @description Validation Error */
@@ -9226,6 +10043,70 @@ export interface operations {
             };
         };
     };
+    delete_module_item_api_v1_teacher_module_items__module_item_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                module_item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_module_item_api_v1_teacher_module_items__module_item_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                module_item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModuleItemUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModuleItemAuthoring"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     create_lesson_api_v1_teacher_modules__module_id__lessons_post: {
         parameters: {
             query?: never;
@@ -9243,6 +10124,37 @@ export interface operations {
         responses: {
             /** @description Successful Response */
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LessonAuthoring"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_authoring_lesson_api_v1_teacher_lessons__lesson_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lesson_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -9283,6 +10195,68 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LessonAuthoring"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_lesson_outline_api_v1_teacher_lessons__lesson_id__outline_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lesson_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["_LessonOutline"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_authoring_lesson_resources_api_v1_teacher_lessons__lesson_id__resources_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lesson_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LessonResourceAuthoring"][];
                 };
             };
             /** @description Validation Error */
@@ -9348,6 +10322,37 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_authoring_resource_download_url_api_v1_teacher_lesson_resources__resource_id__download_url_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                resource_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["_StreamUrlResponse"];
+                };
             };
             /** @description Validation Error */
             422: {
@@ -9998,6 +11003,37 @@ export interface operations {
             };
         };
     };
+    lesson_processing_summary_api_v1_teacher_lessons__lesson_id__processing_summary_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lesson_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LessonProcessingSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_material_api_v1_teacher_materials__material_id__get: {
         parameters: {
             query?: never;
@@ -10124,6 +11160,37 @@ export interface operations {
             };
         };
     };
+    get_material_stream_url_api_v1_teacher_materials__material_id__stream_url_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                material_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MaterialStreamUrl"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     reprocess_material_api_v1_teacher_materials__material_id__reprocess_post: {
         parameters: {
             query?: never;
@@ -10142,6 +11209,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ReprocessOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    request_upload_url_api_v1_materials_upload_url_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["_UploadUrlRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["_UploadUrlResponse"];
                 };
             };
             /** @description Validation Error */
@@ -11746,6 +12846,41 @@ export interface operations {
             };
         };
     };
+    patch_enrollment_api_v1_teacher_course_enrollments__enrollment_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                enrollment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EnrollmentPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnrollmentAuthoring"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_my_lesson_progress_api_v1_me_progress_lessons__lesson_id__get: {
         parameters: {
             query?: never;
@@ -12020,7 +13155,7 @@ export interface operations {
     list_career_paths_api_v1_management_career_paths_get: {
         parameters: {
             query?: {
-                organization_id?: string;
+                organization_id?: string | null;
                 include_archived?: boolean;
             };
             header?: never;
@@ -13469,6 +14604,70 @@ export interface operations {
         };
     };
     readyz_readyz_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    healthz_simple_api_v1_healthz_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+        };
+    };
+    healthz_deep_api_v1_healthz_deep_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeepHealthOut"];
+                };
+            };
+        };
+    };
+    readyz_api_v1_readyz_get: {
         parameters: {
             query?: never;
             header?: never;
