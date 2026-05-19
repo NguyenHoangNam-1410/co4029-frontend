@@ -1,8 +1,8 @@
 import { Link, useParams } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import {
   AlertTriangle,
   ArrowLeft,
-  ArrowRight,
   CheckCircle2,
   ChevronRight,
   Clock,
@@ -18,36 +18,45 @@ import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import type { AtRiskStudent } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
 
-const FLAG_META = {
+const FLAG_KEYS = ["low_compliance", "frozen_kr", "high_theory_practice_gap"] as const;
+type FlagKey = (typeof FLAG_KEYS)[number];
+
+const FLAG_ICONS: Record<FlagKey, typeof TrendingDown> = {
+  low_compliance: TrendingDown,
+  frozen_kr: Snowflake,
+  high_theory_practice_gap: AlertTriangle,
+};
+
+const FLAG_LABEL_KEYS: Record<FlagKey, { label: string; short: string }> = {
   low_compliance: {
-    label: "Tỷ lệ tuân thủ thấp",
-    short: "Tuân thủ",
-    icon: TrendingDown,
+    label: "teacher_sr_at_risk.flags.low_compliance_label",
+    short: "teacher_sr_at_risk.flags.low_compliance_short",
   },
   frozen_kr: {
-    label: "KR đứng yên",
-    short: "KR",
-    icon: Snowflake,
+    label: "teacher_sr_at_risk.flags.frozen_kr_label",
+    short: "teacher_sr_at_risk.flags.frozen_kr_short",
   },
   high_theory_practice_gap: {
-    label: "Chênh lệch lý thuyết-thực hành cao",
-    short: "Lý thuyết / Thực hành",
-    icon: AlertTriangle,
+    label: "teacher_sr_at_risk.flags.tp_gap_label",
+    short: "teacher_sr_at_risk.flags.tp_gap_short",
   },
-} as const;
+};
 
-function relDate(iso: string | null | undefined) {
-  if (!iso) return "Chưa có hoạt động";
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const d = new Date(iso);
-  d.setHours(0, 0, 0, 0);
-  const days = Math.round((today.getTime() - d.getTime()) / 86_400_000);
-  if (days <= 0) return "Hôm nay";
-  if (days === 1) return "Hôm qua";
-  if (days < 7) return `${days} ngày trước`;
-  if (days < 30) return `${Math.floor(days / 7)} tuần trước`;
-  return `${Math.floor(days / 30)} tháng trước`;
+function useRelDate() {
+  const { t } = useTranslation();
+  return (iso: string | null | undefined) => {
+    if (!iso) return t("teacher_sr_at_risk.no_activity");
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const d = new Date(iso);
+    d.setHours(0, 0, 0, 0);
+    const days = Math.round((today.getTime() - d.getTime()) / 86_400_000);
+    if (days <= 0) return t("teacher_sr_at_risk.today");
+    if (days === 1) return t("teacher_sr_at_risk.yesterday");
+    if (days < 7) return t("teacher_sr_at_risk.days_ago", { count: days });
+    if (days < 30) return t("teacher_sr_at_risk.weeks_ago", { count: Math.floor(days / 7) });
+    return t("teacher_sr_at_risk.months_ago", { count: Math.floor(days / 30) });
+  };
 }
 
 function FlagCell({ active, label }: { active: boolean; label: string }) {
@@ -78,6 +87,8 @@ function StudentRow({
   courseId: string;
   student: AtRiskStudent;
 }) {
+  const { t } = useTranslation();
+  const relDate = useRelDate();
   const flagCount =
     Number(student.low_compliance) +
     Number(student.frozen_kr) +
@@ -101,15 +112,15 @@ function StudentRow({
 
       <FlagCell
         active={student.low_compliance}
-        label={FLAG_META.low_compliance.label}
+        label={t(FLAG_LABEL_KEYS.low_compliance.label)}
       />
       <FlagCell
         active={student.frozen_kr}
-        label={FLAG_META.frozen_kr.label}
+        label={t(FLAG_LABEL_KEYS.frozen_kr.label)}
       />
       <FlagCell
         active={student.high_theory_practice_gap}
-        label={FLAG_META.high_theory_practice_gap.label}
+        label={t(FLAG_LABEL_KEYS.high_theory_practice_gap.label)}
       />
 
       <span
@@ -120,7 +131,7 @@ function StudentRow({
             : "bg-amber-100 text-amber-700",
         )}
       >
-        {flagCount} cờ
+        {t("teacher_sr_at_risk.flag_count", { count: flagCount })}
       </span>
 
       <ChevronRight className="h-4 w-4 text-m3-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -129,6 +140,7 @@ function StudentRow({
 }
 
 export default function TeacherSrAtRiskPage() {
+  const { t } = useTranslation();
   const { courseId } = useParams({ strict: false }) as { courseId: string };
   const { data: course } = useCourse(courseId);
   const { data: students, isLoading } = useAtRiskStudents(courseId);
@@ -137,12 +149,15 @@ export default function TeacherSrAtRiskPage() {
 
   return (
     <div className="min-h-screen bg-m3-surface pb-12">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      <div className="max-w-5xl mx-auto pb-6 space-y-6">
         <Breadcrumbs
           items={[
-            { label: "Giảng dạy", to: "/teacher/courses" },
-            { label: course?.title ?? "Khóa học", to: "/teacher/courses/$courseId" },
-            { label: "Sinh viên cần hỗ trợ" },
+            { label: t("teacher_sr_cohort.breadcrumb_teaching"), to: "/teacher/courses" },
+            {
+              label: course?.title ?? t("teacher_sr_cohort.breadcrumb_course"),
+              to: "/teacher/courses/$courseId",
+            },
+            { label: t("teacher_sr_at_risk.breadcrumb_at_risk") },
           ]}
         />
 
@@ -151,23 +166,21 @@ export default function TeacherSrAtRiskPage() {
             to="/teacher/courses/$courseId"
             params={{ courseId }}
             className="p-2 rounded-xl hover:bg-m3-surface-container-high text-m3-on-surface-variant transition-colors cursor-pointer"
-            aria-label="Quay lại"
+            aria-label={t("teacher_sr_cohort.back")}
           >
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <SectionHeader
-            title="Sinh viên cần hỗ trợ"
-            subtitle="Danh sách sinh viên cần can thiệp dựa trên 3 tín hiệu UC-COURSE-04"
+            title={t("teacher_sr_at_risk.title")}
+            subtitle={t("teacher_sr_at_risk.subtitle")}
           />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {(
-            ["low_compliance", "frozen_kr", "high_theory_practice_gap"] as const
-          ).map((key) => {
-            const meta = FLAG_META[key];
+          {FLAG_KEYS.map((key) => {
+            const Icon = FLAG_ICONS[key];
             const count = atRiskList.filter((s) => s[key]).length;
-            const Icon = meta.icon;
+            const meta = FLAG_LABEL_KEYS[key];
             return (
               <div
                 key={key}
@@ -178,13 +191,13 @@ export default function TeacherSrAtRiskPage() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant truncate">
-                    {meta.short}
+                    {t(meta.short)}
                   </p>
                   <p className="text-2xl font-heading font-black text-m3-primary mt-0.5">
                     {isLoading ? "—" : count}
                   </p>
                   <p className="text-xs text-m3-on-surface-variant mt-0.5">
-                    {meta.label}
+                    {t(meta.label)}
                   </p>
                 </div>
               </div>
@@ -195,28 +208,28 @@ export default function TeacherSrAtRiskPage() {
         <section className="bg-m3-surface-container-lowest rounded-xl ghost-border shadow-editorial overflow-hidden">
           <div className="hidden sm:grid grid-cols-[1fr_auto_auto_auto_auto_auto] gap-3 px-5 py-3 border-b border-m3-outline-variant/10 bg-m3-surface-container-low">
             <span className="text-[10px] font-bold uppercase tracking-widest text-m3-on-surface-variant">
-              Sinh viên
+              {t("teacher_sr_at_risk.cols.student")}
             </span>
             <span
               className="text-[10px] font-bold uppercase tracking-widest text-m3-on-surface-variant w-7 text-center"
-              title={FLAG_META.low_compliance.label}
+              title={t("teacher_sr_at_risk.flags.low_compliance_label")}
             >
-              TT
+              {t("teacher_sr_at_risk.cols.compliance_short")}
             </span>
             <span
               className="text-[10px] font-bold uppercase tracking-widest text-m3-on-surface-variant w-7 text-center"
-              title={FLAG_META.frozen_kr.label}
+              title={t("teacher_sr_at_risk.flags.frozen_kr_label")}
             >
-              KR
+              {t("teacher_sr_at_risk.cols.kr_short")}
             </span>
             <span
               className="text-[10px] font-bold uppercase tracking-widest text-m3-on-surface-variant w-7 text-center"
-              title={FLAG_META.high_theory_practice_gap.label}
+              title={t("teacher_sr_at_risk.flags.tp_gap_label")}
             >
-              LT/TH
+              {t("teacher_sr_at_risk.cols.tp_short")}
             </span>
             <span className="text-[10px] font-bold uppercase tracking-widest text-m3-on-surface-variant">
-              Tổng
+              {t("teacher_sr_at_risk.cols.total")}
             </span>
             <span />
           </div>
@@ -236,11 +249,10 @@ export default function TeacherSrAtRiskPage() {
                 <UserCog className="h-6 w-6 text-emerald-600" />
               </div>
               <p className="text-sm font-semibold text-m3-on-surface">
-                Không có sinh viên cần hỗ trợ
+                {t("teacher_sr_at_risk.empty_title")}
               </p>
               <p className="text-xs text-m3-on-surface-variant max-w-md">
-                Tất cả sinh viên đang theo kịp tiến độ. Tiếp tục theo dõi
-                trên Tổng quan lớp.
+                {t("teacher_sr_at_risk.empty_body")}
               </p>
             </div>
           ) : (

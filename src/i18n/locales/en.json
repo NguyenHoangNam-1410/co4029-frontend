@@ -140,6 +140,74 @@
       "regen_failed": "Couldn't regenerate recovery codes."
     }
   },
+  "teacher_sr_at_risk": {
+    "breadcrumb_at_risk": "At-risk students",
+    "title": "Students who need help",
+    "subtitle": "Students flagged by the three UC-COURSE-04 signals",
+    "no_activity": "No activity yet",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "days_ago": "{{count}} day ago",
+    "days_ago_plural": "{{count}} days ago",
+    "weeks_ago": "{{count}} week ago",
+    "weeks_ago_plural": "{{count}} weeks ago",
+    "months_ago": "{{count}} month ago",
+    "months_ago_plural": "{{count}} months ago",
+    "flag_count": "{{count}} flag",
+    "flag_count_plural": "{{count}} flags",
+    "cols": {
+      "student": "Student",
+      "total": "Total",
+      "compliance_short": "Comp",
+      "kr_short": "KR",
+      "tp_short": "TH/PR"
+    },
+    "empty_title": "No at-risk students",
+    "empty_body": "Everyone is keeping up. Keep watching the class overview.",
+    "flags": {
+      "low_compliance_label": "Low compliance",
+      "low_compliance_short": "Compliance",
+      "frozen_kr_label": "Frozen KR",
+      "frozen_kr_short": "KR",
+      "tp_gap_label": "Large theory-vs-practice gap",
+      "tp_gap_short": "Theory / Practice"
+    }
+  },
+  "teacher_sr_cohort": {
+    "breadcrumb_teaching": "Teaching",
+    "breadcrumb_course": "Course",
+    "breadcrumb_overview": "Class overview",
+    "back": "Back",
+    "title": "Class overview",
+    "subtitle": "KR distribution and difficult questions per lesson",
+    "lesson_picker_label": "Pick a lesson",
+    "lesson_loading": "Loading…",
+    "lesson_empty": "This course has no lessons yet",
+    "histogram_title": "KR distribution — {{lesson}}",
+    "histogram_subtitle": "Number of students per KR bucket",
+    "student_count": "{{count}} student",
+    "student_count_plural": "{{count}} students",
+    "kr_axis": "KR bucket",
+    "students_axis": "Students",
+    "kr_tooltip_label": "KR bucket",
+    "no_kr_data_title": "No KR data yet",
+    "no_kr_data_body": "Students must finish at least one review session to appear in the chart.",
+    "stats": {
+      "mean_kr": "Mean KR",
+      "median_kr": "Median KR"
+    },
+    "difficult_title": "Difficult questions",
+    "difficult_subtitle": "Top 10 questions with the lowest mean EF",
+    "difficult_empty_title": "No difficult questions yet",
+    "difficult_empty_body": "More data is needed to rank questions.",
+    "cols": {
+      "question": "Question",
+      "mean_ef": "Mean EF",
+      "students": "Students",
+      "actions": "Actions"
+    },
+    "regenerate_question": "Regenerate question"
+  },
   "management_career_paths": {
     "title": "Manage career paths",
     "subtitle": "Create, publish, and archive career paths.",

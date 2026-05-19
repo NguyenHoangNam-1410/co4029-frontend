@@ -140,6 +140,70 @@
       "regen_failed": "Không thể tạo lại mã khôi phục."
     }
   },
+  "teacher_sr_at_risk": {
+    "breadcrumb_at_risk": "Sinh viên cần hỗ trợ",
+    "title": "Sinh viên cần hỗ trợ",
+    "subtitle": "Danh sách sinh viên cần can thiệp dựa trên 3 tín hiệu UC-COURSE-04",
+    "no_activity": "Chưa có hoạt động",
+    "today": "Hôm nay",
+    "yesterday": "Hôm qua",
+    "days_ago": "{{count}} ngày trước",
+    "weeks_ago": "{{count}} tuần trước",
+    "months_ago": "{{count}} tháng trước",
+    "flag_count": "{{count}} cờ",
+    "cols": {
+      "student": "Sinh viên",
+      "total": "Tổng",
+      "compliance_short": "TT",
+      "kr_short": "KR",
+      "tp_short": "LT/TH"
+    },
+    "empty_title": "Không có sinh viên cần hỗ trợ",
+    "empty_body": "Tất cả sinh viên đang theo kịp tiến độ. Tiếp tục theo dõi trên Tổng quan lớp.",
+    "flags": {
+      "low_compliance_label": "Tỷ lệ tuân thủ thấp",
+      "low_compliance_short": "Tuân thủ",
+      "frozen_kr_label": "KR đứng yên",
+      "frozen_kr_short": "KR",
+      "tp_gap_label": "Chênh lệch lý thuyết-thực hành cao",
+      "tp_gap_short": "Lý thuyết / Thực hành"
+    }
+  },
+  "teacher_sr_cohort": {
+    "breadcrumb_teaching": "Giảng dạy",
+    "breadcrumb_course": "Khóa học",
+    "breadcrumb_overview": "Tổng quan lớp",
+    "back": "Quay lại",
+    "title": "Tổng quan lớp",
+    "subtitle": "Phân bố KR và các câu hỏi khó của từng bài",
+    "lesson_picker_label": "Chọn bài học",
+    "lesson_loading": "Đang tải...",
+    "lesson_empty": "Khóa học chưa có bài học",
+    "histogram_title": "Phân bố KR — {{lesson}}",
+    "histogram_subtitle": "Số lượng sinh viên theo từng khoảng KR",
+    "student_count": "{{count}} sinh viên",
+    "student_count_plural": "{{count}} sinh viên",
+    "kr_axis": "Khoảng KR",
+    "students_axis": "Số sinh viên",
+    "kr_tooltip_label": "Khoảng KR",
+    "no_kr_data_title": "Chưa có dữ liệu KR",
+    "no_kr_data_body": "Sinh viên cần hoàn thành ít nhất một lượt ôn tập để xuất hiện trong biểu đồ.",
+    "stats": {
+      "mean_kr": "KR trung bình",
+      "median_kr": "KR trung vị"
+    },
+    "difficult_title": "Câu khó",
+    "difficult_subtitle": "Top 10 câu hỏi có EF trung bình thấp nhất",
+    "difficult_empty_title": "Chưa có câu hỏi khó",
+    "difficult_empty_body": "Cần thêm dữ liệu để xếp hạng.",
+    "cols": {
+      "question": "Câu hỏi",
+      "mean_ef": "EF trung bình",
+      "students": "Sinh viên",
+      "actions": "Hành động"
+    },
+    "regenerate_question": "Tái tạo câu hỏi"
+  },
   "management_career_paths": {
     "title": "Quản lý lộ trình",
     "subtitle": "Tạo, xuất bản và lưu trữ lộ trình nghề nghiệp.",

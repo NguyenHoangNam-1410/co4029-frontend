@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import {
   AlertTriangle,
   ArrowLeft,
-  ArrowRight,
   Brain,
   ChevronDown,
   RefreshCw,
@@ -77,6 +77,7 @@ function CohortHistogram({
 }: {
   data: { bucket_lower: number; count: number }[];
 }) {
+  const { t } = useTranslation();
   const chartData = data.map((b) => ({
     bucket: `${Math.round(b.bucket_lower * 100)}%`,
     count: b.count,
@@ -98,7 +99,7 @@ function CohortHistogram({
           tick={{ fill: "var(--text-muted)", fontSize: 11 }}
           stroke="var(--border)"
           label={{
-            value: "Khoảng KR",
+            value: t("teacher_sr_cohort.kr_axis"),
             position: "insideBottom",
             offset: -2,
             fill: "var(--text-muted)",
@@ -110,7 +111,7 @@ function CohortHistogram({
           stroke="var(--border)"
           allowDecimals={false}
           label={{
-            value: "Số sinh viên",
+            value: t("teacher_sr_cohort.students_axis"),
             angle: -90,
             position: "insideLeft",
             fill: "var(--text-muted)",
@@ -126,8 +127,10 @@ function CohortHistogram({
             fontSize: 12,
             color: "var(--text-strong)",
           }}
-          formatter={(value) => [String(value), "Số sinh viên"]}
-          labelFormatter={(label) => `Khoảng KR: ${String(label ?? "")}`}
+          formatter={(value) => [String(value), t("teacher_sr_cohort.students_axis")]}
+          labelFormatter={(label) =>
+            `${t("teacher_sr_cohort.kr_tooltip_label")}: ${String(label ?? "")}`
+          }
         />
         <Bar
           dataKey="count"
@@ -141,6 +144,7 @@ function CohortHistogram({
 }
 
 export default function TeacherSrCohortPage() {
+  const { t } = useTranslation();
   const { courseId } = useParams({ strict: false }) as { courseId: string };
   const { data: course } = useCourse(courseId);
   const { lessons, isLoading: lessonsLoading } =
@@ -177,9 +181,12 @@ export default function TeacherSrCohortPage() {
       <div className="max-w-6xl mx-auto space-y-6">
         <Breadcrumbs
           items={[
-            { label: "Giảng dạy", to: "/teacher/courses" },
-            { label: course?.title ?? "Khóa học", to: "/teacher/courses/$courseId" },
-            { label: "Tổng quan lớp" },
+            { label: t("teacher_sr_cohort.breadcrumb_teaching"), to: "/teacher/courses" },
+            {
+              label: course?.title ?? t("teacher_sr_cohort.breadcrumb_course"),
+              to: "/teacher/courses/$courseId",
+            },
+            { label: t("teacher_sr_cohort.breadcrumb_overview") },
           ]}
         />
 
@@ -188,13 +195,13 @@ export default function TeacherSrCohortPage() {
             to="/teacher/courses/$courseId"
             params={{ courseId }}
             className="p-2 rounded-xl hover:bg-m3-surface-container-high text-m3-on-surface-variant transition-colors cursor-pointer"
-            aria-label="Quay lại"
+            aria-label={t("teacher_sr_cohort.back")}
           >
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <SectionHeader
-            title="Tổng quan lớp"
-            subtitle="Phân bố KR và các câu hỏi khó của từng bài"
+            title={t("teacher_sr_cohort.title")}
+            subtitle={t("teacher_sr_cohort.subtitle")}
           />
         </div>
 
@@ -203,7 +210,7 @@ export default function TeacherSrCohortPage() {
             htmlFor="lesson-select"
             className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant"
           >
-            Chọn bài học
+            {t("teacher_sr_cohort.lesson_picker_label")}
           </label>
           <div className="relative">
             <select
@@ -213,9 +220,9 @@ export default function TeacherSrCohortPage() {
               disabled={lessonsLoading || lessons.length === 0}
               className="w-full appearance-none px-4 py-2.5 pr-10 rounded-xl bg-m3-surface-container-low border border-m3-outline-variant/20 text-sm text-m3-on-surface focus:outline-none focus:ring-2 focus:ring-m3-primary/20 disabled:opacity-50 cursor-pointer"
             >
-              {lessonsLoading && <option>Đang tải...</option>}
+              {lessonsLoading && <option>{t("teacher_sr_cohort.lesson_loading")}</option>}
               {!lessonsLoading && lessons.length === 0 && (
-                <option>Khóa học chưa có bài học</option>
+                <option>{t("teacher_sr_cohort.lesson_empty")}</option>
               )}
               {lessons.map((l) => (
                 <option key={l.lesson_id} value={l.lesson_id}>
@@ -231,15 +238,21 @@ export default function TeacherSrCohortPage() {
           <div className="flex items-start justify-between gap-3">
             <div className="space-y-1">
               <h2 className="font-heading font-bold text-lg text-m3-on-surface">
-                Phân bố KR — {selectedLesson?.lesson_title ?? "—"}
+                {t("teacher_sr_cohort.histogram_title", {
+                  lesson: selectedLesson?.lesson_title ?? "—",
+                })}
               </h2>
               <p className="text-xs text-m3-on-surface-variant">
-                Số lượng sinh viên theo từng khoảng KR
+                {t("teacher_sr_cohort.histogram_subtitle")}
               </p>
             </div>
             <div className="inline-flex items-center gap-2 text-xs font-bold text-m3-primary bg-m3-primary-fixed px-3 py-1.5 rounded-xl shrink-0">
               <Users className="h-3.5 w-3.5" />
-              <span>{cohort?.student_count ?? 0} sinh viên</span>
+              <span>
+                {t("teacher_sr_cohort.student_count", {
+                  count: cohort?.student_count ?? 0,
+                })}
+              </span>
             </div>
           </div>
 
@@ -251,11 +264,10 @@ export default function TeacherSrCohortPage() {
                 <Brain className="h-6 w-6 text-m3-primary" />
               </div>
               <p className="text-sm font-semibold text-m3-on-surface">
-                Chưa có dữ liệu KR
+                {t("teacher_sr_cohort.no_kr_data_title")}
               </p>
               <p className="text-xs text-m3-on-surface-variant max-w-md">
-                Sinh viên cần hoàn thành ít nhất một lượt ôn tập để xuất hiện
-                trong biểu đồ.
+                {t("teacher_sr_cohort.no_kr_data_body")}
               </p>
             </div>
           ) : (
@@ -266,7 +278,7 @@ export default function TeacherSrCohortPage() {
             <div className="grid grid-cols-2 gap-3 pt-2 border-t border-m3-outline-variant/10">
               <div className="bg-m3-surface-container-low rounded-xl p-4 text-center">
                 <p className="text-xs uppercase tracking-widest text-m3-on-surface-variant font-bold">
-                  KR trung bình
+                  {t("teacher_sr_cohort.stats.mean_kr")}
                 </p>
                 <p className="text-2xl font-heading font-black text-m3-primary mt-1">
                   {(cohort.mean_kr * 100).toFixed(1)}%
@@ -274,7 +286,7 @@ export default function TeacherSrCohortPage() {
               </div>
               <div className="bg-m3-surface-container-low rounded-xl p-4 text-center">
                 <p className="text-xs uppercase tracking-widest text-m3-on-surface-variant font-bold">
-                  KR trung vị
+                  {t("teacher_sr_cohort.stats.median_kr")}
                 </p>
                 <p className="text-2xl font-heading font-black text-m3-primary mt-1">
                   {(cohort.median_kr * 100).toFixed(1)}%
@@ -289,10 +301,10 @@ export default function TeacherSrCohortPage() {
             <div className="space-y-0.5">
               <h2 className="font-heading font-bold text-lg text-m3-on-surface flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-m3-secondary" />
-                Câu khó
+                {t("teacher_sr_cohort.difficult_title")}
               </h2>
               <p className="text-xs text-m3-on-surface-variant">
-                Top 10 câu hỏi có EF trung bình thấp nhất
+                {t("teacher_sr_cohort.difficult_subtitle")}
               </p>
             </div>
           </div>
@@ -310,26 +322,26 @@ export default function TeacherSrCohortPage() {
             <div className="px-6 py-12 flex flex-col items-center gap-3 text-center">
               <AlertTriangle className="h-8 w-8 text-m3-on-surface-variant opacity-40" />
               <p className="text-sm font-semibold text-m3-on-surface">
-                Chưa có câu hỏi khó
+                {t("teacher_sr_cohort.difficult_empty_title")}
               </p>
               <p className="text-xs text-m3-on-surface-variant">
-                Cần thêm dữ liệu để xếp hạng.
+                {t("teacher_sr_cohort.difficult_empty_body")}
               </p>
             </div>
           ) : (
             <div className="divide-y divide-m3-outline-variant/10">
               <div className="hidden sm:grid grid-cols-[1fr_120px_120px_140px] gap-4 px-6 py-2.5 bg-m3-surface-container-low">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-m3-on-surface-variant">
-                  Câu hỏi
+                  {t("teacher_sr_cohort.cols.question")}
                 </span>
                 <span className="text-[10px] font-bold uppercase tracking-widest text-m3-on-surface-variant">
-                  EF trung bình
+                  {t("teacher_sr_cohort.cols.mean_ef")}
                 </span>
                 <span className="text-[10px] font-bold uppercase tracking-widest text-m3-on-surface-variant">
-                  Sinh viên
+                  {t("teacher_sr_cohort.cols.students")}
                 </span>
                 <span className="text-[10px] font-bold uppercase tracking-widest text-m3-on-surface-variant text-right">
-                  Hành động
+                  {t("teacher_sr_cohort.cols.actions")}
                 </span>
               </div>
               {difficult.map((card) => {
@@ -366,7 +378,7 @@ export default function TeacherSrCohortPage() {
                       className="inline-flex items-center justify-end gap-1.5 text-xs font-semibold text-m3-primary hover:underline cursor-pointer"
                     >
                       <RefreshCw className="h-3 w-3" />
-                      Tái tạo câu hỏi
+                      {t("teacher_sr_cohort.regenerate_question")}
                     </Link>
                   </div>
                 );
