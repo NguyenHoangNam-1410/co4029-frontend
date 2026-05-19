@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Loader2, ShieldCheck, KeyRound, Copy, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,11 +30,14 @@ type RegenState =
   | { phase: "challenge"; challengeId: string; code: string }
   | { phase: "showCodes"; codes: string[] };
 
-function copyToClipboard(value: string, label: string) {
-  void navigator.clipboard.writeText(value).then(
-    () => toast.success(`Đã sao chép ${label}`),
-    () => toast.error("Không thể sao chép"),
-  );
+function useCopyToClipboard() {
+  const { t } = useTranslation();
+  return (value: string, label: string) => {
+    void navigator.clipboard.writeText(value).then(
+      () => toast.success(t("settings_security.toasts.copied_label", { label })),
+      () => toast.error(t("settings_security.toasts.copy_failed")),
+    );
+  };
 }
 
 function RecoveryCodesPanel({
@@ -45,6 +49,8 @@ function RecoveryCodesPanel({
   onAcknowledge: () => void;
   title: string;
 }) {
+  const { t } = useTranslation();
+  const copy = useCopyToClipboard();
   return (
     <div className="space-y-4 rounded-xl border border-m3-outline-variant/30 bg-m3-secondary-fixed/30 p-5">
       <div>
@@ -52,8 +58,7 @@ function RecoveryCodesPanel({
           {title}
         </h4>
         <p className="mt-1 text-sm font-medium text-m3-on-surface-variant">
-          Hãy lưu các mã này ở nơi an toàn. Mỗi mã chỉ dùng được một lần và sẽ
-          không thể xem lại sau khi rời khỏi trang này.
+          {t("settings_security.save_codes")}
         </p>
       </div>
 
@@ -69,15 +74,17 @@ function RecoveryCodesPanel({
         <Button
           type="button"
           variant="outline"
-          onClick={() => copyToClipboard(codes.join("\n"), "danh sách mã")}
+          onClick={() =>
+            copy(codes.join("\n"), t("settings_security.toasts.list_label"))
+          }
           className="gap-2"
         >
           <Copy className="h-4 w-4" />
-          Sao chép tất cả
+          {t("settings_security.copy_all")}
         </Button>
         <Button type="button" onClick={onAcknowledge} className="gap-2">
           <ShieldCheck className="h-4 w-4" />
-          Tôi đã lưu mã
+          {t("settings_security.saved")}
         </Button>
       </div>
     </div>
@@ -85,6 +92,8 @@ function RecoveryCodesPanel({
 }
 
 function EnrollSection({ onEnrolled }: { onEnrolled: () => void }) {
+  const { t } = useTranslation();
+  const copy = useCopyToClipboard();
   const [state, setState] = useState<EnrollState>({ phase: "idle" });
   const enroll = useEnrollTotp();
   const verify = useVerifyTotp();
@@ -101,7 +110,7 @@ function EnrollSection({ onEnrolled }: { onEnrolled: () => void }) {
         });
       },
       onError: () => {
-        toast.error("Không thể bắt đầu quá trình. Vui lòng thử lại.");
+        toast.error(t("settings_security.toasts.start_failed"));
       },
     });
   }
@@ -117,7 +126,7 @@ function EnrollSection({ onEnrolled }: { onEnrolled: () => void }) {
       { factor_id: state.factorId, code: trimmed },
       {
         onSuccess: (response) => {
-          toast.success("Đã bật xác thực hai bước");
+          toast.success(t("settings_security.toasts.totp_enabled"));
           onEnrolled();
           setState({
             phase: "showRecoveryCodes",
@@ -125,7 +134,7 @@ function EnrollSection({ onEnrolled }: { onEnrolled: () => void }) {
           });
         },
         onError: () => {
-          toast.error("Mã không hợp lệ");
+          toast.error(t("settings_security.toasts.totp_invalid"));
           setState((prev) =>
             prev.phase === "verifying" ? { ...prev, code: "" } : prev,
           );
@@ -137,7 +146,7 @@ function EnrollSection({ onEnrolled }: { onEnrolled: () => void }) {
   if (state.phase === "showRecoveryCodes") {
     return (
       <RecoveryCodesPanel
-        title="Mã khôi phục"
+        title={t("settings_security.panel_recovery_title")}
         codes={state.codes}
         onAcknowledge={() => setState({ phase: "idle" })}
       />
@@ -152,10 +161,11 @@ function EnrollSection({ onEnrolled }: { onEnrolled: () => void }) {
       >
         <div>
           <h4 className="font-headline text-base font-bold text-m3-on-surface">
-            Quét mã QR bằng ứng dụng xác thực (Google Authenticator, Authy, ...)
+            {t("settings_security.scan_qr_title")}
           </h4>
           <p className="mt-1 text-sm font-medium text-m3-on-surface-variant">
-            Hoặc nhập mã thủ công: <span className="font-mono">{state.secret}</span>
+            {t("settings_security.manual_entry")}
+            <span className="font-mono">{state.secret}</span>
           </p>
         </div>
 
@@ -163,18 +173,20 @@ function EnrollSection({ onEnrolled }: { onEnrolled: () => void }) {
           <Button
             type="button"
             variant="outline"
-            onClick={() => copyToClipboard(state.secret, "khoá bí mật")}
+            onClick={() =>
+              copy(state.secret, t("settings_security.toasts.secret_label"))
+            }
             className="gap-2"
           >
             <Copy className="h-4 w-4" />
-            Sao chép khoá
+            {t("settings_security.copy_secret")}
           </Button>
           <a
             href={state.otpauthUrl}
             className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 text-sm font-medium text-m3-primary hover:bg-muted"
           >
             <KeyRound className="h-4 w-4" />
-            Mở trong ứng dụng
+            {t("settings_security.open_in_app")}
           </a>
         </div>
 
@@ -183,7 +195,7 @@ function EnrollSection({ onEnrolled }: { onEnrolled: () => void }) {
             htmlFor="totp-verify-code"
             className="text-sm font-semibold text-m3-on-surface"
           >
-            Mã 6 chữ số
+            {t("settings_security.six_digit_code")}
           </label>
           <Input
             id="totp-verify-code"
@@ -211,7 +223,7 @@ function EnrollSection({ onEnrolled }: { onEnrolled: () => void }) {
             onClick={() => setState({ phase: "idle" })}
             disabled={verify.isPending}
           >
-            Huỷ
+            {t("settings_security.cancel")}
           </Button>
           <Button
             type="submit"
@@ -223,7 +235,7 @@ function EnrollSection({ onEnrolled }: { onEnrolled: () => void }) {
             ) : (
               <ShieldCheck className="h-4 w-4" />
             )}
-            Xác nhận
+            {t("settings_security.confirm")}
           </Button>
         </div>
       </form>
@@ -242,12 +254,13 @@ function EnrollSection({ onEnrolled }: { onEnrolled: () => void }) {
       ) : (
         <ShieldCheck className="h-4 w-4" />
       )}
-      Bật xác thực hai bước (TOTP)
+      {t("settings_security.enable_totp")}
     </Button>
   );
 }
 
 function RegenerateSection() {
+  const { t } = useTranslation();
   const [state, setState] = useState<RegenState>({ phase: "idle" });
   const challenge = useMfaChallenge();
   const verifyMfa = useVerifyMfa();
@@ -263,7 +276,7 @@ function RegenerateSection() {
         });
       },
       onError: () => {
-        toast.error("Không thể tạo phiên xác thực. Vui lòng thử lại.");
+        toast.error(t("settings_security.toasts.challenge_failed"));
       },
     });
   }
@@ -281,20 +294,20 @@ function RegenerateSection() {
         onSuccess: () => {
           regenerate.mutate(undefined, {
             onSuccess: (response) => {
-              toast.success("Đã tạo mã khôi phục mới");
+              toast.success(t("settings_security.toasts.regen_success"));
               setState({
                 phase: "showCodes",
                 codes: response.recovery_codes,
               });
             },
             onError: () => {
-              toast.error("Không thể tạo lại mã khôi phục.");
+              toast.error(t("settings_security.toasts.regen_failed"));
               setState({ phase: "idle" });
             },
           });
         },
         onError: () => {
-          toast.error("Mã không hợp lệ");
+          toast.error(t("settings_security.toasts.totp_invalid"));
           setState((prev) =>
             prev.phase === "challenge" ? { ...prev, code: "" } : prev,
           );
@@ -306,7 +319,7 @@ function RegenerateSection() {
   if (state.phase === "showCodes") {
     return (
       <RecoveryCodesPanel
-        title="Mã khôi phục mới"
+        title={t("settings_security.panel_new_recovery_title")}
         codes={state.codes}
         onAcknowledge={() => setState({ phase: "idle" })}
       />
@@ -321,10 +334,10 @@ function RegenerateSection() {
       >
         <div>
           <h4 className="font-headline text-base font-bold text-m3-on-surface">
-            Xác nhận lại bằng TOTP
+            {t("settings_security.regen_panel_title")}
           </h4>
           <p className="mt-1 text-sm font-medium text-m3-on-surface-variant">
-            Nhập mã 6 chữ số từ ứng dụng xác thực để tạo lại mã khôi phục.
+            {t("settings_security.regen_panel_intro")}
           </p>
         </div>
 
@@ -333,7 +346,7 @@ function RegenerateSection() {
             htmlFor="regen-code"
             className="text-sm font-semibold text-m3-on-surface"
           >
-            Mã 6 chữ số
+            {t("settings_security.six_digit_code")}
           </label>
           <Input
             id="regen-code"
@@ -361,7 +374,7 @@ function RegenerateSection() {
             onClick={() => setState({ phase: "idle" })}
             disabled={verifyMfa.isPending || regenerate.isPending}
           >
-            Huỷ
+            {t("settings_security.cancel")}
           </Button>
           <Button
             type="submit"
@@ -377,7 +390,7 @@ function RegenerateSection() {
             ) : (
               <RefreshCw className="h-4 w-4" />
             )}
-            Xác nhận và tạo lại
+            {t("settings_security.confirm_and_regen")}
           </Button>
         </div>
       </form>
@@ -397,12 +410,13 @@ function RegenerateSection() {
       ) : (
         <RefreshCw className="h-4 w-4" />
       )}
-      Tạo lại mã khôi phục
+      {t("settings_security.regenerate")}
     </Button>
   );
 }
 
 export default function SettingsSecurityPage() {
+  const { t } = useTranslation();
   const { requiresMfa } = useAuth();
   const [hasEnrolledThisSession, setHasEnrolledThisSession] = useState(false);
 
@@ -412,20 +426,20 @@ export default function SettingsSecurityPage() {
     <div className="mx-auto w-full max-w-2xl space-y-8 p-6">
       <header>
         <h1 className="font-headline text-3xl font-extrabold tracking-tight text-m3-on-surface">
-          Bảo mật tài khoản
+          {t("settings_security.title")}
         </h1>
         <p className="mt-2 text-sm font-medium text-m3-on-surface-variant">
-          Quản lý xác thực hai bước (TOTP) và mã khôi phục cho tài khoản của bạn.
+          {t("settings_security.intro")}
         </p>
       </header>
 
       <section className="space-y-4 rounded-xl bg-white/70 p-6 shadow-[0_24px_80px_rgba(25,28,30,0.06)] ring-1 ring-m3-outline-variant/20">
         <div>
           <h2 className="font-headline text-xl font-bold text-m3-on-surface">
-            Xác thực hai bước
+            {t("settings_security.two_factor_title")}
           </h2>
           <p className="mt-1 text-sm font-medium text-m3-on-surface-variant">
-            Thêm một lớp bảo vệ cho tài khoản bằng ứng dụng xác thực TOTP.
+            {t("settings_security.two_factor_intro")}
           </p>
         </div>
         <EnrollSection onEnrolled={() => setHasEnrolledThisSession(true)} />
@@ -435,10 +449,10 @@ export default function SettingsSecurityPage() {
         <section className="space-y-4 rounded-xl bg-white/70 p-6 shadow-[0_24px_80px_rgba(25,28,30,0.06)] ring-1 ring-m3-outline-variant/20">
           <div>
             <h2 className="font-headline text-xl font-bold text-m3-on-surface">
-              Mã khôi phục
+              {t("settings_security.recovery_codes_title")}
             </h2>
             <p className="mt-1 text-sm font-medium text-m3-on-surface-variant">
-              Tạo lại bộ mã khôi phục mới. Bộ mã cũ sẽ bị huỷ ngay lập tức.
+              {t("settings_security.recovery_codes_intro")}
             </p>
           </div>
           <RegenerateSection />

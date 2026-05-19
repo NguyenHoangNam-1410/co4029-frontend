@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import {
   ArrowRight,
   BookOpen,
@@ -24,22 +25,22 @@ import { cn } from "@/lib/utils";
 
 const STATUS_META: Record<
   LessonOverviewItem["status"],
-  { label: string; badge: string; dot: string; icon: typeof CheckCircle2 }
+  { i18nKey: string; badge: string; dot: string; icon: typeof CheckCircle2 }
 > = {
   mature: {
-    label: "Đã thuần thục",
+    i18nKey: "sr_dashboard.status.mature",
     badge: "bg-emerald-50 text-emerald-700 border border-emerald-200",
     dot: "bg-emerald-500",
     icon: CheckCircle2,
   },
   learning: {
-    label: "Đang học",
+    i18nKey: "sr_dashboard.status.learning",
     badge: "bg-amber-50 text-amber-700 border border-amber-200",
     dot: "bg-amber-500",
     icon: Brain,
   },
   locked: {
-    label: "Đã khóa",
+    i18nKey: "sr_dashboard.status.locked",
     badge: "bg-slate-100 text-slate-600 border border-slate-200",
     dot: "bg-slate-400",
     icon: Lock,
@@ -47,6 +48,7 @@ const STATUS_META: Record<
 };
 
 function CourseSrCard({ course }: { course: Course }) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const { data: overview, isLoading } = useCourseSrOverview(
     expanded ? course.id : undefined,
@@ -73,12 +75,15 @@ function CourseSrCard({ course }: { course: Course }) {
           </h3>
           {expanded && overview ? (
             <p className="text-xs text-m3-on-surface-variant mt-0.5">
-              {overview.length} bài • {matureCount} đã thuần thục •{" "}
-              {totalDue} thẻ cần ôn
+              {t("sr_dashboard.card_summary", {
+                lessons: overview.length,
+                mature: matureCount,
+                due: totalDue,
+              })}
             </p>
           ) : (
             <p className="text-xs text-m3-on-surface-variant mt-0.5">
-              Bấm để xem tiến độ ôn tập theo bài
+              {t("sr_dashboard.card_intro")}
             </p>
           )}
         </div>
@@ -100,7 +105,7 @@ function CourseSrCard({ course }: { course: Course }) {
           )}
           {!isLoading && overview && overview.length === 0 && (
             <p className="text-sm text-m3-on-surface-variant py-3 text-center">
-              Khóa học chưa có bài học nào.
+              {t("sr_dashboard.no_lessons")}
             </p>
           )}
           {!isLoading &&
@@ -138,8 +143,10 @@ function CourseSrCard({ course }: { course: Course }) {
                       {lesson.lesson_title}
                     </p>
                     <p className="text-xs text-m3-on-surface-variant">
-                      KR {Math.round(lesson.kr_estimate * 100)}% •{" "}
-                      {lesson.due_count} thẻ cần ôn
+                      {t("sr_dashboard.kr_due", {
+                        kr: Math.round(lesson.kr_estimate * 100),
+                        due: lesson.due_count,
+                      })}
                     </p>
                   </div>
                   <span
@@ -148,7 +155,7 @@ function CourseSrCard({ course }: { course: Course }) {
                       meta.badge,
                     )}
                   >
-                    {meta.label}
+                    {t(meta.i18nKey)}
                   </span>
                 </div>
               );
@@ -160,6 +167,7 @@ function CourseSrCard({ course }: { course: Course }) {
 }
 
 export default function SrDashboardPage() {
+  const { t } = useTranslation();
   const { items: courses, isLoading: coursesLoading } = useMyCourses(20);
 
   return (
@@ -168,36 +176,35 @@ export default function SrDashboardPage() {
         <header className="space-y-2">
           <div className="flex items-center gap-2 text-m3-primary text-xs font-bold uppercase tracking-widest">
             <Sparkles className="h-3.5 w-3.5" />
-            <span>Học lặp lại</span>
+            <span>{t("sr_dashboard.chip")}</span>
           </div>
           <h1 className="font-heading font-bold text-3xl sm:text-4xl text-m3-primary leading-tight">
-            Bảng điều khiển ôn tập
+            {t("sr_dashboard.title")}
           </h1>
           <p className="text-m3-on-surface-variant text-sm max-w-2xl">
-            Theo dõi tiến độ ôn tập, xem các thẻ cần ôn hôm nay và mở khóa
-            các bài học mới khi bạn đã sẵn sàng.
+            {t("sr_dashboard.intro")}
           </p>
         </header>
 
         <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <StatCard
-            label="Khóa học đã ghi danh"
+            label={t("sr_dashboard.stats.enrolled")}
             value={coursesLoading ? "—" : courses.length}
-            sublabel="Đang theo dõi"
+            sublabel={t("sr_dashboard.stats.enrolled_sub")}
             icon={BookOpen}
             variant="primary"
           />
           <StatCard
-            label="Bài học sẵn sàng"
+            label={t("sr_dashboard.stats.lessons_ready")}
             value="—"
-            sublabel="Mở khóa khi đạt KR ≥ 0.85"
+            sublabel={t("sr_dashboard.stats.lessons_ready_sub")}
             icon={Target}
             variant="surface"
           />
           <StatCard
-            label="Thẻ cần ôn"
+            label={t("sr_dashboard.stats.cards_due")}
             value="—"
-            sublabel="Tải tổng quan để xem"
+            sublabel={t("sr_dashboard.stats.cards_due_sub")}
             icon={Inbox}
             variant="surface"
           />
@@ -206,14 +213,14 @@ export default function SrDashboardPage() {
         <section className="space-y-5">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
             <SectionHeader
-              title="Tiến độ theo khóa học"
-              subtitle="Bấm để xem chi tiết các bài học trong từng khóa"
+              title={t("sr_dashboard.section_title")}
+              subtitle={t("sr_dashboard.section_subtitle")}
             />
             <Link
               to="/study/cards-due"
               className="inline-flex items-center gap-2 gradient-primary text-white rounded-xl font-semibold px-4 py-2 text-sm shadow-glass hover:opacity-90 transition-opacity self-start sm:self-auto cursor-pointer"
             >
-              Ôn tập ngay
+              {t("sr_dashboard.review_now")}
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
@@ -227,12 +234,12 @@ export default function SrDashboardPage() {
           ) : courses.length === 0 ? (
             <EmptyState
               icon={Inbox}
-              title="Bạn chưa được đăng ký khóa học nào"
-              description="Liên hệ giảng viên để được đăng ký khóa học và bắt đầu lộ trình ôn tập."
+              title={t("sr_dashboard.no_courses_title")}
+              description={t("sr_dashboard.no_courses_body")}
               cta={
                 <Link to="/courses">
                   <Button variant="default" className="gap-2 font-semibold cursor-pointer">
-                    Khám phá khóa học
+                    {t("sr_dashboard.discover_courses")}
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </Link>

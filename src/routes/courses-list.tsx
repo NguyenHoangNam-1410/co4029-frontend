@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { Search, SlidersHorizontal, Sparkles, GraduationCap, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +24,7 @@ const CARD_GRADIENTS = [
 ];
 
 function CourseCard({ course, index }: { course: Course; index: number }) {
+  const { t } = useTranslation();
   const gradientClass = CARD_GRADIENTS[index % CARD_GRADIENTS.length];
 
   return (
@@ -33,7 +35,7 @@ function CourseCard({ course, index }: { course: Course; index: number }) {
           <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
           <Badge className="absolute top-3 left-3 z-10 bg-black/40 text-white border border-white/20 backdrop-blur-sm text-[10px] font-semibold tracking-wide">
             <Sparkles className="h-2.5 w-2.5 mr-1" />
-            Tăng cường AI
+            {t("courses_list.ai_boost")}
           </Badge>
           <div className="absolute inset-0 flex items-center justify-center opacity-20 group-hover:opacity-30 transition-opacity">
             <GraduationCap className="h-16 w-16 text-white" />
@@ -83,6 +85,7 @@ function CourseSkeletonCard() {
 }
 
 export default function CoursesListPage() {
+  const { t } = useTranslation();
   const {
     items,
     hasNextPage,
@@ -116,13 +119,13 @@ export default function CoursesListPage() {
 
         <header className="pt-2">
           <div className="flex items-center gap-3 mb-2">
-            <AIInsightChip pulse>HỖ TRỢ BỞI AI</AIInsightChip>
+            <AIInsightChip pulse>{t("courses_list.ai_chip")}</AIInsightChip>
           </div>
           <h1 className="font-headline font-black text-4xl sm:text-5xl text-m3-on-surface leading-none tracking-tight">
-            Khám phá khóa học.
+            {t("courses_list.title")}
           </h1>
           <p className="mt-3 text-m3-on-surface-variant text-base sm:text-lg max-w-xl">
-            Khám phá các khóa học được AI tuyển chọn, giúp bạn rút ngắn hành trình từ người học đến chuyên gia.
+            {t("courses_list.intro")}
           </p>
         </header>
 
@@ -130,10 +133,10 @@ export default function CoursesListPage() {
           <div className="flex flex-col sm:flex-row gap-3 max-w-4xl">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-m3-outline pointer-events-none" />
-              <label htmlFor="courses-search" className="sr-only">Tìm kiếm khóa học</label>
+              <label htmlFor="courses-search" className="sr-only">{t("courses_list.search_label")}</label>
               <Input
                 id="courses-search"
-                placeholder="Tìm khóa học…"
+                placeholder={t("courses_list.search_placeholder")}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 className="pl-9 bg-m3-surface-container-lowest ghost-border rounded-xl h-10 text-sm placeholder:text-m3-outline focus-visible:ring-m3-secondary/40"
@@ -145,8 +148,8 @@ export default function CoursesListPage() {
               size="icon"
               className="shrink-0 h-10 w-10 rounded-xl ghost-border bg-m3-surface-container-lowest relative"
               onClick={clearFilters}
-              title="Xóa bộ lọc"
-              aria-label="Xóa bộ lọc"
+              title={t("courses_list.clear_filters")}
+              aria-label={t("courses_list.clear_filters")}
             >
               <SlidersHorizontal className="h-4 w-4 text-m3-on-surface-variant" />
             </Button>
@@ -155,14 +158,14 @@ export default function CoursesListPage() {
           {!isLoading && (
             <p className="text-xs text-m3-on-surface-variant mt-2">
               {filtered.length === items.length
-                ? `${items.length} khóa học đã tải`
-                : `${filtered.length} trên ${items.length} khóa học`}
+                ? t("courses_list.n_loaded", { count: items.length })
+                : t("courses_list.n_of_total", { shown: filtered.length, total: items.length })}
               {query && (
                 <button
                   onClick={clearFilters}
                   className="cursor-pointer ml-2 text-m3-secondary underline underline-offset-2 hover:no-underline"
                 >
-                  Xóa tất cả
+                  {t("courses_list.clear_all")}
                 </button>
               )}
             </p>
@@ -171,18 +174,18 @@ export default function CoursesListPage() {
 
         <section className="space-y-5 pb-4">
           <SectionHeader
-            title="Tất cả khóa học"
-            subtitle="Khám phá toàn bộ thư viện và học theo nhịp độ của bạn"
+            title={t("courses_list.section_title")}
+            subtitle={t("courses_list.section_subtitle")}
           />
 
           {isError && (
             <EmptyState
               icon={AlertCircle}
-              title="Không thể tải khóa học"
+              title={t("courses_list.load_failed_title")}
               description={
                 error instanceof Error
                   ? error.message
-                  : "Vui lòng thử lại sau ít phút."
+                  : t("courses_list.load_failed_body")
               }
               cta={
                 <Button
@@ -190,7 +193,7 @@ export default function CoursesListPage() {
                   onClick={() => window.location.reload()}
                   className="cursor-pointer"
                 >
-                  Thử lại
+                  {t("courses_list.retry")}
                 </Button>
               }
             />
@@ -213,11 +216,15 @@ export default function CoursesListPage() {
               empty={
                 <EmptyState
                   icon={Search}
-                  title={items.length === 0 ? "Chưa có khóa học nào" : "Không tìm thấy khóa học"}
+                  title={
+                    items.length === 0
+                      ? t("courses_list.empty_no_courses_title")
+                      : t("courses_list.empty_no_match_title")
+                  }
                   description={
                     items.length === 0
-                      ? "Khóa học sẽ xuất hiện tại đây sau khi được xuất bản."
-                      : "Thử điều chỉnh từ khóa tìm kiếm để xem thêm khóa học."
+                      ? t("courses_list.empty_no_courses_body")
+                      : t("courses_list.empty_no_match_body")
                   }
                   cta={
                     query ? (
@@ -227,7 +234,7 @@ export default function CoursesListPage() {
                         className="cursor-pointer"
                         onClick={clearFilters}
                       >
-                        Xóa tìm kiếm
+                        {t("courses_list.clear_search")}
                       </Button>
                     ) : undefined
                   }

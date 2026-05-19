@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Loader2, ShieldCheck } from "lucide-react";
@@ -10,6 +11,7 @@ import {
 } from "@/lib/auth";
 
 export default function LoginPage() {
+  const { t } = useTranslation();
   const { isAuthenticated } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -19,7 +21,6 @@ export default function LoginPage() {
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    const nextPath = search.next;
     void navigate({
       to: "/dashboard",
       replace: true,
@@ -38,14 +39,13 @@ export default function LoginPage() {
       sessionStorage.setItem(GOOGLE_OAUTH_STATE_STORAGE_KEY, state);
       window.location.assign(authorization_url);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to start Google sign-in.");
+      setError(err instanceof Error ? err.message : t("login.google_failed"));
       setIsLoading(false);
     }
   }
 
   return (
     <main className="flex flex-col md:flex-row min-h-screen overflow-hidden">
-      {/* ── Left panel ── */}
       <section className="hidden md:flex md:w-1/2 relative bg-m3-primary items-center justify-center p-12 overflow-hidden">
         <div className="absolute inset-0 opacity-20 pointer-events-none">
           <div className="absolute top-[-10%] left-[-10%] w-full h-full rounded-full bg-m3-secondary-container blur-[120px]" />
@@ -54,11 +54,10 @@ export default function LoginPage() {
 
         <div className="relative z-10 max-w-lg">
           <h1 className="font-headline text-5xl md:text-6xl font-black text-white tracking-tighter mb-6 leading-tight">
-            Cross the Bridge to Mastery.
+            {t("login.hero_title")}
           </h1>
           <p className="text-white/80 text-lg leading-relaxed mb-12 font-medium">
-            Experience the synergy of human intuition and artificial intelligence.
-            Your journey towards cognitive excellence begins here.
+            {t("login.hero_body")}
           </p>
 
           <div className="relative w-full aspect-video rounded-xl overflow-hidden shadow-2xl bg-gradient-to-br from-m3-secondary-container to-m3-tertiary">
@@ -78,7 +77,6 @@ export default function LoginPage() {
         </div>
       </section>
 
-      {/* ── Right panel ── */}
       <section className="flex-grow flex items-center justify-center p-6 md:p-12 lg:p-24 bg-m3-surface-bright">
         <div className="w-full max-w-md space-y-10">
           <div className="md:hidden flex justify-center mb-8">
@@ -89,10 +87,10 @@ export default function LoginPage() {
 
           <header>
             <h2 className="font-headline text-4xl font-extrabold text-m3-on-surface tracking-tight mb-2">
-              Chào mừng trở lại
+              {t("login.title")}
             </h2>
             <p className="text-m3-on-surface-variant font-medium">
-              Tiếp tục hành trình học tập với tài khoản Google của bạn.
+              {t("login.subtitle")}
             </p>
           </header>
 
@@ -113,7 +111,7 @@ export default function LoginPage() {
                   <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                 </svg>
               )}
-              <span>{isLoading ? "Opening Google..." : "Continue with Google"}</span>
+              <span>{isLoading ? t("login.opening_google") : t("login.continue_google")}</span>
               {!isLoading && <ArrowRight className="h-5 w-5" />}
             </Button>
 
@@ -126,8 +124,7 @@ export default function LoginPage() {
             <div className="flex items-start gap-3 rounded-xl bg-m3-secondary-fixed/70 px-4 py-3">
               <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-m3-secondary" />
               <p className="text-sm font-medium leading-relaxed text-m3-on-secondary-fixed">
-                aBridgeAI currently supports Google OAuth only. New approved users are
-                created through the Google sign-in flow.
+                {t("login.oauth_only")}
               </p>
             </div>
           </div>
@@ -138,7 +135,7 @@ export default function LoginPage() {
         <div className="flex items-center gap-3 px-4 py-2 bg-m3-secondary-fixed rounded-full shadow-lg border border-m3-secondary/10">
           <div className="w-2 h-2 bg-m3-secondary rounded-full animate-pulse" />
           <span className="text-xs font-bold text-m3-on-secondary-fixed uppercase tracking-wider">
-            AI Security Enabled
+            {t("login.ai_security")}
           </span>
         </div>
       </div>

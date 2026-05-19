@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { AlertCircle, BookOpen, GraduationCap, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { SectionHeader } from "@/components/ui/section-header";
@@ -31,6 +32,7 @@ function PathCard({
   index: number;
   enrolled: boolean;
 }) {
+  const { t } = useTranslation();
   const gradient = CARD_GRADIENTS[index % CARD_GRADIENTS.length];
   return (
     <Link
@@ -44,11 +46,11 @@ function PathCard({
           <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
           <Badge className="absolute top-3 left-3 z-10 bg-black/40 text-white border border-white/20 backdrop-blur-sm text-[10px] font-semibold tracking-wide">
             <Sparkles className="h-2.5 w-2.5 mr-1" />
-            Lộ trình nghề nghiệp
+            {t("career_paths_page.card_chip")}
           </Badge>
           {enrolled && (
             <Badge className="absolute top-3 right-3 z-10 bg-emerald-500/90 text-white border border-white/20 backdrop-blur-sm text-[10px] font-semibold tracking-wide">
-              Đã đăng ký
+              {t("career_paths_page.enrolled_badge")}
             </Badge>
           )}
           <div className="absolute inset-0 flex items-center justify-center opacity-25 group-hover:opacity-40 transition-opacity">
@@ -70,7 +72,7 @@ function PathCard({
           <div className="flex items-center gap-1.5 text-[11px] text-m3-on-surface-variant">
             <BookOpen className="h-3 w-3" />
             <span>
-              <strong>{path.courses.length}</strong> khóa học
+              {t("career_paths_page.n_courses", { count: path.courses.length })}
             </span>
           </div>
         </div>
@@ -92,6 +94,7 @@ function SkeletonCard() {
 }
 
 export default function CareerPathsPage() {
+  const { t } = useTranslation();
   const list = useCareerPaths();
   const myEnrollments = useMyCareerEnrollments();
 
@@ -105,31 +108,30 @@ export default function CareerPathsPage() {
       <div className="max-w-6xl mx-auto space-y-8">
         <header className="pt-2">
           <div className="flex items-center gap-3 mb-2">
-            <AIInsightChip pulse>LỘ TRÌNH NGHỀ NGHIỆP</AIInsightChip>
+            <AIInsightChip pulse>{t("career_paths_page.chip")}</AIInsightChip>
           </div>
           <h1 className="font-headline font-black text-4xl sm:text-5xl text-m3-on-surface leading-none tracking-tight">
-            Định hình tương lai.
+            {t("career_paths_page.title")}
           </h1>
           <p className="mt-3 text-m3-on-surface-variant text-base sm:text-lg max-w-xl">
-            Khám phá các lộ trình nghề nghiệp được thiết kế bởi đội ngũ chuyên gia
-            của tổ chức.
+            {t("career_paths_page.intro")}
           </p>
         </header>
 
         <section className="space-y-5 pb-4">
           <SectionHeader
-            title="Lộ trình hiện có"
-            subtitle="Các lộ trình đã xuất bản trong tổ chức của bạn"
+            title={t("career_paths_page.section_title")}
+            subtitle={t("career_paths_page.section_subtitle")}
           />
 
           {list.isError && (
             <EmptyState
               icon={AlertCircle}
-              title="Không thể tải danh sách lộ trình"
+              title={t("career_paths_page.load_failed_title")}
               description={
                 list.error instanceof Error
                   ? list.error.message
-                  : "Vui lòng thử lại sau ít phút."
+                  : t("career_paths_page.load_failed_body")
               }
               cta={
                 <Button
@@ -137,7 +139,7 @@ export default function CareerPathsPage() {
                   onClick={() => list.refetch()}
                   className="cursor-pointer"
                 >
-                  Thử lại
+                  {t("career_paths_page.retry")}
                 </Button>
               }
             />
@@ -154,8 +156,8 @@ export default function CareerPathsPage() {
           {!list.isLoading && !list.isError && items.length === 0 && (
             <EmptyState
               icon={GraduationCap}
-              title="Chưa có lộ trình nào"
-              description="Khi quản lý xuất bản lộ trình mới, danh sách sẽ xuất hiện tại đây."
+              title={t("career_paths_page.empty_title")}
+              description={t("career_paths_page.empty_body")}
             />
           )}
 
