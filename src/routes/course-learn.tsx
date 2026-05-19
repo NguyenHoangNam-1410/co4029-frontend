@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect, useRef } from "react";
 import { Link, useParams, useSearch, useLocation } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { useQueries } from "@tanstack/react-query";
 import {
   Play,
@@ -62,6 +63,9 @@ function initials(name: string) {
 function buildFlatItems(
   modules: ModulePublic[],
   itemsByModule: Record<string, ModuleItemPublic[] | undefined>,
+  lessonFallback: string,
+  quizLabel: string,
+  interviewLabel: string,
 ): FlatItem[] {
   const sortedModules = [...modules].sort((a, b) => a.position - b.position);
   return sortedModules.flatMap((mod) => {
@@ -74,10 +78,10 @@ function buildFlatItems(
         item,
         label:
           item.item_type === "quiz"
-            ? "Module Quiz"
+            ? quizLabel
             : item.item_type === "interview"
-              ? "AI Mock Interview"
-              : item.target?.title ?? "Bài học",
+              ? interviewLabel
+              : item.target?.title ?? lessonFallback,
       }));
   });
 }
@@ -127,9 +131,11 @@ function CourseLearnView({
   contentLoading: boolean;
   sortedModules: ModulePublic[];
 }) {
+  const { t } = useTranslation();
+
   if (courseLoading || contentLoading) {
     return (
-      <div className="min-h-screen bg-m3-surface flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="space-y-3 w-64">
           <div className="h-4 rounded-full bg-m3-surface-container animate-pulse" />
           <div className="h-4 rounded-full bg-m3-surface-container animate-pulse w-3/4" />
@@ -140,17 +146,17 @@ function CourseLearnView({
 
   if (courseUnavailable || !course) {
     return (
-      <div className="min-h-screen bg-m3-surface flex items-center justify-center px-6">
+      <div className="min-h-screen flex items-center justify-center px-6">
         <div className="text-center space-y-4 max-w-md">
           <p className="text-m3-on-surface font-headline font-bold text-xl">
-            Khóa học không khả dụng
+            {t("course_detail.unavailable_title")}
           </p>
           <p className="text-sm text-m3-on-surface-variant">
-            Khóa học này hiện chưa được mở hoặc đã bị tạm ẩn.
+            {t("course_detail.unavailable_body")}
           </p>
           <Link to="/courses">
             <Button className="gradient-primary text-white rounded-xl gap-2">
-              Browse Courses <ArrowRight className="h-4 w-4" />
+              {t("course_detail.browse_courses")} <ArrowRight className="h-4 w-4" />
             </Button>
           </Link>
         </div>
@@ -176,11 +182,19 @@ function CourseLearnLoaded({
   course: NonNullable<ReturnType<typeof useCourseBySlug>["data"]>;
   sortedModules: ModulePublic[];
 }) {
+  const { t } = useTranslation();
   const itemsByModule = useModuleItemsMap(sortedModules);
 
   const flatItems = useMemo(
-    () => buildFlatItems(sortedModules, itemsByModule),
-    [sortedModules, itemsByModule],
+    () =>
+      buildFlatItems(
+        sortedModules,
+        itemsByModule,
+        t("teacher_common.lesson_fallback"),
+        t("teacher_common.quiz_label"),
+        t("teacher_common.interview_label"),
+      ),
+    [sortedModules, itemsByModule, t],
   );
 
   const lessonItems = useMemo(
@@ -278,7 +292,7 @@ function CourseLearnLoaded({
 
   if (!lessonItems.length) {
     return (
-      <div className="min-h-screen bg-m3-surface flex items-center justify-center px-6">
+      <div className="min-h-screen flex items-center justify-center px-6">
         <div className="text-center space-y-4 max-w-md">
           <p className="text-m3-on-surface font-headline font-bold text-xl">No lessons available yet</p>
           <p className="text-sm text-m3-on-surface-variant">
@@ -295,7 +309,7 @@ function CourseLearnLoaded({
   }
 
   return (
-    <div className="min-h-screen bg-m3-surface pb-24">
+    <div className="min-h-screen pb-24">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-6">
         <nav className="flex items-center gap-2 text-xs text-m3-on-surface-variant mb-5">
           <Link to="/courses" className="hover:text-m3-primary transition-colors">
@@ -315,10 +329,10 @@ function CourseLearnLoaded({
             {lessonUnavailable ? (
               <GlassCard className="p-10 text-center">
                 <p className="font-headline font-bold text-xl text-m3-on-surface mb-2">
-                  Bài học không khả dụng
+                  {t("course_learn.lesson_unavailable_title")}
                 </p>
                 <p className="text-sm text-m3-on-surface-variant">
-                  Nội dung bài học này hiện chưa được mở.
+                  {t("course_learn.lesson_unavailable_body")}
                 </p>
               </GlassCard>
             ) : (
@@ -520,6 +534,7 @@ function ResourcesPanel({ resources }: { resources: LessonResourcePublic[] | und
 }
 
 function ResourceRow({ resource }: { resource: LessonResourcePublic }) {
+  const { t } = useTranslation();
   const [requested, setRequested] = useState(false);
   const downloadQuery = useResourceDownloadUrl(requested ? resource.id : undefined);
   const downloadUnavailable =
@@ -543,14 +558,14 @@ function ResourceRow({ resource }: { resource: LessonResourcePublic }) {
         <p className="text-sm font-semibold text-m3-on-surface truncate">{resource.title}</p>
         <p className="text-[10px] text-m3-outline uppercase">{resource.resource_type}</p>
         {downloadUnavailable && (
-          <p className="text-[10px] text-amber-600 mt-0.5">Tài nguyên không khả dụng</p>
+          <p className="text-[10px] text-amber-600 mt-0.5">{t("course_learn.resource_unavailable")}</p>
         )}
       </div>
       <Button
         size="icon"
         variant="ghost"
         className="h-8 w-8 rounded-xl text-m3-secondary hover:bg-m3-secondary/10"
-        title={downloadUnavailable ? "Tài nguyên không khả dụng" : "Download"}
+        title={downloadUnavailable ? t("course_learn.resource_unavailable") : t("course_learn.download")}
         onClick={() => setRequested(true)}
         disabled={downloadQuery.isFetching}
       >

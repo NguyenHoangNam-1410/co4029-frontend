@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useParams } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import {
   ArrowLeft, ArrowRight, Mail, Calendar, Clock, TrendingUp,
   AlertTriangle, UserCheck, UserMinus, Loader2, CheckCircle2,
@@ -66,6 +67,7 @@ function fmtDate(iso: string | null) {
 
 /* ════════════════════════════════════════ */
 export default function CourseStudentDetailPage() {
+  const { t } = useTranslation();
   const { courseId, studentId } = useParams({ strict: false }) as { courseId: string; studentId: string };
 
   const { data: course } = useTeacherCourseById(courseId);
@@ -115,7 +117,7 @@ export default function CourseStudentDetailPage() {
 
       {/* ── Breadcrumb ── */}
       <div className="flex items-center gap-1.5 text-xs text-m3-on-surface-variant pt-4 pb-6">
-        <Link to="/teacher/courses" className="hover:text-m3-primary transition-colors">Khóa học của tôi</Link>
+        <Link to="/teacher/courses" className="hover:text-m3-primary transition-colors">{t("teacher_courses_list.title")}</Link>
         <ArrowRight className="h-3 w-3" />
         <Link to="/teacher/courses/$courseId" params={{ courseId }} className="hover:text-m3-primary transition-colors truncate max-w-[140px]">
           {course?.title ?? "…"}

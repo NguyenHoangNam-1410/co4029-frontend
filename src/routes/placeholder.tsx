@@ -1,8 +1,10 @@
 import { Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Construction } from "lucide-react";
 
 export function ComingSoonPage({ title }: { title: string }) {
+  const { t } = useTranslation();
   return (
     <div className="min-h-[60vh] flex items-center justify-center px-6">
       <div className="text-center space-y-5 max-w-sm">
@@ -11,11 +13,11 @@ export function ComingSoonPage({ title }: { title: string }) {
         </div>
         <h1 className="font-headline font-bold text-2xl text-m3-on-surface">{title}</h1>
         <p className="text-m3-on-surface-variant text-sm">
-          This page is coming soon. Check back after the API migration is complete.
+          {t("placeholder.body")}
         </p>
         <Link to="/dashboard">
           <Button className="gradient-primary text-white border-0 gap-2 font-semibold">
-            Back to Dashboard <ArrowRight className="h-4 w-4" />
+            {t("placeholder.back")} <ArrowRight className="h-4 w-4" />
           </Button>
         </Link>
       </div>
@@ -23,18 +25,24 @@ export function ComingSoonPage({ title }: { title: string }) {
   );
 }
 
+function PageWithKey({ titleKey }: { titleKey: string }) {
+  const { t } = useTranslation();
+  return <ComingSoonPage title={t(titleKey)} />;
+}
+
 export function ProgressPage() {
-  return <ComingSoonPage title="Progress" />;
+  return <PageWithKey titleKey="placeholder.progress" />;
 }
 
 export function SettingsPage() {
-  return <ComingSoonPage title="Cài đặt" />;
+  return <PageWithKey titleKey="placeholder.settings" />;
 }
 
 export function QuizPage() {
-  return <ComingSoonPage title="Bài kiểm tra" />;
+  return <PageWithKey titleKey="placeholder.quiz" />;
 }
 
 export function InterviewPage() {
-  return <ComingSoonPage title="AI Mock Interview" />;
+  return <PageWithKey titleKey="placeholder.interview" />;
 }
+

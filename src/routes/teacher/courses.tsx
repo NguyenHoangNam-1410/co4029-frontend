@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { Plus, BookOpen, Clock, Search, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -117,6 +118,7 @@ function CourseCard({ course }: { course: Course }) {
 }
 
 export default function TeacherCoursesPage() {
+  const { t } = useTranslation();
   const { data: courses = [], isLoading } = useTeacherCourses();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -135,17 +137,17 @@ export default function TeacherCoursesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-headline font-bold text-m3-on-surface">Khóa học của tôi</h1>
+          <h1 className="text-2xl font-headline font-bold text-m3-on-surface">{t("teacher_courses_list.title")}</h1>
           <p className="text-sm text-m3-on-surface-variant mt-1">
-            {courses.length} course{courses.length !== 1 ? "s" : ""}
-            {published > 0 && ` · ${published} published`}
-            {draft > 0 && ` · ${draft} draft`}
+            {t("teacher_courses_list.n_courses", { count: courses.length })}
+            {published > 0 && t("teacher_courses_list.published_suffix", { count: published })}
+            {draft > 0 && t("teacher_courses_list.draft_suffix", { count: draft })}
           </p>
         </div>
         <Link to="/teacher/courses/new">
           <Button size="sm" className="gap-2">
             <Plus className="h-4 w-4" />
-            New Course
+            {t("teacher_courses_list.new_course")}
           </Button>
         </Link>
       </div>
@@ -155,22 +157,22 @@ export default function TeacherCoursesPage() {
         <div className="relative flex-1 min-w-48">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-m3-on-surface-variant" />
           <Input
-            placeholder="Tìm khóa học..."
+            placeholder={t("teacher_common.search_courses")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9 h-9 text-sm"
           />
         </div>
         <div className="flex gap-1">
-          {["all", "published", "draft", "archived"].map((s) => (
+          {(["all", "published", "draft", "archived"] as const).map((s) => (
             <Button
               key={s}
               variant={statusFilter === s ? "default" : "outline"}
               size="sm"
-              className="text-xs capitalize"
+              className="text-xs"
               onClick={() => setStatusFilter(s)}
             >
-              {s}
+              {t(`teacher_courses_list.filter_${s}`)}
             </Button>
           ))}
         </div>
@@ -187,13 +189,13 @@ export default function TeacherCoursesPage() {
         <div className="text-center py-16 text-m3-on-surface-variant">
           <BookOpen className="h-12 w-12 mx-auto mb-3 opacity-20" />
           <p className="text-sm font-medium">
-            {search ? "No courses match your search" : "No courses yet"}
+            {search ? t("teacher_courses_list.no_match") : t("teacher_courses_list.no_courses_yet")}
           </p>
           {!search && (
             <Link to="/teacher/courses/new">
               <Button size="sm" className="mt-4 gap-2">
                 <Plus className="h-4 w-4" />
-                Create Course
+                {t("teacher_courses_list.create_course")}
               </Button>
             </Link>
           )}

@@ -140,6 +140,53 @@
       "regen_failed": "Couldn't regenerate recovery codes."
     }
   },
+  "teacher_courses_list": {
+    "title": "My courses",
+    "n_courses": "{{count}} course",
+    "n_courses_plural": "{{count}} courses",
+    "published_suffix": " · {{count}} published",
+    "draft_suffix": " · {{count}} draft",
+    "new_course": "New course",
+    "create_course": "Create course",
+    "filter_all": "All",
+    "filter_published": "Published",
+    "filter_draft": "Draft",
+    "filter_archived": "Archived",
+    "no_match": "No courses match your search",
+    "no_courses_yet": "No courses yet"
+  },
+  "course_learn": {
+    "lesson_unavailable_title": "Lesson unavailable",
+    "lesson_unavailable_body": "This lesson's content isn't open yet.",
+    "resource_unavailable": "Resource unavailable",
+    "download": "Download"
+  },
+  "placeholder": {
+    "body": "This page is coming soon. Check back after the API migration is complete.",
+    "back": "Back to dashboard",
+    "progress": "Progress",
+    "settings": "Settings",
+    "quiz": "Quiz",
+    "interview": "AI mock interview"
+  },
+  "teacher_common": {
+    "breadcrumb_teaching": "Teaching",
+    "breadcrumb_course": "Course",
+    "lesson_fallback": "Lesson",
+    "quiz_label": "Quiz",
+    "interview_label": "Interview",
+    "search_courses": "Search courses...",
+    "search_students": "Search by name or email…",
+    "search_lessons": "Search lessons…",
+    "saved_check": "Saved ✓",
+    "save_changes": "Save changes",
+    "lesson_saved": "Lesson saved",
+    "video_too_large": "Videos over 100MB aren't supported here. Use the Materials & AI Hub tab.",
+    "video_uploaded": "Video uploaded",
+    "storage_unavailable": "Storage isn't configured yet. Please contact your admin.",
+    "upload_failed": "Upload failed",
+    "resource_unavailable": "Resource unavailable"
+  },
   "dept_course_detail": {
     "back": "Team management",
     "course_fallback": "Course",

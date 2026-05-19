@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
   ArrowRight,
@@ -54,7 +55,7 @@ const LESSON_TYPE_CONFIG: Record<
 };
 
 const QUIZ_ITEM_CONFIG = {
-  label: "Bài kiểm tra",
+  label: "teacher_common.quiz_label",
   icon: HelpCircle,
   badge: "bg-blue-50 text-blue-800",
 };
@@ -85,6 +86,7 @@ function ItemRow({
   onDragEnd: () => void;
   onDelete: () => void;
 }) {
+  const { t } = useTranslation();
   const lesson: CourseContentLesson | null = item.lesson;
   const quiz = item.quiz;
   const cfg = quiz
@@ -94,9 +96,9 @@ function ItemRow({
       : null;
   const Icon = cfg?.icon ?? BookOpen;
   const label = quiz
-    ? QUIZ_ITEM_CONFIG.label
+    ? t(QUIZ_ITEM_CONFIG.label)
     : item.item_type === "interview"
-      ? "Phỏng vấn"
+      ? t("teacher_common.interview_label")
       : (cfg?.label ?? item.item_type);
   const title = lesson?.title ?? quiz?.title ?? label;
   const status = lesson?.status ?? quiz?.status;
@@ -403,6 +405,7 @@ function ModuleSettings({
 }
 
 export default function ModuleManagePage() {
+  const { t } = useTranslation();
   const { courseId, moduleId } = useParams({ strict: false }) as {
     courseId: string;
     moduleId: string;
@@ -516,9 +519,9 @@ export default function ModuleManagePage() {
     <div className="space-y-6 pb-12">
       <Breadcrumbs
         items={[
-          { label: "Giảng dạy", to: "/teacher/courses" },
+          { label: t("teacher_common.breadcrumb_teaching"), to: "/teacher/courses" },
           {
-            label: course?.title ?? "Khóa học",
+            label: course?.title ?? t("teacher_common.breadcrumb_course"),
             to: "/teacher/courses/$courseId",
           },
           { label: module.title },
