@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import {
   Activity,
   AlertTriangle,
   CheckCircle2,
   Clock,
-  PauseCircle,
   PlayCircle,
   RefreshCw,
   XCircle,
@@ -22,12 +22,12 @@ import { StatCard } from "@/components/ui/stat-card";
 import type { ProcessingJobOut } from "@/lib/api/types";
 
 const STATUS_FILTERS = [
-  { value: "", label: "Tất cả" },
-  { value: "pending", label: "Đang chờ" },
-  { value: "running", label: "Đang chạy" },
-  { value: "completed", label: "Hoàn thành" },
-  { value: "failed", label: "Thất bại" },
-  { value: "cancelled", label: "Đã hủy" },
+  { value: "", i18nKey: "admin.processing.filters.all" },
+  { value: "pending", i18nKey: "admin.processing.filters.pending" },
+  { value: "running", i18nKey: "admin.processing.filters.running" },
+  { value: "completed", i18nKey: "admin.processing.filters.completed" },
+  { value: "failed", i18nKey: "admin.processing.filters.failed" },
+  { value: "cancelled", i18nKey: "admin.processing.filters.cancelled" },
 ] as const;
 
 const JOB_STATUS_COLOR: Record<string, string> = {
@@ -49,17 +49,17 @@ function JobStatusBadge({ status }: { status: string }) {
   );
 }
 
-function formatDate(iso: string | null | undefined): string {
+function formatDate(iso: string | null | undefined, locale: string): string {
   if (!iso) return "—";
-  return new Intl.DateTimeFormat("vi-VN", {
+  return new Intl.DateTimeFormat(locale === "vi" ? "vi-VN" : "en-US", {
     dateStyle: "short",
     timeStyle: "short",
   }).format(new Date(iso));
 }
 
-function formatNumber(n: number | undefined | null): string {
+function formatNumber(n: number | undefined | null, locale: string): string {
   if (n === undefined || n === null) return "—";
-  return new Intl.NumberFormat("vi-VN").format(n);
+  return new Intl.NumberFormat(locale === "vi" ? "vi-VN" : "en-US").format(n);
 }
 
 function JobsTable({
@@ -71,12 +71,15 @@ function JobsTable({
   onRetry: (jobId: string) => void;
   retryingId: string | null;
 }) {
+  const { t, i18n } = useTranslation();
+  const locale = i18n.resolvedLanguage ?? i18n.language ?? "en";
+
   if (jobs.length === 0) {
     return (
       <div className="bg-surface-elev border border-border rounded-lg p-8 text-center">
         <Activity className="h-8 w-8 mx-auto mb-2 text-text-subtle" />
         <p className="text-sm text-text-muted">
-          Không có job nào khớp bộ lọc.
+          {t("admin.processing.no_jobs_match")}
         </p>
       </div>
     );
@@ -86,13 +89,13 @@ function JobsTable({
       <table className="w-full text-sm">
         <thead className="bg-surface-muted text-left">
           <tr>
-            <th className="px-4 py-2 text-xs font-semibold text-text-muted">Job</th>
-            <th className="px-4 py-2 text-xs font-semibold text-text-muted">Đối tượng</th>
-            <th className="px-4 py-2 text-xs font-semibold text-text-muted">Trạng thái</th>
-            <th className="px-4 py-2 text-xs font-semibold text-text-muted">Tiến độ</th>
-            <th className="px-4 py-2 text-xs font-semibold text-text-muted">Thử lại</th>
-            <th className="px-4 py-2 text-xs font-semibold text-text-muted">Cập nhật</th>
-            <th className="px-4 py-2 text-xs font-semibold text-text-muted text-right">Hành động</th>
+            <th className="px-4 py-2 text-xs font-semibold text-text-muted">{t("admin.processing.cols.job")}</th>
+            <th className="px-4 py-2 text-xs font-semibold text-text-muted">{t("admin.processing.cols.entity")}</th>
+            <th className="px-4 py-2 text-xs font-semibold text-text-muted">{t("admin.processing.cols.status")}</th>
+            <th className="px-4 py-2 text-xs font-semibold text-text-muted">{t("admin.processing.cols.progress")}</th>
+            <th className="px-4 py-2 text-xs font-semibold text-text-muted">{t("admin.processing.cols.retries")}</th>
+            <th className="px-4 py-2 text-xs font-semibold text-text-muted">{t("admin.processing.cols.updated")}</th>
+            <th className="px-4 py-2 text-xs font-semibold text-text-muted text-right">{t("admin.processing.cols.actions")}</th>
           </tr>
         </thead>
         <tbody>
@@ -124,7 +127,7 @@ function JobsTable({
                 </td>
                 <td className="px-4 py-2 text-text-muted">{job.retry_count}</td>
                 <td className="px-4 py-2 text-text-muted text-xs">
-                  {formatDate(job.updated_at)}
+                  {formatDate(job.updated_at, locale)}
                 </td>
                 <td className="px-4 py-2 text-right">
                   {isFailed ? (
@@ -135,7 +138,7 @@ function JobsTable({
                       className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-md bg-m3-primary text-white hover:opacity-90 disabled:opacity-50"
                     >
                       <RefreshCw className="h-3 w-3" />
-                      {isRetrying ? "..." : "Thử lại"}
+                      {isRetrying ? "…" : t("admin.processing.retry")}
                     </button>
                   ) : null}
                 </td>
@@ -149,6 +152,8 @@ function JobsTable({
 }
 
 export default function AdminProcessingPage() {
+  const { t, i18n } = useTranslation();
+  const locale = i18n.resolvedLanguage ?? i18n.language ?? "en";
   const navigate = useNavigate();
   const permissions = useMyPermissions();
   const canAdmin =
@@ -160,10 +165,10 @@ export default function AdminProcessingPage() {
   useEffect(() => {
     if (permissions.isLoading) return;
     if (!canAdmin) {
-      toast.error("Không có quyền truy cập");
+      toast.error(t("admin.users.roles.errors.no_permission"));
       void navigate({ to: "/dashboard", replace: true });
     }
-  }, [permissions.isLoading, canAdmin, navigate]);
+  }, [permissions.isLoading, canAdmin, navigate, t]);
 
   const queue = useProcessingQueue();
   const jobs = useProcessingJobs(
@@ -190,12 +195,12 @@ export default function AdminProcessingPage() {
   const handleRetry = (jobId: string) => {
     setRetryingId(jobId);
     retry.mutate(jobId, {
-      onSuccess: () => toast.success("Đã đưa job vào hàng đợi"),
+      onSuccess: () => toast.success(t("admin.processing.toasts.queued")),
       onError: (err) => {
         if (err instanceof ApiError && err.status === 409) {
-          toast.error("Chỉ có thể thử lại các job đã thất bại");
+          toast.error(t("admin.processing.toasts.only_failed"));
         } else {
-          toast.error((err as Error).message || "Không thể thử lại");
+          toast.error((err as Error).message || t("admin.processing.toasts.retry_failed"));
         }
       },
       onSettled: () => setRetryingId(null),
@@ -205,18 +210,18 @@ export default function AdminProcessingPage() {
   return (
     <div className="space-y-6 pb-12">
       <div>
-        <h1 className="text-xl font-headline font-bold text-text-strong">
-          Hàng đợi xử lý
+        <h1 className="text-2xl font-headline font-bold text-text-strong">
+          {t("admin.processing.title")}
         </h1>
         <p className="text-sm text-text-muted mt-1">
-          Theo dõi job nền AI và độ sâu hàng đợi ARQ.
+          {t("admin.processing.subtitle")}
         </p>
       </div>
 
       {queue.isError ? (
         <div className="bg-surface-elev border border-border rounded-lg p-5">
           <p className="text-sm text-danger">
-            Không thể tải độ sâu hàng đợi.
+            {t("admin.processing.queue_load_failed")}
           </p>
         </div>
       ) : queue.isLoading ? (
@@ -231,33 +236,33 @@ export default function AdminProcessingPage() {
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
           <StatCard
-            label="Tổng job"
-            value={formatNumber(queue.data?.total)}
+            label={t("admin.processing.stats.total")}
+            value={formatNumber(queue.data?.total, locale)}
             icon={Activity}
           />
           <StatCard
-            label="Đang chờ"
-            value={formatNumber(queue.data?.pending)}
+            label={t("admin.processing.stats.pending")}
+            value={formatNumber(queue.data?.pending, locale)}
             icon={Clock}
           />
           <StatCard
-            label="Đang chạy"
-            value={formatNumber(queue.data?.running)}
+            label={t("admin.processing.stats.running")}
+            value={formatNumber(queue.data?.running, locale)}
             icon={PlayCircle}
           />
           <StatCard
-            label="Hoàn thành"
-            value={formatNumber(queue.data?.completed)}
+            label={t("admin.processing.stats.completed")}
+            value={formatNumber(queue.data?.completed, locale)}
             icon={CheckCircle2}
           />
           <StatCard
-            label="Thất bại"
-            value={formatNumber(queue.data?.failed)}
+            label={t("admin.processing.stats.failed")}
+            value={formatNumber(queue.data?.failed, locale)}
             icon={AlertTriangle}
           />
           <StatCard
-            label="Đã hủy"
-            value={formatNumber(queue.data?.cancelled)}
+            label={t("admin.processing.stats.cancelled")}
+            value={formatNumber(queue.data?.cancelled, locale)}
             icon={XCircle}
           />
         </div>
@@ -266,7 +271,7 @@ export default function AdminProcessingPage() {
       <div className="bg-surface-elev border border-border rounded-lg p-4">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs font-semibold text-text-muted mr-2">
-            Lọc trạng thái:
+            {t("admin.processing.filter_status")}:
           </span>
           {STATUS_FILTERS.map((opt) => {
             const active = statusFilter === opt.value;
@@ -281,7 +286,7 @@ export default function AdminProcessingPage() {
                     : "px-3 py-1.5 text-xs font-semibold rounded-md bg-surface-muted text-text-strong hover:bg-surface-muted/70"
                 }
               >
-                {opt.label}
+                {t(opt.i18nKey)}
               </button>
             );
           })}
@@ -290,11 +295,11 @@ export default function AdminProcessingPage() {
 
       <div>
         <h2 className="text-lg font-headline font-bold text-text-strong mb-3">
-          Job gần đây (7 ngày)
+          {t("admin.processing.recent_jobs")}
         </h2>
         {jobs.isError ? (
           <div className="bg-surface-elev border border-border rounded-lg p-5">
-            <p className="text-sm text-danger">Không thể tải danh sách job.</p>
+            <p className="text-sm text-danger">{t("admin.processing.jobs_load_failed")}</p>
           </div>
         ) : jobs.isLoading ? (
           <div className="space-y-2">

@@ -215,6 +215,138 @@
     "ask_ai": "Hỏi trợ lý AI",
     "ai_chip": "Hỗ trợ bởi AI"
   },
+  "admin": {
+    "health": {
+      "title": "Trạng thái hệ thống",
+      "subtitle": "Kiểm tra sức khỏe và sẵn sàng của backend.",
+      "healthz_card": "Kiểm tra sức khỏe API",
+      "readyz_card": "Kiểm tra sẵn sàng",
+      "cannot_connect": "Không thể kết nối đến máy chủ.",
+      "updated_at": "Cập nhật lúc: {{time}}",
+      "status": {
+        "ok": "ok",
+        "degraded": "suy giảm",
+        "down": "ngừng",
+        "unknown": "không rõ"
+      }
+    },
+    "processing": {
+      "title": "Hàng đợi xử lý",
+      "subtitle": "Theo dõi job nền AI và độ sâu hàng đợi ARQ.",
+      "queue_load_failed": "Không thể tải độ sâu hàng đợi.",
+      "jobs_load_failed": "Không thể tải danh sách job.",
+      "no_jobs_match": "Không có job nào khớp bộ lọc.",
+      "filter_status": "Lọc trạng thái",
+      "recent_jobs": "Job gần đây (7 ngày)",
+      "retry": "Thử lại",
+      "stats": {
+        "total": "Tổng job",
+        "pending": "Đang chờ",
+        "running": "Đang chạy",
+        "completed": "Hoàn thành",
+        "failed": "Thất bại",
+        "cancelled": "Đã hủy"
+      },
+      "filters": {
+        "all": "Tất cả",
+        "pending": "Đang chờ",
+        "running": "Đang chạy",
+        "completed": "Hoàn thành",
+        "failed": "Thất bại",
+        "cancelled": "Đã hủy"
+      },
+      "cols": {
+        "job": "Job",
+        "entity": "Đối tượng",
+        "status": "Trạng thái",
+        "progress": "Tiến độ",
+        "retries": "Thử lại",
+        "updated": "Cập nhật",
+        "actions": "Hành động"
+      },
+      "toasts": {
+        "queued": "Đã đưa job vào hàng đợi",
+        "only_failed": "Chỉ có thể thử lại các job đã thất bại",
+        "retry_failed": "Không thể thử lại"
+      }
+    },
+    "users": {
+      "title": "Người dùng",
+      "list_title": "Quản lý người dùng",
+      "list_subtitle": "Danh sách người dùng theo phạm vi quyền của bạn.",
+      "empty_title": "Chưa có người dùng nào",
+      "empty_body": "Khi có người dùng đăng ký, danh sách sẽ xuất hiện tại đây.",
+      "back_to_list": "Quay lại danh sách",
+      "profile_section": "Hồ sơ",
+      "status": {
+        "active": "Đang hoạt động",
+        "invited": "Đã mời",
+        "disabled": "Vô hiệu hoá",
+        "inactive": "Vô hiệu hoá",
+        "pending": "Chờ duyệt",
+        "suspended": "Tạm khoá"
+      },
+      "actions": {
+        "disable": "Vô hiệu hoá",
+        "enable": "Kích hoạt",
+        "disabling": "Đang xử lý…"
+      },
+      "fields": {
+        "last_login": "Đăng nhập gần nhất",
+        "created_at": "Ngày tạo",
+        "updated_at": "Cập nhật gần nhất",
+        "display_name": "Tên hiển thị",
+        "full_name": "Họ tên",
+        "bio": "Giới thiệu"
+      },
+      "roles": {
+        "title": "Vai trò & phân quyền",
+        "count": "{{count}} vai trò",
+        "count_plural": "{{count}} vai trò",
+        "empty": "Người dùng chưa được gán vai trò nào.",
+        "assign_new": "Gán vai trò mới",
+        "role": "Vai trò",
+        "scope": "Phạm vi",
+        "organization_id": "ID tổ chức",
+        "org_unit_id": "ID đơn vị",
+        "course_id": "ID khoá học",
+        "select_role": "— Chọn vai trò —",
+        "scope_organization": "Tổ chức",
+        "scope_org_unit": "Đơn vị",
+        "scope_course": "Khoá học",
+        "scope_global": "Toàn cục",
+        "grant": "Gán vai trò",
+        "granting": "Đang gán…",
+        "revoke": "Thu hồi",
+        "revoke_confirm": "Thu hồi vai trò \"{{role}}\" cho người dùng này?",
+        "active_sessions": "Phiên đăng nhập đang hoạt động",
+        "session_expires": "hết hạn",
+        "session_ip": "IP",
+        "errors": {
+          "select_role": "Hãy chọn vai trò",
+          "need_org_id": "Phạm vi 'organization' cần ID tổ chức",
+          "need_unit_id": "Phạm vi 'org_unit' cần ID đơn vị",
+          "need_course_id": "Phạm vi 'course' cần ID khoá học",
+          "no_permission": "Không có quyền truy cập",
+          "load_failed": "Không thể tải thông tin người dùng.",
+          "grant_failed": "Không thể gán vai trò",
+          "revoke_failed": "Không thể thu hồi",
+          "disable_failed": "Không thể vô hiệu hoá",
+          "enable_failed": "Không thể kích hoạt"
+        },
+        "success": {
+          "granted": "Đã gán vai trò {{role}}",
+          "revoked": "Đã thu hồi vai trò",
+          "disabled": "Đã vô hiệu hoá. Đã thu hồi {{count}} phiên.",
+          "enabled": "Đã kích hoạt lại người dùng"
+        }
+      },
+      "confirm_disable": {
+        "title": "Vô hiệu hoá người dùng?",
+        "body": "Tất cả phiên đăng nhập sẽ bị huỷ. Người dùng không thể đăng nhập cho đến khi được kích hoạt lại."
+      }
+    }
+  },
   "languages": {
     "en": "English",
     "vi": "Tiếng Việt",
