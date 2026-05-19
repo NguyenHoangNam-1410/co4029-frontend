@@ -140,6 +140,42 @@
       "regen_failed": "Couldn't regenerate recovery codes."
     }
   },
+  "me_career_paths": {
+    "title": "My career paths",
+    "subtitle": "Track your progress on the paths you're enrolled in.",
+    "section_title": "Enrolled",
+    "n_paths": "{{count}} path",
+    "n_paths_plural": "{{count}} paths",
+    "load_failed_title": "Couldn't load your paths",
+    "load_failed_body": "Please try again in a few minutes.",
+    "retry": "Retry",
+    "empty_title": "You're not enrolled in any path yet",
+    "empty_body": "Contact your training manager to be enrolled in a suitable path.",
+    "view_paths": "Browse available paths →",
+    "started": "Started: {{date}}",
+    "status": {
+      "active": "Active",
+      "completed": "Completed",
+      "dropped": "Dropped"
+    }
+  },
+  "career_path_detail": {
+    "back": "Back",
+    "load_failed": "Couldn't load the path",
+    "n_courses": "{{count}} course",
+    "n_courses_plural": "{{count}} courses",
+    "completed_courses": "Completed {{completed}}/{{total}} courses",
+    "overall_progress": "Overall progress",
+    "continue_learning": "Continue learning",
+    "managed_enrollment_title": "Enrollment is managed",
+    "managed_enrollment_body": "Contact your manager to be enrolled in this path.",
+    "section_title": "Courses in this path",
+    "section_subtitle": "In recommended order",
+    "empty": "This path has no courses yet.",
+    "course_required": "Required",
+    "course_optional": "Optional",
+    "course_progress_label": "Progress"
+  },
   "study_cards_due": {
     "back": "Back to dashboard",
     "title": "Cards due",

@@ -140,6 +140,42 @@
       "regen_failed": "Không thể tạo lại mã khôi phục."
     }
   },
+  "me_career_paths": {
+    "title": "Lộ trình của tôi",
+    "subtitle": "Theo dõi tiến độ học tập trên các lộ trình bạn đã đăng ký.",
+    "section_title": "Đã đăng ký",
+    "n_paths": "{{count}} lộ trình",
+    "n_paths_plural": "{{count}} lộ trình",
+    "load_failed_title": "Không thể tải danh sách lộ trình",
+    "load_failed_body": "Vui lòng thử lại sau ít phút.",
+    "retry": "Thử lại",
+    "empty_title": "Bạn chưa đăng ký lộ trình nào",
+    "empty_body": "Liên hệ quản lý đào tạo để được đăng ký vào lộ trình phù hợp.",
+    "view_paths": "Xem các lộ trình hiện có →",
+    "started": "Bắt đầu: {{date}}",
+    "status": {
+      "active": "Đang học",
+      "completed": "Hoàn thành",
+      "dropped": "Đã bỏ"
+    }
+  },
+  "career_path_detail": {
+    "back": "Quay lại",
+    "load_failed": "Không thể tải lộ trình",
+    "n_courses": "{{count}} khóa học",
+    "n_courses_plural": "{{count}} khóa học",
+    "completed_courses": "Đã hoàn thành {{completed}}/{{total}} khóa học",
+    "overall_progress": "Tổng tiến độ",
+    "continue_learning": "Tiếp tục học",
+    "managed_enrollment_title": "Đăng ký bởi quản lý",
+    "managed_enrollment_body": "Liên hệ quản lý để được đăng ký vào lộ trình này.",
+    "section_title": "Khóa học trong lộ trình",
+    "section_subtitle": "Theo thứ tự đề xuất",
+    "empty": "Lộ trình này chưa có khóa học nào.",
+    "course_required": "Khóa học bắt buộc",
+    "course_optional": "Tự chọn",
+    "course_progress_label": "Tiến độ"
+  },
   "study_cards_due": {
     "back": "Quay lại bảng điều khiển",
     "title": "Thẻ cần ôn",

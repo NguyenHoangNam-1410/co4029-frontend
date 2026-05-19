@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { Link, useParams } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
   ArrowRight,
@@ -29,6 +30,7 @@ function CourseRow({
   index: number;
   progress?: CourseProgressSummary;
 }) {
+  const { t } = useTranslation();
   const completion = progress?.completion_percent ?? 0;
   const completed = completion >= 100;
 
@@ -60,14 +62,16 @@ function CourseRow({
                   : "text-m3-on-surface-variant"
               }
             >
-              {course.is_required ? "Khóa học bắt buộc" : "Tự chọn"}
+              {course.is_required
+                ? t("career_path_detail.course_required")
+                : t("career_path_detail.course_optional")}
             </span>
           </div>
           {progress && (
             <div className="mt-2.5">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-[10px] uppercase tracking-wider text-m3-on-surface-variant font-bold">
-                  Tiến độ
+                  {t("career_path_detail.course_progress_label")}
                 </span>
                 <span className="text-[11px] text-m3-on-surface font-semibold">
                   {Math.round(completion)}%
@@ -89,6 +93,7 @@ function CourseRow({
 }
 
 export default function CareerPathDetailPage() {
+  const { t } = useTranslation();
   const { slug } = useParams({ strict: false }) as { slug: string };
   const path = useCareerPath(slug);
   const enrollments = useMyCareerEnrollments();
@@ -105,7 +110,7 @@ export default function CareerPathDetailPage() {
 
   if (path.isLoading) {
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      <div className="max-w-4xl mx-auto space-y-6">
         <div className="h-8 w-48 bg-m3-surface-container animate-pulse rounded-lg" />
         <div className="h-32 bg-m3-surface-container animate-pulse rounded-xl" />
         <div className="space-y-2">
@@ -122,10 +127,10 @@ export default function CareerPathDetailPage() {
 
   if (path.isError || !path.data) {
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-4xl mx-auto">
         <div className="rounded-xl bg-m3-error-container border border-m3-error/20 p-6 text-center">
           <p className="text-m3-on-error-container text-sm font-semibold">
-            Không thể tải lộ trình
+            {t("career_path_detail.load_failed")}
           </p>
         </div>
       </div>
@@ -142,12 +147,12 @@ export default function CareerPathDetailPage() {
   });
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-16 space-y-8">
+    <div className="max-w-4xl mx-auto pb-16 space-y-8">
       <div>
         <Link to="/career-paths">
           <Button variant="ghost" size="sm" className="gap-2 -ml-3 mb-4">
             <ArrowLeft className="h-4 w-4" />
-            Quay lại
+            {t("career_path_detail.back")}
           </Button>
         </Link>
         <div className="flex items-start gap-4">
@@ -166,13 +171,17 @@ export default function CareerPathDetailPage() {
             <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-m3-on-surface-variant">
               <span className="inline-flex items-center gap-1.5">
                 <BookOpen className="h-3.5 w-3.5" />
-                <strong>{data.courses.length}</strong> khóa học
+                <strong>
+                  {t("career_path_detail.n_courses", { count: data.courses.length })}
+                </strong>
               </span>
               {enrolled && progress.data && (
                 <span className="inline-flex items-center gap-1.5 text-emerald-700 font-semibold">
                   <CheckCircle2 className="h-3.5 w-3.5" />
-                  Đã hoàn thành {progress.data.completed_courses}/
-                  {progress.data.course_count} khóa học
+                  {t("career_path_detail.completed_courses", {
+                    completed: progress.data.completed_courses,
+                    total: progress.data.course_count,
+                  })}
                 </span>
               )}
             </div>
@@ -185,7 +194,7 @@ export default function CareerPathDetailPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-[10px] uppercase tracking-wider text-m3-on-surface-variant font-bold">
-                Tổng tiến độ
+                {t("career_path_detail.overall_progress")}
               </p>
               <p className="font-headline font-bold text-xl text-m3-on-surface">
                 {Math.round(progress.data.overall_percent)}%
@@ -197,7 +206,7 @@ export default function CareerPathDetailPage() {
                 params={{ slug: firstIncomplete.slug }}
               >
                 <Button size="sm" className="gap-2">
-                  Tiếp tục học
+                  {t("career_path_detail.continue_learning")}
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
@@ -219,10 +228,10 @@ export default function CareerPathDetailPage() {
           <Lock className="h-5 w-5 text-amber-700 shrink-0 mt-0.5" />
           <div className="flex-1">
             <p className="text-sm font-semibold text-amber-900">
-              Đăng ký bởi quản lý
+              {t("career_path_detail.managed_enrollment_title")}
             </p>
             <p className="text-xs text-amber-800 mt-1 leading-relaxed">
-              Liên hệ quản lý để được đăng ký vào lộ trình này.
+              {t("career_path_detail.managed_enrollment_body")}
             </p>
           </div>
         </div>
@@ -230,14 +239,14 @@ export default function CareerPathDetailPage() {
 
       <section className="space-y-4">
         <SectionHeader
-          title="Khóa học trong lộ trình"
-          subtitle="Theo thứ tự đề xuất"
+          title={t("career_path_detail.section_title")}
+          subtitle={t("career_path_detail.section_subtitle")}
         />
         {data.courses.length === 0 ? (
           <div className="rounded-xl bg-m3-surface-container-lowest ghost-border p-10 text-center">
             <BookOpen className="h-8 w-8 mx-auto mb-3 text-m3-outline" />
             <p className="text-sm text-m3-on-surface-variant">
-              Lộ trình này chưa có khóa học nào.
+              {t("career_path_detail.empty")}
             </p>
           </div>
         ) : (

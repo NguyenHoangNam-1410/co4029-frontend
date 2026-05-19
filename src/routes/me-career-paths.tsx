@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { ArrowRight, AlertCircle, BookOpen, CheckCircle2, GraduationCap } from "lucide-react";
 import { SectionHeader } from "@/components/ui/section-header";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -7,30 +8,30 @@ import { Button } from "@/components/ui/button";
 import { useMyCareerEnrollments } from "@/lib/api/hooks/career-paths";
 import type { MyCareerEnrollmentRead } from "@/lib/api/types";
 
-const STATUS_LABEL: Record<MyCareerEnrollmentRead["status"], string> = {
-  active: "Đang học",
-  completed: "Hoàn thành",
-  dropped: "Đã bỏ",
-};
-
 const STATUS_COLOR: Record<MyCareerEnrollmentRead["status"], string> = {
   active: "bg-emerald-100 text-emerald-700",
   completed: "bg-m3-primary-fixed text-m3-primary",
   dropped: "bg-slate-100 text-slate-500",
 };
 
-function formatDate(iso: string | null | undefined): string {
-  if (!iso) return "—";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString("vi-VN", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
+function useFormatDate() {
+  const { i18n } = useTranslation();
+  const locale = (i18n.resolvedLanguage ?? i18n.language ?? "en") === "vi" ? "vi-VN" : "en-US";
+  return (iso: string | null | undefined): string => {
+    if (!iso) return "—";
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return iso;
+    return d.toLocaleDateString(locale, {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+  };
 }
 
 function EnrollmentRow({ item }: { item: MyCareerEnrollmentRead }) {
+  const { t } = useTranslation();
+  const formatDate = useFormatDate();
   return (
     <Link
       to="/career-paths/$slug"
@@ -49,12 +50,12 @@ function EnrollmentRow({ item }: { item: MyCareerEnrollmentRead }) {
             <span
               className={`text-[10px] font-semibold px-2 py-0.5 rounded-md shrink-0 ${STATUS_COLOR[item.status]}`}
             >
-              {STATUS_LABEL[item.status]}
+              {t(`me_career_paths.status.${item.status}`)}
             </span>
           </div>
           <div className="mt-1 flex items-center gap-3 text-[11px] text-m3-on-surface-variant">
             <span className="font-mono truncate">{item.slug}</span>
-            <span>Bắt đầu: {formatDate(item.started_at)}</span>
+            <span>{t("me_career_paths.started", { date: formatDate(item.started_at) })}</span>
             {item.completed_at && (
               <span className="inline-flex items-center gap-1 text-emerald-700">
                 <CheckCircle2 className="h-3 w-3" />
@@ -70,38 +71,39 @@ function EnrollmentRow({ item }: { item: MyCareerEnrollmentRead }) {
 }
 
 export default function MyCareerPathsPage() {
+  const { t } = useTranslation();
   const list = useMyCareerEnrollments();
   const items = list.data ?? [];
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-16 space-y-8">
+    <div className="max-w-4xl mx-auto pb-16 space-y-8">
       <header className="pt-2">
         <h1 className="font-headline font-black text-3xl sm:text-4xl text-m3-on-surface tracking-tight">
-          Lộ trình của tôi
+          {t("me_career_paths.title")}
         </h1>
         <p className="mt-2 text-m3-on-surface-variant text-sm sm:text-base max-w-xl">
-          Theo dõi tiến độ học tập trên các lộ trình bạn đã đăng ký.
+          {t("me_career_paths.subtitle")}
         </p>
       </header>
 
       <section className="space-y-4">
         <SectionHeader
-          title="Đã đăng ký"
-          subtitle={`${items.length} lộ trình`}
+          title={t("me_career_paths.section_title")}
+          subtitle={t("me_career_paths.n_paths", { count: items.length })}
         />
 
         {list.isError && (
           <EmptyState
             icon={AlertCircle}
-            title="Không thể tải danh sách lộ trình"
-            description="Vui lòng thử lại sau ít phút."
+            title={t("me_career_paths.load_failed_title")}
+            description={t("me_career_paths.load_failed_body")}
             cta={
               <Button
                 variant="outline"
                 onClick={() => list.refetch()}
                 className="cursor-pointer"
               >
-                Thử lại
+                {t("me_career_paths.retry")}
               </Button>
             }
           />
@@ -118,14 +120,14 @@ export default function MyCareerPathsPage() {
         {!list.isLoading && !list.isError && items.length === 0 && (
           <EmptyState
             icon={BookOpen}
-            title="Bạn chưa đăng ký lộ trình nào"
-            description="Liên hệ quản lý đào tạo để được đăng ký vào lộ trình phù hợp."
+            title={t("me_career_paths.empty_title")}
+            description={t("me_career_paths.empty_body")}
             cta={
               <Link
                 to="/career-paths"
                 className="text-sm font-semibold text-m3-primary hover:underline"
               >
-                Xem các lộ trình hiện có →
+                {t("me_career_paths.view_paths")}
               </Link>
             }
           />
