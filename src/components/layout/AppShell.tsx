@@ -23,19 +23,21 @@ export default function AppShell({ children, navItems }: AppShellProps) {
   const [collapsed, setCollapsed] = useState(() => window.innerWidth < 768);
   const [stalled, setStalled] = useState(false);
   const navigate = useNavigate();
-  const currentHref = useRouterState({ select: (s) => s.location.href });
+  const routerLocation = useRouterState({ select: (s) => s.location });
 
-  // When unauthenticated, bounce the user back to /login with a `next` param
-  // so they can return to where they were after re-authenticating.
   useEffect(() => {
     if (status === "unauthenticated") {
+      const next = routerLocation.pathname.startsWith("/login")
+        ? new URLSearchParams(routerLocation.search).get("next") ?? undefined
+        : routerLocation.href;
+
       void navigate({
         to: "/login",
-        search: { next: currentHref },
+        search: { next },
         replace: true,
       });
     }
-  }, [status, navigate, currentHref]);
+  }, [status, navigate, routerLocation]);
 
   // Safety net: if we stay in "loading" for too long, treat the session as
   // dead, wipe local credentials, and route to /login. This handles the case
@@ -56,18 +58,19 @@ export default function AppShell({ children, navItems }: AppShellProps) {
   useEffect(() => {
     if (!stalled) return;
 
-    // logout() will hit the backend, which we already suspect is down. Clear
-    // local state directly and fall back to logout in the background.
     clearAuthSession();
-    void logout().catch(() => {
-      /* ignore — local session is already cleared */
-    });
+    void logout().catch(() => {});
+
+    const next = routerLocation.pathname.startsWith("/login")
+      ? new URLSearchParams(routerLocation.search).get("next") ?? undefined
+      : routerLocation.href;
+
     void navigate({
       to: "/login",
-      search: { next: currentHref },
+      search: { next },
       replace: true,
     });
-  }, [stalled, logout, navigate, currentHref]);
+  }, [stalled, logout, navigate, routerLocation]);
 
   if (status !== "authenticated") {
     return (

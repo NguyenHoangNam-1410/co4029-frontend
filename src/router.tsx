@@ -76,9 +76,13 @@ const authenticatedRoute = createRoute({
     const session = getStoredAuthSession();
 
     if (!session) {
+      const next = location.pathname.startsWith("/login")
+        ? new URLSearchParams(location.search).get("next") ?? undefined
+        : location.href;
+
       throw redirect({
         to: "/login",
-        search: { next: location.href },
+        search: { next },
         replace: true,
       });
     }
