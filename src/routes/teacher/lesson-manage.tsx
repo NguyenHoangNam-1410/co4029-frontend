@@ -599,7 +599,7 @@ export default function LessonManagePage() {
   return (
     <div className="max-w-[1440px] mx-auto pb-20">
 
-      <div className="pt-4 pb-2 px-4 sm:px-6 lg:px-10">
+      <div className="pt-4 pb-2">
         <Breadcrumbs
           items={[
             { label: t("teacher_common.breadcrumb_teaching"), to: "/teacher/courses" },
@@ -612,9 +612,9 @@ export default function LessonManagePage() {
         />
       </div>
 
-      <div className="sticky top-16 z-10 -mx-4 sm:-mx-6 lg:-mx-10 px-4 sm:px-6 lg:px-10 py-3 mb-8 border-b border-m3-outline-variant/20 flex items-center justify-between gap-3">
+      <div className="py-3 mb-8 flex items-center justify-between gap-3">
         <Link to="/teacher/courses/$courseId" params={{ courseId }}>
-          <Button variant="ghost" size="sm" className="gap-2 text-m3-on-surface-variant">
+          <Button variant="ghost" size="sm" className="-ml-2.5 gap-2 text-m3-on-surface-variant">
             <ArrowLeft className="h-4 w-4" />
             <span className="hidden sm:inline">{t("teacher_common.back_to_course")}</span>
           </Button>
