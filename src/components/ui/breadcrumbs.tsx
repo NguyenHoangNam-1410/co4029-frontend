@@ -15,7 +15,7 @@ export function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
     <nav
       aria-label={t("common.breadcrumb_aria")}
       data-slot="breadcrumbs"
-      className="mb-4 flex flex-wrap items-center gap-2 text-sm text-text-muted"
+      className="mb-4 flex flex-wrap items-center gap-2 text-sm text-m3-on-surface-variant"
     >
       {items.map((item, i) => {
         const isLast = i === items.length - 1;
@@ -23,14 +23,14 @@ export function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
           <Fragment key={`${i}-${item.label}`}>
             {i > 0 ? (
               <ChevronRight
-                className="size-4 text-text-subtle"
+                className="size-4 text-m3-outline"
                 aria-hidden="true"
               />
             ) : null}
             {item.to && !isLast ? (
               <Link
                 to={item.to}
-                className="rounded-md px-1 hover:text-text-strong hover:underline focus-visible:outline-2 focus-visible:outline-primary"
+                className="rounded-md px-1 hover:text-m3-primary hover:underline focus-visible:outline-2 focus-visible:outline-m3-primary transition-colors"
               >
                 {item.label}
               </Link>
@@ -39,8 +39,8 @@ export function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
                 aria-current={isLast ? "page" : undefined}
                 className={
                   isLast
-                    ? "font-medium text-text-strong"
-                    : "text-text-muted"
+                    ? "font-medium text-m3-on-surface"
+                    : "text-m3-on-surface-variant"
                 }
               >
                 {item.label}
