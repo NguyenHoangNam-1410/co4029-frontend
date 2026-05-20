@@ -1005,10 +1005,19 @@ export interface paths {
          *
          *     Surfaces under the teacher router (rather than the learner one) so
          *     the auth boundary matches the SPA's ``useLessonOutline`` consumer
-         *     pages, and so drafts surface during course assembly. Returns a
-         *     single synthetic ``body`` section until ``build_lesson_outline``
-         *     lands; the contract matches the eventual semantic-section
-         *     response field-for-field.
+         *     pages, and so drafts surface during course assembly.
+         *
+         *     Phase 3 of the FR-5 schema port (T5.14): now invokes the real
+         *     :func:`abridgeai.features.quizzes.ai.outline.build_lesson_outline`
+         *     against the lesson's ``document_chunks``. Falls back to a single
+         *     synthetic ``body`` section sourced from the lesson summary when no
+         *     chunks have been ingested yet — keeps the SPA renderable for
+         *     lessons that don't have material attached.
+         *
+         *     ``suggested_question_count`` mirrors the legacy heuristic: 1
+         *     question per eligible body section, capped to a 1..50 band.
+         *     ``min_for_full_coverage`` reports the same number so the SPA can
+         *     surface "you need at least N questions for coverage mode" copy.
          */
         get: operations["get_lesson_outline_api_v1_teacher_lessons__lesson_id__outline_get"];
         put?: never;
@@ -1171,11 +1180,6 @@ export interface paths {
         /**
          * Get Course Roster
          * @description Enrolled students for HOD/Manager oversight (read-only).
-         *
-         *     The enrollments aggregate is owned by Phase 7; this endpoint reads
-         *     ``course_enrollments`` via raw SQL until the canonical
-         *     :class:`EnrollmentRead` schema lands. Plan §4461 documents the
-         *     deferred-ORM strategy.
          */
         get: operations["get_course_roster_api_v1_dept_courses__course_id__roster_get"];
         put?: never;
@@ -1306,8 +1310,6 @@ export interface paths {
          *     The baseline schema has no ``processing_jobs.course_id`` FK; the
          *     join walks ``ai_model_calls.processing_job_id`` and
          *     ``generation_runs.course_id`` to assemble the per-course view.
-         *     Replace with the canonical ORM helper when Phase 6's
-         *     ``ProcessingJob`` model lands.
          */
         get: operations["list_course_processing_jobs_api_v1_admin_courses__course_id__processing_get"];
         put?: never;
@@ -1524,6 +1526,26 @@ export interface paths {
         get: operations["list_materials_api_v1_teacher_lessons__lesson_id__materials_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teacher/lessons/{lesson_id}/materials/link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Link Existing Material
+         * @description Link an already-uploaded storage object as a material (no upload, no AI processing).
+         */
+        post: operations["link_existing_material_api_v1_teacher_lessons__lesson_id__materials_link_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4272,6 +4294,40 @@ export interface components {
             enrollment_cap?: number | null;
         };
         /**
+         * CoverageOptions
+         * @description Per-coverage-mode tunables.
+         *
+         *     Plumbed into ``GenerationRun.config_json`` and read by
+         *     ``allocate_question_budget`` in the ported outline component.
+         *     Defaults match the legacy schema so behaviour is preserved.
+         */
+        CoverageOptions: {
+            /**
+             * Min Per Section
+             * @default 1
+             */
+            min_per_section: number;
+            /**
+             * Max Per Section
+             * @default 5
+             */
+            max_per_section: number;
+            /**
+             * Skip Summaries
+             * @default true
+             */
+            skip_summaries: boolean;
+            /** Section Ids */
+            section_ids?: string[] | null;
+            /**
+             * Slides Per Section
+             * @default 4
+             */
+            slides_per_section: number;
+            /** Parallelism */
+            parallelism?: number | null;
+        };
+        /**
          * DeepHealthOut
          * @description Composite payload returned by ``GET /healthz/deep``.
          */
@@ -5585,6 +5641,28 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** LessonOutline */
+        LessonOutline: {
+            /**
+             * Lesson Id
+             * Format: uuid
+             */
+            lesson_id: string;
+            /** Lesson Title */
+            lesson_title: string;
+            /** Sections */
+            sections: components["schemas"]["OutlineSection"][];
+            /**
+             * Suggested Question Count
+             * @default 0
+             */
+            suggested_question_count: number;
+            /**
+             * Min For Full Coverage
+             * @default 0
+             */
+            min_for_full_coverage: number;
+        };
         /** LessonOverviewItem */
         LessonOverviewItem: {
             /**
@@ -5944,6 +6022,35 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+        };
+        /**
+         * MaterialLinkExisting
+         * @description Body for ``POST /teacher/lessons/{id}/materials/link``.
+         *
+         *     Links an already-uploaded storage object into the AI Material Hub
+         *     without triggering upload or processing. Used when a lesson resource
+         *     is uploaded and should also appear as a material.
+         */
+        MaterialLinkExisting: {
+            /**
+             * Storage Object Id
+             * Format: uuid
+             */
+            storage_object_id: string;
+            /** Title */
+            title: string;
+            /** Material Type */
+            material_type?: ("video" | "pdf" | "code" | "audio" | "image" | "docx" | "pptx" | "xlsx" | "text") | null;
+            /**
+             * Ai Processing Enabled
+             * @default false
+             */
+            ai_processing_enabled: boolean;
+            /**
+             * Visible To Students
+             * @default false
+             */
+            visible_to_students: boolean;
         };
         /**
          * MaterialPublic
@@ -6351,7 +6458,7 @@ export interface components {
             item_type: "lesson" | "quiz" | "interview";
             /** Position */
             position: number;
-            target?: components["schemas"]["LessonPublic"] | null;
+            target?: components["schemas"]["ModuleItemTarget"] | null;
             /** Lesson Id */
             lesson_id?: string | null;
             /** Quiz Id */
@@ -6431,6 +6538,31 @@ export interface components {
             module_id: string;
             /** New Order */
             new_order: string[];
+        };
+        /**
+         * ModuleItemTarget
+         * @description Polymorphic target for authoring items — wider than LessonPublic.
+         */
+        ModuleItemTarget: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+            /** Slug */
+            slug?: string | null;
+            /** Lesson Type */
+            lesson_type?: string | null;
+            /** Status */
+            status?: string | null;
+            /** Summary */
+            summary?: string | null;
+            /** Estimated Minutes */
+            estimated_minutes?: number | null;
+            /** Difficulty */
+            difficulty?: string | null;
         };
         /**
          * ModuleItemUpdate
@@ -6639,6 +6771,60 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
+        };
+        /**
+         * OutlineSection
+         * @description One section row in ``GET /lessons/{id}/outline``.
+         *
+         *     Mirrors the SPA's ``OutlineSectionRead`` interface verbatim.
+         *
+         *     The ``id`` is a deterministic slug like ``sec_<lesson8>_<title-slug>_<page>``
+         *     (see :func:`abridgeai.features.quizzes.ai.outline._section_id`), NOT a
+         *     database UUID. Stable across re-runs against the same chunks so
+         *     ``coverage_options.section_ids`` keeps working between calls.
+         */
+        OutlineSection: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
+            /**
+             * Depth
+             * @default 0
+             */
+            depth: number;
+            /**
+             * Chunk Count
+             * @default 0
+             */
+            chunk_count: number;
+            /**
+             * Char Count
+             * @default 0
+             */
+            char_count: number;
+            /**
+             * Page Range
+             * @default [
+             *       0,
+             *       0
+             *     ]
+             */
+            page_range: [
+                number,
+                number
+            ];
+            /**
+             * Content Role
+             * @default body
+             * @enum {string}
+             */
+            content_role: "body" | "summary" | "review" | "front_matter";
+            /**
+             * Preview
+             * @default
+             */
+            preview: string;
         };
         /** OverviewOut */
         OverviewOut: {
@@ -7079,36 +7265,70 @@ export interface components {
          * QuizGenerationRequest
          * @description Body for ``POST /teacher/quizzes/{id}/generate``.
          *
-         *     ``regenerate_question_id`` is required when ``mode == "regenerate"``;
-         *     the service layer (T5.10) enforces the cross-field constraint.
+         *     Defaults preserve topic-mode behaviour so callers that send only
+         *     ``question_count`` still work; coverage-mode and personalisation
+         *     knobs are opt-in via the advanced disclosure on the SPA panel.
          */
         QuizGenerationRequest: {
+            /** Quiz Id */
+            quiz_id?: string | null;
+            /** Title */
+            title: string;
+            /** Description */
+            description?: string | null;
             /**
-             * Mode
+             * Question Count
+             * @default 3
+             */
+            question_count: number;
+            /** Question Types */
+            question_types?: ("multiple_choice" | "true_false" | "short_answer" | "fill_blank" | "code")[];
+            /**
+             * Difficulty
+             * @default mixed
+             */
+            difficulty: ("easy" | "medium" | "hard") | "mixed";
+            /** Bloom Distribution */
+            bloom_distribution?: {
+                [key: string]: number;
+            };
+            /**
+             * Include Prerequisites
+             * @default false
+             */
+            include_prerequisites: boolean;
+            /** Model Preference */
+            model_preference?: string | null;
+            /** Source Lesson Ids */
+            source_lesson_ids?: string[];
+            /** Config Json */
+            config_json?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Generation Mode
+             * @default topic
              * @enum {string}
              */
-            mode: "full" | "coverage" | "manual" | "regenerate";
-            /** Target Count */
-            target_count?: number | null;
+            generation_mode: "topic" | "coverage";
+            /** Focus Topics */
+            focus_topics?: string[];
+            /** Avoid Topics */
+            avoid_topics?: string[];
+            /** Extra Instructions */
+            extra_instructions?: string | null;
             /**
-             * Focus Topics
-             * @default []
+             * Append
+             * @default false
              */
-            focus_topics: string[];
-            /**
-             * Source Lessons
-             * @default []
-             */
-            source_lessons: string[];
-            /** Regenerate Question Id */
-            regenerate_question_id?: string | null;
+            append: boolean;
+            coverage_options?: components["schemas"]["CoverageOptions"] | null;
         };
         /**
          * QuizGenerationRunRead
          * @description Status-poll projection of a quiz generation run.
          *
-         *     Service layer (T5.10) joins the
-         *     ``backend/app/models/ai_processing.py:GenerationRun`` row with the
+         *     Service layer joins the ``GenerationRun`` row with the
          *     quiz / pipeline-run linkage to populate this DTO.
          */
         QuizGenerationRunRead: {
@@ -7587,7 +7807,7 @@ export interface components {
         };
         /**
          * RosterEntry
-         * @description Single row in the ``GET /dept/courses/{id}/roster`` response.
+         * @description Single row in the roster response (shared by authoring + assignment routers).
          *
          *     Phase 7 will replace this with the canonical ``EnrollmentRead``
          *     schema once the enrollments aggregate lands; the raw-SQL read here
@@ -7605,7 +7825,7 @@ export interface components {
              */
             student_id: string;
             /** Display Name */
-            display_name: string | null;
+            display_name?: string | null;
             /** Primary Email */
             primary_email: string;
             /** Status */
@@ -7630,6 +7850,11 @@ export interface components {
             /** Students */
             students: components["schemas"]["StudentProgressRow"][];
         };
+        /** SlugAvailability */
+        SlugAvailability: {
+            /** Available */
+            available: boolean;
+        };
         /** StageBreakdown */
         StageBreakdown: {
             /** Stage Name */
@@ -7638,6 +7863,23 @@ export interface components {
             tokens: number;
             /** Usd */
             usd: number;
+        };
+        /**
+         * StreamUrlResponse
+         * @description Response shape for ``GET /teacher/lesson-resources/{id}/download-url``.
+         *
+         *     Field name ``stream_url`` (not ``url``) matches the SPA's
+         *     ``StreamUrlResponse`` TypeScript interface so the existing
+         *     ``fetchTeacherResourceDownloadUrl`` helper works unchanged.
+         */
+        StreamUrlResponse: {
+            /** Stream Url */
+            stream_url: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
         };
         /** StudentCareerEnrollmentAuthoring */
         StudentCareerEnrollmentAuthoring: {
@@ -8111,149 +8353,12 @@ export interface components {
             /** Etag */
             etag: string;
         };
-        /** _LessonOutline */
-        _LessonOutline: {
-            /**
-             * Lesson Id
-             * Format: uuid
-             */
-            lesson_id: string;
-            /** Lesson Title */
-            lesson_title: string;
-            /** Sections */
-            sections: components["schemas"]["_OutlineSection"][];
-            /**
-             * Suggested Question Count
-             * @default 0
-             */
-            suggested_question_count: number;
-            /**
-             * Min For Full Coverage
-             * @default 0
-             */
-            min_for_full_coverage: number;
-        };
         /** _MultipartPartOut */
         _MultipartPartOut: {
             /** Part Number */
             part_number: number;
             /** Url */
             url: string;
-        };
-        /**
-         * _OutlineSection
-         * @description One section row in ``GET /lessons/{id}/outline``.
-         *
-         *     Mirrors the SPA's ``OutlineSectionRead`` interface verbatim. Today
-         *     this surface returns a single synthetic ``body`` section per lesson
-         *     until the legacy ``build_lesson_outline`` semantic-section pipeline
-         *     is ported (see ``quizzes/ai/pipelines/coverage.py:104``). The
-         *     contract is deliberately stable so the SPA can render today and
-         *     the section list can grow without an API break.
-         */
-        _OutlineSection: {
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Title */
-            title: string;
-            /**
-             * Depth
-             * @default 0
-             */
-            depth: number;
-            /**
-             * Chunk Count
-             * @default 0
-             */
-            chunk_count: number;
-            /**
-             * Char Count
-             * @default 0
-             */
-            char_count: number;
-            /**
-             * Page Range
-             * @default [
-             *       0,
-             *       0
-             *     ]
-             */
-            page_range: [
-                number,
-                number
-            ];
-            /**
-             * Content Role
-             * @default body
-             * @enum {string}
-             */
-            content_role: "body" | "summary" | "review";
-            /**
-             * Preview
-             * @default
-             */
-            preview: string;
-        };
-        /**
-         * _RosterEntry
-         * @description Roster row for ``GET /teacher/courses/{course_id}/roster``.
-         *
-         *     Same shape as the HOD-scope ``RosterEntry`` in ``assignment.py`` —
-         *     duplicated here intentionally to keep the authoring router free of
-         *     cross-router imports. Both should evolve together; if Phase 7 lands
-         *     a canonical ``EnrollmentRead`` shared schema, both can replace this.
-         */
-        _RosterEntry: {
-            /**
-             * Enrollment Id
-             * Format: uuid
-             */
-            enrollment_id: string;
-            /**
-             * Student Id
-             * Format: uuid
-             */
-            student_id: string;
-            /** Display Name */
-            display_name?: string | null;
-            /** Primary Email */
-            primary_email: string;
-            /** Status */
-            status: string;
-            /**
-             * Enrolled At
-             * Format: date-time
-             */
-            enrolled_at: string;
-            /** Completed At */
-            completed_at?: string | null;
-            /** Dropped At */
-            dropped_at?: string | null;
-        };
-        /** _SlugAvailability */
-        _SlugAvailability: {
-            /** Available */
-            available: boolean;
-        };
-        /**
-         * _StreamUrlResponse
-         * @description Response shape for ``GET /teacher/lesson-resources/{id}/download-url``.
-         *
-         *     Field name ``stream_url`` (not ``url``) matches the SPA's
-         *     ``StreamUrlResponse`` TypeScript interface so the existing
-         *     ``fetchTeacherResourceDownloadUrl`` helper works unchanged.
-         */
-        _StreamUrlResponse: {
-            /** Stream Url */
-            stream_url: string;
-            /**
-             * Expires At
-             * Format: date-time
-             */
-            expires_at: string;
         };
         /**
          * _UploadUrlRequest
@@ -8348,6 +8453,7 @@ export type SchemaCoursePublic = components['schemas']['CoursePublic'];
 export type SchemaCourseStats = components['schemas']['CourseStats'];
 export type SchemaCourseStatusCount = components['schemas']['CourseStatusCount'];
 export type SchemaCourseUpdate = components['schemas']['CourseUpdate'];
+export type SchemaCoverageOptions = components['schemas']['CoverageOptions'];
 export type SchemaDeepHealthOut = components['schemas']['DeepHealthOut'];
 export type SchemaDifficultCardRead = components['schemas']['DifficultCardRead'];
 export type SchemaDisableUserOut = components['schemas']['DisableUserOut'];
@@ -8391,6 +8497,7 @@ export type SchemaInvitationCodeCreate = components['schemas']['InvitationCodeCr
 export type SchemaInvitationCodePatch = components['schemas']['InvitationCodePatch'];
 export type SchemaLessonAuthoring = components['schemas']['LessonAuthoring'];
 export type SchemaLessonCreate = components['schemas']['LessonCreate'];
+export type SchemaLessonOutline = components['schemas']['LessonOutline'];
 export type SchemaLessonOverviewItem = components['schemas']['LessonOverviewItem'];
 export type SchemaLessonProcessingSummary = components['schemas']['LessonProcessingSummary'];
 export type SchemaLessonProgressPublic = components['schemas']['LessonProgressPublic'];
@@ -8403,6 +8510,7 @@ export type SchemaLessonUpdate = components['schemas']['LessonUpdate'];
 export type SchemaMaterialAuthoring = components['schemas']['MaterialAuthoring'];
 export type SchemaMaterialEngagementCreate = components['schemas']['MaterialEngagementCreate'];
 export type SchemaMaterialEngagementPublic = components['schemas']['MaterialEngagementPublic'];
+export type SchemaMaterialLinkExisting = components['schemas']['MaterialLinkExisting'];
 export type SchemaMaterialPublic = components['schemas']['MaterialPublic'];
 export type SchemaMaterialStreamUrl = components['schemas']['MaterialStreamUrl'];
 export type SchemaMaterialUpdate = components['schemas']['MaterialUpdate'];
@@ -8422,6 +8530,7 @@ export type SchemaModuleCreate = components['schemas']['ModuleCreate'];
 export type SchemaModuleItemAuthoring = components['schemas']['ModuleItemAuthoring'];
 export type SchemaModuleItemPublic = components['schemas']['ModuleItemPublic'];
 export type SchemaModuleItemReorder = components['schemas']['ModuleItemReorder'];
+export type SchemaModuleItemTarget = components['schemas']['ModuleItemTarget'];
 export type SchemaModuleItemUpdate = components['schemas']['ModuleItemUpdate'];
 export type SchemaModulePrerequisiteSet = components['schemas']['ModulePrerequisiteSet'];
 export type SchemaModulePublic = components['schemas']['ModulePublic'];
@@ -8434,6 +8543,7 @@ export type SchemaMyCourseProgressSummary = components['schemas']['MyCourseProgr
 export type SchemaNotificationPreferenceRead = components['schemas']['NotificationPreferenceRead'];
 export type SchemaNotificationPreferenceUpdate = components['schemas']['NotificationPreferenceUpdate'];
 export type SchemaNotificationRead = components['schemas']['NotificationRead'];
+export type SchemaOutlineSection = components['schemas']['OutlineSection'];
 export type SchemaOverviewOut = components['schemas']['OverviewOut'];
 export type SchemaPermissionRead = components['schemas']['PermissionRead'];
 export type SchemaPipelineSpendOut = components['schemas']['PipelineSpendOut'];
@@ -8468,7 +8578,9 @@ export type SchemaRoleRead = components['schemas']['RoleRead'];
 export type SchemaRoleWithPermissionsRead = components['schemas']['RoleWithPermissionsRead'];
 export type SchemaRosterEntry = components['schemas']['RosterEntry'];
 export type SchemaRosterProgressRead = components['schemas']['RosterProgressRead'];
+export type SchemaSlugAvailability = components['schemas']['SlugAvailability'];
 export type SchemaStageBreakdown = components['schemas']['StageBreakdown'];
+export type SchemaStreamUrlResponse = components['schemas']['StreamUrlResponse'];
 export type SchemaStudentCareerEnrollmentAuthoring = components['schemas']['StudentCareerEnrollmentAuthoring'];
 export type SchemaStudentLessonSummaryRead = components['schemas']['StudentLessonSummaryRead'];
 export type SchemaStudentPathProgressAuthoring = components['schemas']['StudentPathProgressAuthoring'];
@@ -8496,12 +8608,7 @@ export type SchemaUserRead = components['schemas']['UserRead'];
 export type SchemaUserSpendOut = components['schemas']['UserSpendOut'];
 export type SchemaValidationError = components['schemas']['ValidationError'];
 export type SchemaCompletedPartIn = components['schemas']['_CompletedPartIn'];
-export type SchemaLessonOutline = components['schemas']['_LessonOutline'];
 export type SchemaMultipartPartOut = components['schemas']['_MultipartPartOut'];
-export type SchemaOutlineSection = components['schemas']['_OutlineSection'];
-export type SchemaRosterEntry_2 = components['schemas']['_RosterEntry'];
-export type SchemaSlugAvailability = components['schemas']['_SlugAvailability'];
-export type SchemaStreamUrlResponse = components['schemas']['_StreamUrlResponse'];
 export type SchemaUploadUrlRequest = components['schemas']['_UploadUrlRequest'];
 export type SchemaUploadUrlResponse = components['schemas']['_UploadUrlResponse'];
 export type SchemaUploadUrlStorageObject = components['schemas']['_UploadUrlStorageObject'];
@@ -9704,7 +9811,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["_SlugAvailability"];
+                    "application/json": components["schemas"]["SlugAvailability"];
                 };
             };
             /** @description Validation Error */
@@ -9834,7 +9941,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["_RosterEntry"][];
+                    "application/json": components["schemas"]["RosterEntry"][];
                 };
             };
             /** @description Validation Error */
@@ -10232,7 +10339,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["_LessonOutline"];
+                    "application/json": components["schemas"]["LessonOutline"];
                 };
             };
             /** @description Validation Error */
@@ -10358,7 +10465,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["_StreamUrlResponse"];
+                    "application/json": components["schemas"]["StreamUrlResponse"];
                 };
             };
             /** @description Validation Error */
@@ -10997,6 +11104,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MaterialAuthoring"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    link_existing_material_api_v1_teacher_lessons__lesson_id__materials_link_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lesson_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MaterialLinkExisting"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MaterialAuthoring"];
                 };
             };
             /** @description Validation Error */
