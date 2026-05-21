@@ -93,6 +93,7 @@ interface FormState {
   coverage_max_per_section: number;
   skip_summaries: boolean;
   slides_per_section: number;
+  section_grouping: "auto" | "fixed";
   /** Map of lesson_id → checked section_ids, keyed for stable updates. */
   selected_section_ids: Record<string, string[]>;
   bloom_enabled: boolean;
@@ -111,6 +112,7 @@ const INITIAL_FORM: FormState = {
   coverage_max_per_section: 5,
   skip_summaries: true,
   slides_per_section: 4,
+  section_grouping: "fixed",
   selected_section_ids: {},
   bloom_enabled: false,
   bloom_distribution: { ...EMPTY_BLOOM_DISTRIBUTION },
@@ -264,6 +266,7 @@ function buildCoverageOptions(
   max_per_section: number;
   skip_summaries: boolean;
   slides_per_section: number;
+  section_grouping: "auto" | "fixed";
   section_ids: string[] | null;
 } | null {
   if (form.generation_mode !== "coverage") return null;
@@ -275,6 +278,7 @@ function buildCoverageOptions(
     max_per_section: form.coverage_max_per_section,
     skip_summaries: form.skip_summaries,
     slides_per_section: form.slides_per_section,
+    section_grouping: form.section_grouping,
     section_ids: sectionIds.length > 0 ? sectionIds : null,
   };
 }
@@ -542,6 +546,8 @@ export function QuizGenerationPanel({
           lessons={lessons}
           selectedLessonIds={selectedLessonIds}
           selectedSectionIds={form.selected_section_ids}
+          slidesPerSection={form.slides_per_section}
+          sectionGrouping={form.section_grouping}
           onSectionsChange={setSelectedSectionIds}
           onSuggestQuestionCount={(count) =>
             setForm((current) => ({
@@ -616,6 +622,7 @@ export function QuizGenerationPanel({
               maxPerSection={form.coverage_max_per_section}
               skipSummaries={form.skip_summaries}
               slidesPerSection={form.slides_per_section}
+              sectionGrouping={form.section_grouping}
               onChange={patchForm}
             />
           )}

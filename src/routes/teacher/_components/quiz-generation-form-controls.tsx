@@ -164,6 +164,7 @@ export type CoverageOptionsPatch = Partial<{
   coverage_max_per_section: number;
   skip_summaries: boolean;
   slides_per_section: number;
+  section_grouping: "auto" | "fixed";
 }>;
 
 export function CoverageOptionsForm({
@@ -171,12 +172,14 @@ export function CoverageOptionsForm({
   maxPerSection,
   skipSummaries,
   slidesPerSection,
+  sectionGrouping,
   onChange,
 }: {
   minPerSection: number;
   maxPerSection: number;
   skipSummaries: boolean;
   slidesPerSection: number;
+  sectionGrouping: "auto" | "fixed";
   onChange: (patch: CoverageOptionsPatch) => void;
 }) {
   return (
@@ -231,7 +234,30 @@ export function CoverageOptionsForm({
       </div>
       <div className="space-y-1.5">
         <label className="text-[10px] font-bold uppercase tracking-widest text-m3-on-surface-variant">
-          Slides per section (slide deck fallback)
+          Section grouping
+        </label>
+        <select
+          value={sectionGrouping}
+          onChange={(e) =>
+            onChange({
+              section_grouping: e.target.value as "auto" | "fixed",
+            })
+          }
+          className="w-full rounded-md border border-m3-outline-variant/40 bg-m3-surface px-3 py-1.5 text-sm text-m3-on-surface focus:border-m3-primary focus:outline-none"
+        >
+          <option value="fixed">Fixed bundle (use slides per section)</option>
+          <option value="auto">Auto (semantic — one section per topic)</option>
+        </select>
+        <p className="text-[10px] text-m3-on-surface-variant">
+          <strong>Fixed</strong>: bundle every <em>N</em> consecutive slides
+          into one section. <strong>Auto</strong>: let the chunker's semantic
+          enrichment decide — every distinct topic becomes its own section
+          (slide-deck PDFs may produce one section per page).
+        </p>
+      </div>
+      <div className="space-y-1.5">
+        <label className="text-[10px] font-bold uppercase tracking-widest text-m3-on-surface-variant">
+          Slides per section (fixed bundle)
         </label>
         <Input
           type="number"
@@ -249,7 +275,9 @@ export function CoverageOptionsForm({
           className="bg-m3-surface text-sm"
         />
         <p className="text-[10px] text-m3-on-surface-variant">
-          Only used when a lesson has no real headings. Lower = more questions per slide group.
+          When grouping is <strong>fixed</strong>, every <em>N</em> consecutive
+          slides become one section. Lower = more sections = more questions
+          per slide.
         </p>
       </div>
       <label className="flex items-start gap-2 cursor-pointer">
@@ -283,16 +311,23 @@ function LessonOutlineSection({
   lessonId,
   fallbackTitle,
   selectedSectionIds,
+  slidesPerSection,
+  sectionGrouping,
   onSectionsChange,
   onSuggestQuestionCount,
 }: {
   lessonId: string;
   fallbackTitle: string;
   selectedSectionIds: string[];
+  slidesPerSection: number;
+  sectionGrouping: "auto" | "fixed";
   onSectionsChange: (sectionIds: string[]) => void;
   onSuggestQuestionCount: (count: number) => void;
 }) {
-  const { data: outline, isLoading, error } = useLessonOutline(lessonId);
+  const { data: outline, isLoading, error } = useLessonOutline(lessonId, {
+    slidesPerSection,
+    sectionGrouping,
+  });
   const [expanded, setExpanded] = useState(true);
 
   if (isLoading) {
@@ -425,12 +460,16 @@ export function CoverageSectionPicker({
   lessons,
   selectedLessonIds,
   selectedSectionIds,
+  slidesPerSection,
+  sectionGrouping,
   onSectionsChange,
   onSuggestQuestionCount,
 }: {
   lessons: LessonPublic[];
   selectedLessonIds: string[];
   selectedSectionIds: Record<string, string[]>;
+  slidesPerSection: number;
+  sectionGrouping: "auto" | "fixed";
   onSectionsChange: (lessonId: string, sectionIds: string[]) => void;
   onSuggestQuestionCount: (count: number) => void;
 }) {
@@ -464,6 +503,8 @@ export function CoverageSectionPicker({
             lessonId={lesson.id}
             fallbackTitle={lesson.title}
             selectedSectionIds={selectedSectionIds[lesson.id] ?? []}
+            slidesPerSection={slidesPerSection}
+            sectionGrouping={sectionGrouping}
             onSectionsChange={(ids) => onSectionsChange(lesson.id, ids)}
             onSuggestQuestionCount={onSuggestQuestionCount}
           />

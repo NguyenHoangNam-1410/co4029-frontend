@@ -63,10 +63,35 @@ export function useTeacherLesson(lessonId: string | undefined) {
   });
 }
 
-export function useLessonOutline(lessonId: string | undefined) {
+export type LessonOutlineSectionGrouping = "auto" | "fixed";
+
+export interface LessonOutlineParams {
+  slidesPerSection?: number;
+  sectionGrouping?: LessonOutlineSectionGrouping;
+}
+
+export function useLessonOutline(
+  lessonId: string | undefined,
+  params: LessonOutlineParams = {},
+) {
+  const { slidesPerSection = 4, sectionGrouping = "fixed" } = params;
+  const search = new URLSearchParams({
+    slides_per_section: String(slidesPerSection),
+    section_grouping: sectionGrouping,
+  });
   return useQuery({
-    queryKey: ["teacher", "lessons", lessonId, "outline"],
-    queryFn: () => apiFetch<LessonOutlineRead>(`/teacher/lessons/${lessonId}/outline`),
+    queryKey: [
+      "teacher",
+      "lessons",
+      lessonId,
+      "outline",
+      sectionGrouping,
+      slidesPerSection,
+    ],
+    queryFn: () =>
+      apiFetch<LessonOutlineRead>(
+        `/teacher/lessons/${lessonId}/outline?${search.toString()}`,
+      ),
     enabled: !!lessonId,
     staleTime: 1000 * 60 * 5,
   });
