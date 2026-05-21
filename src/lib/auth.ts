@@ -198,11 +198,22 @@ export function updateStoredAuthUser(user: AuthUser) {
 }
 
 export function clearAuthSession() {
+  // Only emit the change event if something was actually cleared. Otherwise
+  // calling this from getStoredAuthSession() (which fires when localStorage
+  // is already empty — e.g. on first paint or after logout) would loop:
+  // listeners call getStoredAuthSession → which calls clearAuthSession →
+  // which notifies → which re-enters the listener. RangeError ensues.
+  let removedAny = false;
   Object.values(AUTH_STORAGE_KEYS).forEach((key) => {
-    localStorage.removeItem(key);
+    if (localStorage.getItem(key) !== null) {
+      localStorage.removeItem(key);
+      removedAny = true;
+    }
   });
 
-  notifyAuthChanged();
+  if (removedAny) {
+    notifyAuthChanged();
+  }
 }
 
 export function setMfaRequired(value: boolean) {
