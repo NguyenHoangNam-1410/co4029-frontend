@@ -50,6 +50,7 @@ import { ApiError } from "@/lib/api/client";
 import { useAuthoringModuleLessons } from "@/lib/api/hooks/teacher-courses";
 import {
   useGenerateQuiz,
+  useLatestQuizGenerationRun,
   useQuizGenerationRun,
 } from "@/lib/api/hooks/quizzes";
 import { cn } from "@/lib/utils";
@@ -348,14 +349,18 @@ export function QuizGenerationPanel({
 }) {
   const generateQuiz = useGenerateQuiz(quizId);
   const { data: lessons = [] } = useAuthoringModuleLessons(moduleId);
-  // Persist activeRunId so a page reload mid-generation reattaches to
-  // the same poll instead of leaving the user staring at a static
-  // form. Cleared once the run reaches a terminal state below.
-  const activeRunStorageKey = `abridgeai.quiz.${quizId}.active_run_id`;
-  const [activeRunId, setActiveRunId] = useState<string | null>(() => {
-    if (typeof window === "undefined") return null;
-    return window.sessionStorage.getItem(activeRunStorageKey);
-  });
+  // Reattach to the latest server-side run on mount instead of
+  // persisting the run id in the browser. Survives cross-device
+  // sessions, tab closes, and lets two teachers viewing the same
+  // quiz both see the in-flight run.
+  const { data: latestRun } = useLatestQuizGenerationRun(quizId);
+  const [activeRunId, setActiveRunId] = useState<string | null>(null);
+  useEffect(() => {
+    if (activeRunId) return;
+    if (latestRun?.id) {
+      setActiveRunId(latestRun.id);
+    }
+  }, [latestRun?.id, activeRunId]);
   const { data: activeRun } = useQuizGenerationRun(quizId, activeRunId);
 
   const [selectedLessonIds, setSelectedLessonIds] = useState<string[]>([]);
@@ -383,16 +388,10 @@ export function QuizGenerationPanel({
     );
   const generationFailed = activeRun?.status === "failed";
 
-  // Persist activeRunId across page reloads so the user reattaches to
-  // the running poll, and surface terminal-state toasts exactly once
-  // (the polling hook re-runs on every refetch — without the ref guard
+  // Surface terminal-state toasts exactly once per run id (the
+  // polling hook re-runs on every refetch — without the ref guard
   // we'd fire the toast on every successful 3s tick).
   const toastedRunIdRef = useRef<string | null>(null);
-  useEffect(() => {
-    if (typeof window === "undefined" || !activeRunId) return;
-    window.sessionStorage.setItem(activeRunStorageKey, activeRunId);
-  }, [activeRunId, activeRunStorageKey]);
-
   useEffect(() => {
     if (!activeRun || !activeRunId) return;
     const status = activeRun.status;
@@ -412,12 +411,7 @@ export function QuizGenerationPanel({
     } else {
       toast.info("Quiz generation cancelled");
     }
-    // Clear persisted run id once we've shown the terminal state, so
-    // a future reload starts fresh instead of replaying old failures.
-    if (typeof window !== "undefined") {
-      window.sessionStorage.removeItem(activeRunStorageKey);
-    }
-  }, [activeRun, activeRunId, activeRunStorageKey]);
+  }, [activeRun, activeRunId]);
 
   function toggleLesson(lessonId: string) {
     setSelectedLessonIds((current) =>

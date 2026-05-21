@@ -2129,6 +2129,32 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/teacher/quizzes/{quiz_id}/generation-runs/latest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Latest Quiz Generation Run
+         * @description Return the most recent ``GenerationRun`` for this quiz, if any.
+         *
+         *     Lets the SPA reattach to an in-flight (or terminal) run on mount
+         *     without persisting handles in the browser — survives cross-device
+         *     sessions, tab closes, and lets a second teacher viewing the same
+         *     quiz see the in-flight run too. Returns ``null`` (HTTP 200) when
+         *     the quiz has never been generated.
+         */
+        get: operations["get_latest_quiz_generation_run_api_v1_teacher_quizzes__quiz_id__generation_runs_latest_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/teacher/quizzes/{quiz_id}/generation-runs/{run_id}": {
         parameters: {
             query?: never;
@@ -12955,6 +12981,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["QuizGenerationRunRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_latest_quiz_generation_run_api_v1_teacher_quizzes__quiz_id__generation_runs_latest_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quiz_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuizGenerationRunRead"] | null;
                 };
             };
             /** @description Validation Error */
