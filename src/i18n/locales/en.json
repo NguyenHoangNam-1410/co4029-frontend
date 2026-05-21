@@ -1040,9 +1040,12 @@
       "memberships": {
         "add_title": "Add member",
         "add_intro": "Add an existing user to this organization.",
-        "user_id_placeholder": "User UUID",
-        "user_id_hint": "Enter the UUID of a user already created via /admin/users.",
-        "edit_status_title": "Update status"
+        "edit_status_title": "Update status",
+        "user_label": "User",
+        "user_search_placeholder": "Search by email or name...",
+        "user_search_hint": "Pick a user that already exists in the system.",
+        "user_search_loading": "Loading users...",
+        "user_search_empty": "No matching users found."
       }
     }
   },
