@@ -7,13 +7,16 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/components/auth/AuthProvider";
-import {
-  useMfaChallenge,
-  useVerifyMfa,
-} from "@/lib/api/hooks/auth";
+import { useVerifyMfa } from "@/lib/api/hooks/auth";
+import { apiPost } from "@/lib/api/client";
 import { clearMfaRequired } from "@/lib/auth";
 
 type Mode = "totp" | "recovery";
+
+interface MfaChallengeResponse {
+  challenge_id: string;
+  expires_at: string;
+}
 
 export default function LoginMfaPage() {
   const { t } = useTranslation();
@@ -21,42 +24,41 @@ export default function LoginMfaPage() {
   const search = useSearch({ strict: false }) as { next?: string };
   const { isAuthenticated, requiresMfa } = useAuth();
 
-  const challenge = useMfaChallenge();
   const verify = useVerifyMfa();
   const requestedRef = useRef(false);
 
   const [mode, setMode] = useState<Mode>("totp");
   const [code, setCode] = useState("");
+  // Plain useState + plain fetch instead of useMutation for the
+  // challenge. react-query's mutation state machine kept resetting
+  // ``data`` to undefined whenever the component remounted (HMR /
+  // StrictMode), so even though the backend returned 200 with a
+  // valid challenge_id, the UI saw ``challenge.data === undefined``
+  // forever and the verify button stayed disabled. A boring
+  // useState survives all of that.
+  const [challengeId, setChallengeId] = useState<string | null>(null);
+  const [challengeError, setChallengeError] = useState<string | null>(null);
+  const [challengeLoading, setChallengeLoading] = useState(false);
 
-  // Source of truth for the active challenge id is the mutation's
-  // own ``data`` field — it survives mid-component HMR swaps that
-  // would otherwise leave a separate ``useState`` stuck at null when
-  // ``onSuccess`` doesn't fire (the user-reported "button stays
-  // disabled even after typing 6 digits" bug).
-  const challengeId = challenge.data?.challenge_id ?? null;
-
-  // Stable refs so we can drop the mutation objects from the effect's
-  // dep array. React Query returns a new mutation object on every
-  // render — including it in deps caused the effect to re-run after
-  // every render and (despite ``requestedRef``) the rapid double-mount
-  // under StrictMode plus the AuthProvider re-render flow produced
-  // multiple ``POST /auth/me/mfa/challenge`` calls back-to-back. Each
-  // POST is fine on its own (200 OK), but while they're in-flight the
-  // input was disabled by ``challenge.isPending``, so the user
-  // couldn't type. Mutate functions from react-query are referentially
-  // stable, so we capture once and use that.
-  const challengeMutate = challenge.mutate;
-
-  function requestChallenge() {
-    challengeMutate(undefined, {
-      onError: () => {
-        // Allow a retry: the next nav into this page (or a manual
-        // refresh) should mint a new challenge instead of being
-        // permanently locked out by the ref guard.
-        requestedRef.current = false;
-        toast.error(t("login_mfa.errors.challenge_failed"));
-      },
-    });
+  async function requestChallenge() {
+    setChallengeError(null);
+    setChallengeLoading(true);
+    try {
+      const response = await apiPost<MfaChallengeResponse>(
+        "/auth/me/mfa/challenge",
+      );
+      setChallengeId(response.challenge_id);
+    } catch (err) {
+      // Allow a retry: the next nav into this page (or a manual
+      // refresh) should mint a new challenge instead of being
+      // permanently locked out by the ref guard.
+      requestedRef.current = false;
+      const message = err instanceof Error ? err.message : "challenge_failed";
+      setChallengeError(message);
+      toast.error(t("login_mfa.errors.challenge_failed"));
+    } finally {
+      setChallengeLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -74,12 +76,10 @@ export default function LoginMfaPage() {
     if (requestedRef.current) return;
     requestedRef.current = true;
 
-    requestChallenge();
-    // ``requestChallenge`` is intentionally excluded — the body uses
-    // ``challengeMutate`` (stable from react-query) and the ref guard
-    // prevents re-entry. Keeping deps to the actual auth-state inputs
-    // also makes deps a stable size across HMR swaps, so React doesn't
-    // throw "deps array changed size between renders".
+    void requestChallenge();
+    // ``requestChallenge`` is a stable closure over setters; deps
+    // only track auth-state inputs to keep the array shape constant
+    // across HMR swaps.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, requiresMfa, search.next, navigate, t]);
 
@@ -114,7 +114,7 @@ export default function LoginMfaPage() {
   }
 
   const isVerifying = verify.isPending;
-  const isLoadingChallenge = challenge.isPending && !challengeId;
+  const isLoadingChallenge = challengeLoading && !challengeId;
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-m3-surface-bright px-6 py-10">
