@@ -1,4 +1,4 @@
-import { authenticatedFetch } from "../auth";
+import { authenticatedFetch, setMfaRequired } from "../auth";
 
 export class ApiError extends Error {
   status: number;
@@ -42,7 +42,15 @@ export class ApiError extends Error {
 
 async function readError(res: Response) {
   const body = await res.text().catch(() => "");
-  return new ApiError(res.status, body, res.statusText);
+  const err = new ApiError(res.status, body, res.statusText);
+  // Backend now returns 403 {detail:{error:"mfa_required"}} on every
+  // protected endpoint when the session has not completed MFA. Mark
+  // the SPA auth state so the MfaGate redirects to /login/mfa. The
+  // event also wakes any other tab that's mid-render.
+  if (res.status === 403 && err.code === "mfa_required") {
+    setMfaRequired(true);
+  }
+  return err;
 }
 
 async function apiJson<T>(path: string, init?: RequestInit): Promise<T> {
