@@ -2,6 +2,7 @@ import {
   LayoutDashboard,
   BookOpen,
   BarChart3,
+  Building2,
   Users,
   Settings,
   HelpCircle,
@@ -49,6 +50,7 @@ export const adminNavItems: NavItem[] = [
   { label: "Active Users", i18nKey: "nav.active_users", href: "/admin/stats/active", icon: Activity },
   { label: "Content", i18nKey: "nav.content", href: "/admin/stats/content", icon: BarChart3 },
   { label: "Users", i18nKey: "nav.users", href: "/admin/users", icon: Users },
+  { label: "Organizations", i18nKey: "nav.organizations", href: "/admin/organizations", icon: Building2 },
   { label: "Courses", i18nKey: "nav.courses", href: "/admin/courses", icon: BookOpen },
   { label: "Processing", i18nKey: "nav.processing", href: "/admin/processing", icon: Cpu },
   { label: "AI Costs", i18nKey: "nav.ai_costs", href: "/admin/ai-costs", icon: DollarSign },
@@ -75,6 +77,7 @@ export const instructorBottomNavItems: NavItem[] = [
 export const adminBottomNavItems: NavItem[] = [
   { label: "Dashboard", i18nKey: "nav.dashboard", href: "/admin/stats", icon: LayoutDashboard },
   { label: "Users", i18nKey: "nav.users", href: "/admin/users", icon: Users },
+  { label: "Organizations", i18nKey: "nav.organizations", href: "/admin/organizations", icon: Building2 },
   { label: "Courses", i18nKey: "nav.courses", href: "/admin/courses", icon: BookOpen },
   { label: "AI Costs", i18nKey: "nav.ai_costs", href: "/admin/ai-costs", icon: DollarSign },
 ];
