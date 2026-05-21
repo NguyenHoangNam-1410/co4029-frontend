@@ -7,7 +7,6 @@ import {
   ArrowRight,
   BookOpen,
   Bot,
-  CheckCircle2,
   Clock,
   Flag,
   Sparkles,
@@ -29,6 +28,7 @@ import {
 } from "@/lib/api/hooks/quizzes";
 import { useCardCooldown } from "@/lib/api/cooldown";
 import { isApiErrorCode } from "@/lib/api/error-codes";
+import { QuestionRenderer } from "@/routes/_components/QuestionRenderer";
 import type {
   QuizAttemptRead,
   QuizForTakingPublic,
@@ -41,6 +41,7 @@ type QuestionState = "completed" | "active" | "flagged" | "pending";
 
 interface QuestionStatus {
   selectedOptionId: string | null;
+  answerText: string | null;
   flagged: boolean;
   hintViewed: boolean;
   savedToServer: boolean;
@@ -52,9 +53,13 @@ function formatTime(seconds: number) {
   return `${m}:${s}`;
 }
 
+function hasAnswer(status: QuestionStatus): boolean {
+  return status.selectedOptionId !== null || (status.answerText ?? "").length > 0;
+}
+
 function questionState(idx: number, activeIdx: number, status: QuestionStatus): QuestionState {
   if (status.flagged) return "flagged";
-  if (status.selectedOptionId !== null) return "completed";
+  if (hasAnswer(status)) return "completed";
   if (idx === activeIdx) return "active";
   return "pending";
 }
@@ -329,6 +334,7 @@ export default function CourseQuizPage() {
       setStatuses(
         result.questions.map(() => ({
           selectedOptionId: null,
+          answerText: null,
           flagged: false,
           hintViewed: false,
           savedToServer: false,
@@ -357,7 +363,8 @@ export default function CourseQuizPage() {
   async function persistAnswer(questionIdx: number): Promise<boolean> {
     const question = displayQuestions[questionIdx];
     const status = statuses[questionIdx];
-    if (!question || !status?.selectedOptionId || !activeAttemptId) return false;
+    if (!question || !status || !activeAttemptId) return false;
+    if (!hasAnswer(status)) return false;
     if (status.savedToServer) return true;
     const startedAt = questionSeenAtRef.current[question.id];
     const tActualMs = startedAt ? Math.max(Date.now() - startedAt, 0) : null;
@@ -366,6 +373,7 @@ export default function CourseQuizPage() {
       await submitAnswer.mutateAsync({
         question_id: question.id,
         selected_option_id: status.selectedOptionId,
+        answer_text: status.answerText,
         hint_used: status.hintViewed,
         t_actual_ms: tActualMs,
       });
@@ -410,7 +418,7 @@ export default function CourseQuizPage() {
 
     for (let i = 0; i < displayQuestions.length; i += 1) {
       const status = statuses[i];
-      if (!status?.selectedOptionId) continue;
+      if (!status || !hasAnswer(status)) continue;
       if (status.savedToServer) continue;
       const ok = await persistAnswer(i);
       if (!ok) return;
@@ -563,11 +571,12 @@ export default function CourseQuizPage() {
   const activeQuestion = displayQuestions[activeIdx];
   const activeStatus = statuses[activeIdx] ?? {
     selectedOptionId: null,
+    answerText: null,
     flagged: false,
     hintViewed: false,
     savedToServer: false,
   };
-  const completedCount = statuses.filter((s) => s.selectedOptionId !== null).length;
+  const completedCount = statuses.filter(hasAnswer).length;
   const flaggedCount = statuses.filter((s) => s.flagged).length;
   const progressPct = displayQuestions.length
     ? Math.round((completedCount / displayQuestions.length) * 100)
@@ -661,62 +670,38 @@ export default function CourseQuizPage() {
                 </h2>
               </div>
 
-              <div className="space-y-3">
-                {activeQuestion.options
-                  .slice()
-                  .sort((a, b) => a.position - b.position)
-                  .map((option) => {
-                    const isSelected = activeStatus.selectedOptionId === option.id;
-                    return (
-                      <button
-                        key={option.id}
-                        type="button"
-                        onClick={() => {
-                          if (submitAnswer.isPending || submitAttempt.isPending) return;
-                          setStatuses((current) =>
-                            current.map((status, index) =>
-                              index === activeIdx
-                                ? {
-                                    ...status,
-                                    selectedOptionId: option.id,
-                                    savedToServer: false,
-                                  }
-                                : status,
-                            ),
-                          );
-                        }}
-                        className={cn(
-                          "w-full text-left p-5 sm:p-6 rounded-xl flex items-center gap-5 transition-all duration-200 border-2 group/opt cursor-pointer",
-                          isSelected
-                            ? "bg-m3-primary-fixed/20 border-m3-primary shadow-lg shadow-m3-primary/10 ring-2 ring-m3-primary"
-                            : "bg-m3-surface-container-low border-transparent hover:bg-m3-surface-container-high hover:border-m3-outline-variant/30",
-                        )}
-                      >
-                        <span
-                          className={cn(
-                            "w-10 h-10 shrink-0 flex items-center justify-center rounded-xl font-bold text-sm transition-colors shadow-sm",
-                            isSelected
-                              ? "bg-m3-primary text-white"
-                              : "bg-m3-surface-container-lowest text-m3-primary group-hover/opt:bg-m3-primary group-hover/opt:text-white",
-                          )}
-                        >
-                          {option.option_key}
-                        </span>
-                        <span
-                          className={cn(
-                            "flex-1 text-sm sm:text-base leading-snug",
-                            isSelected ? "text-m3-primary font-semibold" : "text-m3-on-surface font-medium",
-                          )}
-                        >
-                          {option.option_text}
-                        </span>
-                        {isSelected && (
-                          <CheckCircle2 className="h-5 w-5 text-m3-primary shrink-0 fill-m3-primary/10" />
-                        )}
-                      </button>
-                    );
-                  })}
-              </div>
+              <QuestionRenderer
+                question={activeQuestion}
+                selectedOptionId={activeStatus.selectedOptionId}
+                answerText={activeStatus.answerText}
+                disabled={submitAnswer.isPending || submitAttempt.isPending}
+                onSelectOption={(optionId) => {
+                  setStatuses((current) =>
+                    current.map((status, index) =>
+                      index === activeIdx
+                        ? {
+                            ...status,
+                            selectedOptionId: optionId,
+                            savedToServer: false,
+                          }
+                        : status,
+                    ),
+                  );
+                }}
+                onAnswerTextChange={(value) => {
+                  setStatuses((current) =>
+                    current.map((status, index) =>
+                      index === activeIdx
+                        ? {
+                            ...status,
+                            answerText: value,
+                            savedToServer: false,
+                          }
+                        : status,
+                    ),
+                  );
+                }}
+              />
             </div>
 
             <div className="flex items-center justify-between mt-6 flex-wrap gap-3">
@@ -757,7 +742,7 @@ export default function CourseQuizPage() {
                 <QuestionSubmitButton
                   isLastQuestion={isLastQuestion}
                   isSavedAnswer={activeStatus.savedToServer}
-                  hasSelection={activeStatus.selectedOptionId !== null}
+                  hasSelection={hasAnswer(activeStatus)}
                   isSavingAnswer={submitAnswer.isPending}
                   isFinalSubmitting={submitAttempt.isPending}
                   cooldownRetryAt={activeQuestionCooldown}
@@ -859,6 +844,7 @@ export default function CourseQuizPage() {
             {displayQuestions.map((question, index) => {
               const status = statuses[index] ?? {
                 selectedOptionId: null,
+                answerText: null,
                 flagged: false,
                 hintViewed: false,
                 savedToServer: false,

@@ -4462,6 +4462,12 @@ export interface components {
              * @default 4
              */
             slides_per_section: number;
+            /**
+             * Section Grouping
+             * @default auto
+             * @enum {string}
+             */
+            section_grouping: "auto" | "fixed";
             /** Parallelism */
             parallelism?: number | null;
         };
@@ -11205,7 +11211,10 @@ export interface operations {
     };
     get_lesson_outline_api_v1_teacher_lessons__lesson_id__outline_get: {
         parameters: {
-            query?: never;
+            query?: {
+                slides_per_section?: number;
+                section_grouping?: "auto" | "fixed";
+            };
             header?: never;
             path: {
                 lesson_id: string;

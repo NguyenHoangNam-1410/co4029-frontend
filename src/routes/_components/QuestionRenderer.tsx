@@ -1,0 +1,382 @@
+import { useMemo, useRef, useState } from "react";
+import { CheckCircle2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import type { QuizQuestionPublic } from "@/lib/api/types";
+
+/**
+ * Per-type input UI for the student quiz attempt page.
+ *
+ * Maps each ``question_type`` to the right input shape:
+ * - ``multiple_choice`` / ``true_false`` → option buttons (caller-supplied
+ *   ``onSelectOption`` updates ``selectedOptionId``).
+ * - ``short_answer`` → single-line text input bound to ``answerText``.
+ * - ``fill_blank`` → drag-and-drop word bank with N drop slots; the
+ *   stem's ``___`` placeholders are split out and rendered inline,
+ *   and the parent receives a JSON-stringified array via
+ *   ``onAnswerTextChange`` (matches the grader's contract).
+ */
+export interface QuestionRendererProps {
+  question: QuizQuestionPublic;
+  selectedOptionId: string | null;
+  /** Free-text answer (for short_answer + fill_blank). For fill_blank
+   * this is the JSON-stringified array of slot values. */
+  answerText: string | null;
+  disabled: boolean;
+  onSelectOption: (optionId: string) => void;
+  onAnswerTextChange: (value: string | null) => void;
+}
+
+export function QuestionRenderer(props: QuestionRendererProps) {
+  switch (props.question.question_type) {
+    case "multiple_choice":
+    case "true_false":
+      return <OptionInput {...props} />;
+    case "short_answer":
+      return <ShortAnswerInput {...props} />;
+    case "fill_blank":
+      return <FillBlankInput {...props} />;
+    default:
+      // ``code`` (and any future type) falls back to a text answer so
+      // students can at least submit something.
+      return <ShortAnswerInput {...props} />;
+  }
+}
+
+function OptionInput({
+  question,
+  selectedOptionId,
+  disabled,
+  onSelectOption,
+}: QuestionRendererProps) {
+  const sortedOptions = useMemo(
+    () => question.options.slice().sort((a, b) => a.position - b.position),
+    [question.options],
+  );
+  return (
+    <div className="space-y-3">
+      {sortedOptions.map((option) => {
+        const isSelected = selectedOptionId === option.id;
+        return (
+          <button
+            key={option.id}
+            type="button"
+            onClick={() => {
+              if (disabled) return;
+              onSelectOption(option.id);
+            }}
+            className={cn(
+              "w-full text-left p-5 sm:p-6 rounded-xl flex items-center gap-5 transition-all duration-200 border-2 group/opt cursor-pointer",
+              isSelected
+                ? "bg-m3-primary-fixed/20 border-m3-primary shadow-lg shadow-m3-primary/10 ring-2 ring-m3-primary"
+                : "bg-m3-surface-container-low border-transparent hover:bg-m3-surface-container-high hover:border-m3-outline-variant/30",
+            )}
+          >
+            <span
+              className={cn(
+                "w-10 h-10 shrink-0 flex items-center justify-center rounded-xl font-bold text-sm transition-colors shadow-sm",
+                isSelected
+                  ? "bg-m3-primary text-white"
+                  : "bg-m3-surface-container-lowest text-m3-primary group-hover/opt:bg-m3-primary group-hover/opt:text-white",
+              )}
+            >
+              {option.option_key}
+            </span>
+            <span
+              className={cn(
+                "flex-1 text-sm sm:text-base leading-snug",
+                isSelected
+                  ? "text-m3-primary font-semibold"
+                  : "text-m3-on-surface font-medium",
+              )}
+            >
+              {option.option_text}
+            </span>
+            {isSelected && (
+              <CheckCircle2 className="h-5 w-5 text-m3-primary shrink-0 fill-m3-primary/10" />
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function ShortAnswerInput({
+  answerText,
+  disabled,
+  onAnswerTextChange,
+}: QuestionRendererProps) {
+  return (
+    <div className="space-y-2">
+      <textarea
+        value={answerText ?? ""}
+        onChange={(e) => onAnswerTextChange(e.target.value || null)}
+        disabled={disabled}
+        rows={3}
+        placeholder="Type your answer..."
+        className="w-full rounded-xl border-2 border-m3-outline-variant/30 bg-m3-surface-container-lowest px-4 py-3 text-base text-m3-on-surface focus:outline-none focus:border-m3-primary focus:ring-2 focus:ring-m3-primary/20 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
+        aria-label="Short answer input"
+      />
+    </div>
+  );
+}
+
+/**
+ * Drag-and-drop word bank for fill_blank.
+ *
+ * Strategy:
+ * 1. Split the stem on three-or-more underscores. Render the static
+ *    fragments inline with drop slots between them.
+ * 2. The word bank lists distinct candidate strings. To avoid leaking
+ *    the answer key (which the public schema deliberately omits), the
+ *    bank is built from synthesized hash distractors PLUS the slot
+ *    values the student has already placed. We seed the bank from
+ *    ``question.options`` if the backend ever decides to expose
+ *    distractors there; otherwise we fall back to "Word 1..N".
+ * 3. Slots are mutated via dragstart/dragover/drop on plain HTML5 DnD
+ *    so we don't pull in @dnd-kit just for this.
+ *
+ * The stem must contain at least one ``___`` placeholder. If none are
+ * found we degrade to a comma-separated list of N text inputs (where N
+ * is inferred from the option count or defaults to 1).
+ */
+function FillBlankInput({
+  question,
+  answerText,
+  disabled,
+  onAnswerTextChange,
+}: QuestionRendererProps) {
+  const segments = useMemo(
+    () => splitStemByBlanks(question.prompt_text ?? ""),
+    [question.prompt_text],
+  );
+  const blankCount = Math.max(0, segments.length - 1);
+  const slots: Array<string | null> = useMemo(() => {
+    if (blankCount === 0) return [];
+    let parsed: Array<string | null> = Array(blankCount).fill(null);
+    if (answerText) {
+      try {
+        const data = JSON.parse(answerText);
+        if (Array.isArray(data)) {
+          parsed = Array.from({ length: blankCount }, (_, i) => {
+            const value = data[i];
+            return typeof value === "string" && value ? value : null;
+          });
+        }
+      } catch {
+        // Not JSON — leave slots empty.
+      }
+    }
+    return parsed;
+  }, [answerText, blankCount]);
+
+  const wordBank: string[] = useMemo(() => {
+    const fromOptions = question.options
+      .map((opt) => opt.option_text)
+      .filter((text) => typeof text === "string" && text.length > 0);
+    if (fromOptions.length >= blankCount && fromOptions.length > 0) {
+      return fromOptions;
+    }
+    return Array.from({ length: blankCount }, (_, i) => `Word ${i + 1}`);
+  }, [question.options, blankCount]);
+
+  const draggingFromSlotRef = useRef<number | null>(null);
+  const draggingWordRef = useRef<string | null>(null);
+
+  function commitSlots(next: Array<string | null>) {
+    onAnswerTextChange(JSON.stringify(next.map((value) => value ?? "")));
+  }
+
+  function placeAt(index: number, word: string) {
+    if (disabled) return;
+    const next = [...slots];
+    // If the word was already in another slot, swap; otherwise just place.
+    const fromSlot = next.indexOf(word);
+    if (fromSlot >= 0 && fromSlot !== index) {
+      next[fromSlot] = next[index];
+    }
+    next[index] = word;
+    commitSlots(next);
+  }
+
+  function clearSlot(index: number) {
+    if (disabled) return;
+    const next = [...slots];
+    next[index] = null;
+    commitSlots(next);
+  }
+
+  if (blankCount === 0) {
+    // No ``___`` placeholders found — fall back to a single textarea.
+    return (
+      <ShortAnswerInput
+        question={question}
+        answerText={answerText}
+        selectedOptionId={null}
+        disabled={disabled}
+        onSelectOption={() => {}}
+        onAnswerTextChange={onAnswerTextChange}
+      />
+    );
+  }
+
+  return (
+    <div className="space-y-5">
+      <div className="text-sm sm:text-base leading-loose text-m3-on-surface bg-m3-surface-container-lowest rounded-xl p-5">
+        {segments.map((segment, i) => (
+          <span key={i}>
+            {segment}
+            {i < blankCount && (
+              <DropSlot
+                index={i}
+                value={slots[i]}
+                disabled={disabled}
+                onDrop={(word) => {
+                  draggingFromSlotRef.current = null;
+                  draggingWordRef.current = null;
+                  placeAt(i, word);
+                }}
+                onClear={() => clearSlot(i)}
+                onDragStartFromSlot={() => {
+                  draggingFromSlotRef.current = i;
+                  draggingWordRef.current = slots[i];
+                }}
+              />
+            )}
+          </span>
+        ))}
+      </div>
+
+      <div className="space-y-2">
+        <div className="text-[10px] font-bold uppercase tracking-widest text-m3-on-surface-variant">
+          Word bank
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {wordBank.map((word) => {
+            const used = slots.includes(word);
+            return (
+              <button
+                key={word}
+                type="button"
+                draggable={!disabled && !used}
+                onDragStart={(e) => {
+                  if (used || disabled) {
+                    e.preventDefault();
+                    return;
+                  }
+                  draggingFromSlotRef.current = null;
+                  draggingWordRef.current = word;
+                  e.dataTransfer.setData("text/plain", word);
+                  e.dataTransfer.effectAllowed = "move";
+                }}
+                onClick={() => {
+                  if (used || disabled) return;
+                  // Click-to-place: drop into the first empty slot.
+                  const firstEmpty = slots.findIndex((s) => s === null);
+                  if (firstEmpty >= 0) placeAt(firstEmpty, word);
+                }}
+                disabled={used || disabled}
+                className={cn(
+                  "px-4 py-2 rounded-xl text-sm font-medium transition-all border-2 cursor-grab active:cursor-grabbing",
+                  used
+                    ? "bg-m3-surface-container-low text-m3-on-surface-variant border-transparent line-through opacity-50 cursor-not-allowed"
+                    : "bg-m3-secondary-fixed/40 text-m3-on-surface border-m3-secondary/30 hover:bg-m3-secondary-fixed/60 hover:border-m3-secondary",
+                )}
+              >
+                {word}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface DropSlotProps {
+  index: number;
+  value: string | null;
+  disabled: boolean;
+  onDrop: (word: string) => void;
+  onClear: () => void;
+  onDragStartFromSlot: () => void;
+}
+
+function DropSlot({
+  index: _index,
+  value,
+  disabled,
+  onDrop,
+  onClear,
+  onDragStartFromSlot,
+}: DropSlotProps) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <span
+      onDragOver={(e) => {
+        if (disabled) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        setHovered(true);
+      }}
+      onDragLeave={() => setHovered(false)}
+      onDrop={(e) => {
+        if (disabled) return;
+        e.preventDefault();
+        setHovered(false);
+        const word = e.dataTransfer.getData("text/plain");
+        if (word) onDrop(word);
+      }}
+      className={cn(
+        "inline-flex items-center align-middle gap-1 mx-1 px-3 min-w-[6rem] min-h-[2rem] rounded-lg border-2 border-dashed transition-all",
+        value
+          ? "bg-m3-primary-fixed/30 border-m3-primary border-solid text-m3-primary font-semibold"
+          : hovered
+            ? "bg-m3-secondary-fixed/30 border-m3-secondary"
+            : "bg-m3-surface-container-low border-m3-outline-variant/40",
+      )}
+    >
+      {value ? (
+        <>
+          <span
+            draggable={!disabled}
+            onDragStart={(e) => {
+              if (disabled) {
+                e.preventDefault();
+                return;
+              }
+              onDragStartFromSlot();
+              e.dataTransfer.setData("text/plain", value);
+              e.dataTransfer.effectAllowed = "move";
+            }}
+            className="cursor-grab active:cursor-grabbing"
+          >
+            {value}
+          </span>
+          {!disabled && (
+            <button
+              type="button"
+              onClick={onClear}
+              aria-label="Clear blank"
+              className="ml-1 text-m3-primary/60 hover:text-m3-primary text-xs leading-none"
+            >
+              ×
+            </button>
+          )}
+        </>
+      ) : (
+        <span className="text-m3-on-surface-variant text-xs italic select-none">
+          drop here
+        </span>
+      )}
+    </span>
+  );
+}
+
+/** Split a stem on runs of 3+ underscores. Returns the static fragments
+ * around blanks; the number of blanks is ``segments.length - 1``. */
+function splitStemByBlanks(stem: string): string[] {
+  if (!stem) return [""];
+  const parts = stem.split(/_{3,}/g);
+  return parts;
+}

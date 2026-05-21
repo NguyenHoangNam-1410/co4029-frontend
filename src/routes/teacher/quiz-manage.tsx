@@ -842,7 +842,14 @@ function QuestionCard({
   }, [question]);
 
   const hasOptions =
-    question.question_type === "multiple_choice" && draft.options.length > 0;
+    (question.question_type === "multiple_choice" ||
+      question.question_type === "true_false") &&
+    draft.options.length > 0;
+  const correctAnswer = readCorrectAnswer(question);
+  const blankCount =
+    question.question_type === "fill_blank"
+      ? countBlanks(question.prompt_text ?? "")
+      : 0;
   const expectedSeconds =
     question.expected_response_time_ms == null
       ? null
@@ -1036,10 +1043,79 @@ function QuestionCard({
                     ),
                   }))
                 }
-                className="flex-1 bg-transparent text-sm text-m3-on-surface focus:outline-none"
+                disabled={question.question_type === "true_false"}
+                className="flex-1 bg-transparent text-sm text-m3-on-surface focus:outline-none disabled:text-m3-on-surface-variant disabled:cursor-not-allowed"
               />
             </div>
           ))}
+        </div>
+      )}
+
+      {question.question_type === "short_answer" && (
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-bold uppercase tracking-widest text-m3-on-surface-variant">
+            {t("teacher_quiz_manage.editor.correct_answer_label", "Correct answer")}
+          </label>
+          <div className="rounded-xl border-2 border-emerald-300 bg-emerald-50/60 px-3 py-2.5 text-sm text-m3-on-surface">
+            {typeof correctAnswer === "string" && correctAnswer.length > 0 ? (
+              correctAnswer
+            ) : (
+              <span className="text-m3-on-surface-variant italic">
+                {t(
+                  "teacher_quiz_manage.editor.correct_answer_missing",
+                  "(missing — regenerate to refresh)",
+                )}
+              </span>
+            )}
+          </div>
+          <p className="text-[11px] text-m3-on-surface-variant">
+            {t(
+              "teacher_quiz_manage.editor.correct_answer_short_hint",
+              "Grader is case-insensitive and treats hyphenated and unhyphenated forms as equivalent.",
+            )}
+          </p>
+        </div>
+      )}
+
+      {question.question_type === "fill_blank" && (
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-bold uppercase tracking-widest text-m3-on-surface-variant">
+            {t(
+              "teacher_quiz_manage.editor.fill_blank_label",
+              "Blanks (in stem order)",
+            )}
+          </label>
+          <div className="rounded-xl border-2 border-emerald-300 bg-emerald-50/60 px-3 py-2.5 text-sm text-m3-on-surface space-y-1">
+            {Array.isArray(correctAnswer) && correctAnswer.length > 0 ? (
+              correctAnswer.map((blank, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <span className="font-bold text-m3-on-surface-variant text-xs w-6">
+                    {i + 1}.
+                  </span>
+                  <span>{blank}</span>
+                </div>
+              ))
+            ) : (
+              <span className="text-m3-on-surface-variant italic">
+                {t(
+                  "teacher_quiz_manage.editor.correct_answer_missing",
+                  "(missing — regenerate to refresh)",
+                )}
+              </span>
+            )}
+          </div>
+          <p className="text-[11px] text-m3-on-surface-variant">
+            {t(
+              "teacher_quiz_manage.editor.fill_blank_hint",
+              "Stem must contain {{count}} blank(s) marked with three or more underscores ({{marker}}).",
+              {
+                count: Array.isArray(correctAnswer)
+                  ? correctAnswer.length
+                  : blankCount,
+                marker: "___",
+              },
+            )}
+          </p>
         </div>
       )}
 
@@ -1157,6 +1233,29 @@ interface QuestionDraft {
     option_text: string;
     is_correct: boolean;
   }>;
+}
+
+/** Pull the canonical correct answer out of an AI-generated question.
+ *
+ * MCQ + T/F store the answer in the option rows (``is_correct``); the
+ * other types store it on ``original_generated_payload.correct_answer``
+ * (string for short_answer, array of strings for fill_blank). The
+ * payload field is read-only in the v1 authoring UI; teachers edit
+ * stem + explanation, and regenerate to change the answer. */
+function readCorrectAnswer(question: QuizQuestionAuthoring): string | string[] | null {
+  const payload = question.original_generated_payload as
+    | { correct_answer?: unknown }
+    | null
+    | undefined;
+  const raw = payload?.correct_answer;
+  if (typeof raw === "string") return raw;
+  if (Array.isArray(raw)) return raw.map((entry) => String(entry));
+  return null;
+}
+
+function countBlanks(promptText: string): number {
+  const matches = promptText.match(/_{3,}/g);
+  return matches ? matches.length : 0;
 }
 
 function buildQuestionDraft(question: QuizQuestionAuthoring): QuestionDraft {
@@ -1596,7 +1695,10 @@ function PreviewQuestion({
 }) {
   const { t } = useTranslation();
   const hasOptions =
-    question.question_type === "multiple_choice" && question.options.length > 0;
+    (question.question_type === "multiple_choice" ||
+      question.question_type === "true_false") &&
+    question.options.length > 0;
+  const correctAnswer = readCorrectAnswer(question);
 
   return (
     <div className="rounded-xl bg-m3-surface-container-low border border-m3-outline-variant/15 p-5 space-y-3">
@@ -1642,6 +1744,47 @@ function PreviewQuestion({
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {question.question_type === "short_answer" && (
+        <div className="pl-10">
+          <div className="rounded-xl border-2 border-emerald-300 bg-emerald-50/60 px-3 py-2.5 text-sm text-m3-on-surface">
+            <span className="text-[10px] font-bold uppercase tracking-wide text-emerald-700 mr-2">
+              {t("teacher_quiz_manage.preview.correct")}
+            </span>
+            {typeof correctAnswer === "string" && correctAnswer.length > 0 ? (
+              correctAnswer
+            ) : (
+              <span className="italic text-m3-on-surface-variant">
+                {t("teacher_quiz_manage.preview.no_content")}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
+      {question.question_type === "fill_blank" && (
+        <div className="pl-10">
+          <div className="rounded-xl border-2 border-emerald-300 bg-emerald-50/60 px-3 py-2.5 text-sm text-m3-on-surface space-y-1">
+            <div className="text-[10px] font-bold uppercase tracking-wide text-emerald-700 mb-1">
+              {t("teacher_quiz_manage.preview.correct")}
+            </div>
+            {Array.isArray(correctAnswer) && correctAnswer.length > 0 ? (
+              correctAnswer.map((blank, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <span className="font-bold text-m3-on-surface-variant text-xs w-6">
+                    {i + 1}.
+                  </span>
+                  <span>{blank}</span>
+                </div>
+              ))
+            ) : (
+              <span className="italic text-m3-on-surface-variant">
+                {t("teacher_quiz_manage.preview.no_content")}
+              </span>
+            )}
+          </div>
         </div>
       )}
 
