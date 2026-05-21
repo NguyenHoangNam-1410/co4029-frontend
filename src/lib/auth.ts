@@ -174,12 +174,15 @@ export function getStoredAuthSession(): StoredAuthSession | null {
     return null;
   }
 
+  const requiresMfa =
+    localStorage.getItem(AUTH_STORAGE_KEYS.requiresMfa) === "true";
+
   return {
     accessToken,
     refreshToken,
     tokenType,
     expiresAt,
-    requiresMfa: localStorage.getItem(AUTH_STORAGE_KEYS.requiresMfa) === "true",
+    requiresMfa,
     user,
   };
 }
