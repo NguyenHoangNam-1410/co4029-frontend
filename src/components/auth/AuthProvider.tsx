@@ -7,6 +7,8 @@ import {
   isStoredSessionExpired,
   logout as logoutRequest,
   refreshAuthSession,
+  RefreshAuthError,
+  RefreshTransientError,
   type AuthUser,
 } from "@/lib/auth";
 
@@ -92,8 +94,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             });
             return;
           }
-        } catch {
-          setState({ status: "unauthenticated", requiresMfa: false, user: null });
+        } catch (err) {
+          if (!isCurrent) return;
+          if (err instanceof RefreshTransientError) {
+            // Network blip / 5xx during boot. Keep the (expired)
+            // session in state — the user appears authenticated, and
+            // the next API call will re-attempt the refresh. Do NOT
+            // log them out for a transient hiccup.
+            return;
+          }
+          if (err instanceof RefreshAuthError) {
+            // Genuine auth failure — refreshAuthSession already
+            // cleared storage. Sync state to unauthenticated.
+            setState({ status: "unauthenticated", requiresMfa: false, user: null });
+            return;
+          }
+          // Unknown error — be conservative and keep the session
+          // visible; the user can retry. We avoid the silent logout.
           return;
         }
       }
@@ -101,12 +118,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const user = await getCurrentUser();
         const currentSession = getStoredAuthSession();
+        if (!isCurrent) return;
         setState({
           status: "authenticated",
           requiresMfa: currentSession?.requiresMfa ?? false,
           user,
         });
       } catch {
+        // /users/me failed — could be transient or auth. Resync from
+        // storage (which is the source of truth for whether refresh
+        // hit a real auth failure).
+        if (!isCurrent) return;
         syncFromStorage();
       }
     }
