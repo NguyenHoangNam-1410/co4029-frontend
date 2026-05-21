@@ -164,6 +164,8 @@ export const queryKeys = {
     questions: (quizId: string) => ["quizzes", "questions", quizId] as const,
     generationRun: (quizId: string, runId: string) =>
       ["quizzes", "gen-run", quizId, runId] as const,
+    latestGenerationRun: (quizId: string) =>
+      ["quizzes", "gen-run", quizId, "latest"] as const,
     bank: (
       courseId: string,
       filters?: {

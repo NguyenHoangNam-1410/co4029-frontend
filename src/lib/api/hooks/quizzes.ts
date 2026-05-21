@@ -316,6 +316,33 @@ export function useQuizGenerationRun(
   });
 }
 
+/**
+ * GET /teacher/quizzes/{quizId}/generation-runs/latest
+ *
+ * Returns the most recent generation run for ``quizId`` (any status,
+ * or ``null`` when the quiz has never been generated). Lets the SPA
+ * reattach to an in-flight or recently-failed run on mount without
+ * persisting handles in the browser — survives cross-device sessions
+ * and tab closes, and lets two teachers viewing the same quiz both
+ * see the same run.
+ */
+export function useLatestQuizGenerationRun(
+  quizId: string | null | undefined,
+) {
+  return useQuery({
+    queryKey: queryKeys.quizzes.latestGenerationRun(quizId ?? ""),
+    enabled: !!quizId,
+    queryFn: () =>
+      apiFetch<GenerationRunRead | null>(
+        `/teacher/quizzes/${quizId}/generation-runs/latest`,
+      ),
+    // Keep the cached value cheap to compute on remount but stale
+    // enough that we re-fetch once when the user comes back to the
+    // panel — the per-run polling hook takes over from there.
+    staleTime: 5_000,
+  });
+}
+
 export function useBulkSetExpectedTime(quizId: string | null | undefined) {
   const qc = useQueryClient();
   return useMutation({
