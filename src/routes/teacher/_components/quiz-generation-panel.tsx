@@ -72,6 +72,28 @@ import {
 const DIFFICULTIES = ["easy", "medium", "hard", "mixed"] as const;
 type Difficulty = (typeof DIFFICULTIES)[number];
 
+/**
+ * Question types accepted by the backend's
+ * ``QuizGenerationRequest.question_types`` field. The ideation stage
+ * cycles through the selected types when allocating per-section
+ * budgets — pick at least one. Default is `multiple_choice` to match
+ * the historical behavior.
+ */
+const QUESTION_TYPES = [
+  "multiple_choice",
+  "true_false",
+  "short_answer",
+  "fill_blank",
+] as const;
+type QuestionType = (typeof QUESTION_TYPES)[number];
+
+const QUESTION_TYPE_LABELS: Record<QuestionType, string> = {
+  multiple_choice: "Multiple choice",
+  true_false: "True / false",
+  short_answer: "Short answer",
+  fill_blank: "Fill in the blank",
+};
+
 type GenerationMode = "topic" | "coverage";
 
 /**
@@ -84,6 +106,7 @@ type GenerationMode = "topic" | "coverage";
 interface FormState {
   question_count: number;
   difficulty: Difficulty;
+  question_types: QuestionType[];
   generation_mode: GenerationMode;
   focus_topics: string[];
   avoid_topics: string[];
@@ -103,6 +126,7 @@ interface FormState {
 const INITIAL_FORM: FormState = {
   question_count: 5,
   difficulty: "medium",
+  question_types: ["multiple_choice"],
   generation_mode: "topic",
   focus_topics: [],
   avoid_topics: [],
@@ -392,11 +416,15 @@ export function QuizGenerationPanel({
       toast.error("Extra instructions must be 1000 characters or fewer");
       return;
     }
+    if (form.question_types.length === 0) {
+      toast.error("Pick at least one question type");
+      return;
+    }
 
     try {
       const run = await generateQuiz.mutateAsync({
         question_count: form.question_count,
-        question_types: ["multiple_choice"],
+        question_types: form.question_types,
         difficulty: form.difficulty,
         source_lesson_ids: selectedLessonIds,
         generation_mode: form.generation_mode,
@@ -522,6 +550,50 @@ export function QuizGenerationPanel({
             ))}
           </select>
         </div>
+      </div>
+
+      {/* ── Question types ── */}
+      <div className="space-y-1.5">
+        <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">
+          Question types
+        </label>
+        <div className="grid grid-cols-2 gap-2">
+          {QUESTION_TYPES.map((type) => {
+            const checked = form.question_types.includes(type);
+            return (
+              <label
+                key={type}
+                className={cn(
+                  "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm cursor-pointer transition-all",
+                  checked
+                    ? "border-m3-secondary bg-m3-secondary-fixed/30"
+                    : "border-m3-outline-variant/20 bg-m3-surface hover:bg-m3-surface-container-low",
+                )}
+              >
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={(e) =>
+                    setForm((current) => {
+                      const next = e.target.checked
+                        ? [...current.question_types, type]
+                        : current.question_types.filter((entry) => entry !== type);
+                      return { ...current, question_types: next };
+                    })
+                  }
+                  className="h-3.5 w-3.5"
+                />
+                <span className="text-m3-on-surface">
+                  {QUESTION_TYPE_LABELS[type]}
+                </span>
+              </label>
+            );
+          })}
+        </div>
+        <p className="text-[10px] text-m3-on-surface-variant">
+          Generator cycles through the selected types when budgeting per
+          section. Pick at least one.
+        </p>
       </div>
 
       <ModeToggle
