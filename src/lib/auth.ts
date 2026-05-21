@@ -233,27 +233,80 @@ export function consumePostLoginRedirect(defaultPath = "/dashboard") {
   return isSafeRedirectTarget(redirectPath) ? redirectPath : defaultPath;
 }
 
+export class RefreshAuthError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "RefreshAuthError";
+  }
+}
+
+export class RefreshTransientError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "RefreshTransientError";
+  }
+}
+
+/**
+ * Single-flight gate for ``/auth/refresh``. Multiple concurrent callers
+ * (AuthProvider hydration + React Query hooks firing in parallel after
+ * an F5) share the same in-flight request so the backend only sees one
+ * refresh-token rotation. Without this gate, the second caller hits a
+ * rotated-out token, gets 401, and the user is logged out — exactly the
+ * "inactive tab → F5 → logged out" bug.
+ */
+let inFlightRefresh: Promise<StoredAuthSession | null> | null = null;
+
 export async function refreshAuthSession() {
-  const session = getStoredAuthSession();
-
-  if (!session) {
-    throw new Error("No active session found");
+  if (inFlightRefresh) {
+    return inFlightRefresh;
   }
 
-  const response = await apiRequest("/auth/refresh", {
-    method: "POST",
-    body: JSON.stringify({ refresh_token: session.refreshToken }),
-  });
+  inFlightRefresh = (async () => {
+    const session = getStoredAuthSession();
 
-  if (!response.ok) {
-    clearAuthSession();
-    throw new Error(await getErrorMessage(response));
+    if (!session) {
+      throw new RefreshAuthError("No active session found");
+    }
+
+    let response: Response;
+    try {
+      response = await apiRequest("/auth/refresh", {
+        method: "POST",
+        body: JSON.stringify({ refresh_token: session.refreshToken }),
+      });
+    } catch (err) {
+      // Network failure (offline, DNS, TLS, browser killed the request).
+      // Do NOT clear the session — the user's refresh token is still
+      // probably valid; let the caller retry on the next interaction.
+      throw new RefreshTransientError(
+        err instanceof Error ? err.message : "Network error during refresh",
+      );
+    }
+
+    if (response.status === 401 || response.status === 403) {
+      // The refresh token is genuinely invalid (revoked, expired, tampered).
+      // Only here do we wipe the session.
+      clearAuthSession();
+      throw new RefreshAuthError(await getErrorMessage(response));
+    }
+
+    if (!response.ok) {
+      // 5xx, 429, etc. — server-side flake. Keep the session and let
+      // the caller retry. Do NOT log the user out for a 502.
+      throw new RefreshTransientError(await getErrorMessage(response));
+    }
+
+    const tokenResponse = (await response.json()) as TokenResponse;
+    storeAuthSession(tokenResponse);
+    return getStoredAuthSession();
+  })();
+
+  try {
+    return await inFlightRefresh;
+  } finally {
+    inFlightRefresh = null;
   }
-
-  const tokenResponse = (await response.json()) as TokenResponse;
-  storeAuthSession(tokenResponse);
-
-  return getStoredAuthSession();
 }
 
 export async function getValidAuthSession() {
@@ -267,7 +320,19 @@ export async function getValidAuthSession() {
     return session;
   }
 
-  return refreshAuthSession();
+  try {
+    return await refreshAuthSession();
+  } catch (err) {
+    if (err instanceof RefreshTransientError) {
+      // Refresh failed for a non-auth reason — return the (expired)
+      // stored session so the caller can still try the request. The
+      // backend will return 401, the caller will retry once via
+      // authenticatedFetch's own retry path, and if THAT also fails
+      // we'll surface the error without nuking auth state.
+      return session;
+    }
+    throw err;
+  }
 }
 
 export async function authenticatedFetch(path: string, init: RequestInit = {}, retry = true) {
@@ -290,7 +355,9 @@ export async function authenticatedFetch(path: string, init: RequestInit = {}, r
     const refreshedSession = await refreshAuthSession();
 
     if (!refreshedSession) {
-      clearAuthSession();
+      // refreshAuthSession returned null (no stored session) — caller
+      // gets the original 401 and the AuthProvider will sync the UI to
+      // unauthenticated via the storage event from clearAuthSession.
       return response;
     }
 
@@ -298,8 +365,14 @@ export async function authenticatedFetch(path: string, init: RequestInit = {}, r
       ...init,
       headers: withAuthorization(refreshedSession.accessToken, init.headers),
     });
-  } catch {
-    clearAuthSession();
+  } catch (err) {
+    if (err instanceof RefreshTransientError) {
+      // Network/5xx during refresh — keep the session, surface the
+      // original 401. The next call will re-attempt refresh.
+      return response;
+    }
+    // RefreshAuthError already cleared the session inside
+    // refreshAuthSession (the only path that clears).
     return response;
   }
 }
@@ -308,10 +381,12 @@ export async function getCurrentUser() {
   const response = await authenticatedFetch("/users/me");
 
   if (!response.ok) {
-    if (response.status === 401) {
-      clearAuthSession();
-    }
-
+    // Note: a 401 here means authenticatedFetch already tried to refresh
+    // and either (a) hit a real auth failure (RefreshAuthError, which
+    // already called clearAuthSession), or (b) hit a transient and the
+    // re-fetch still 401'd. We do NOT clear here — the only legitimate
+    // clear path is RefreshAuthError. Otherwise transient blips during
+    // hydration would log the user out.
     throw new Error(await getErrorMessage(response));
   }
 
