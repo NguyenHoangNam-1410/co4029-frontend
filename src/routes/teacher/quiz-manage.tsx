@@ -31,11 +31,9 @@ import {
   useBulkSetExpectedTime,
   useDeleteQuiz,
   useDeleteQuizQuestion,
-  useGenerateQuiz,
   usePatchQuiz,
   usePublishQuiz,
   useQuizAuthoring,
-  useQuizGenerationRun,
   useRegenerateQuestion,
   useUpdateQuizQuestion,
 } from "@/lib/api/hooks/quizzes";
@@ -44,11 +42,11 @@ import {
   useTeacherCourseContent,
 } from "@/lib/api/hooks/teacher-courses";
 import type {
-  GenerationRunRead,
   QuizAuthoring,
   QuizQuestionAuthoring,
 } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
+import { QuizGenerationPanel } from "./_components/quiz-generation-panel";
 
 type TabKey = "questions" | "settings" | "preview";
 
@@ -139,12 +137,10 @@ export default function QuizManagePage() {
   const publishQuiz = usePublishQuiz(quizId);
   const patchQuiz = usePatchQuiz(quizId);
   const addQuestion = useAddQuizQuestion(quizId);
-  const generateQuiz = useGenerateQuiz(quizId);
 
   const [tab, setTab] = useState<TabKey>("questions");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [draft, setDraft] = useState<SettingsDraft | null>(null);
-  const [activeRunId, setActiveRunId] = useState<string | null>(null);
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<Set<string>>(
     new Set(),
@@ -320,32 +316,6 @@ export default function QuizManagePage() {
       toast.error(
         (err as Error).message ||
           t("teacher_quiz_manage.toasts.save_settings_failed"),
-      );
-    }
-  }
-
-  async function handleStartGeneration(payload: {
-    target_count: number;
-    focus_topics: string[];
-  }) {
-    try {
-      const run = await generateQuiz.mutateAsync({
-        mode: "full",
-        target_count: payload.target_count,
-        focus_topics: payload.focus_topics,
-        source_lessons: [],
-      });
-      setActiveRunId(run.id);
-      setShowGenerateModal(true);
-      toast.success(t("teacher_quiz_manage.toasts.generation_started"));
-    } catch (err: unknown) {
-      if (err instanceof ApiError && err.status === 409) {
-        toast.error(t("teacher_quiz_manage.toasts.generation_in_progress"));
-        return;
-      }
-      toast.error(
-        (err as Error).message ||
-          t("teacher_quiz_manage.toasts.generation_failed"),
       );
     }
   }
@@ -536,16 +506,12 @@ export default function QuizManagePage() {
         <PreviewTab quiz={quiz} questions={questions} />
       )}
 
-      {showGenerateModal && (
+      {showGenerateModal && quiz?.module_id && (
         <GenerateModal
           quizId={quizId}
-          activeRunId={activeRunId}
-          generating={generateQuiz.isPending}
-          onClose={() => {
-            setShowGenerateModal(false);
-            setActiveRunId(null);
-          }}
-          onStart={handleStartGeneration}
+          moduleId={quiz.module_id}
+          hasExistingQuestions={questions.length > 0}
+          onClose={() => setShowGenerateModal(false)}
         />
       )}
 
@@ -1211,48 +1177,19 @@ function buildQuestionDraft(question: QuizQuestionAuthoring): QuestionDraft {
 
 function GenerateModal({
   quizId,
-  activeRunId,
-  generating,
+  moduleId,
+  hasExistingQuestions,
   onClose,
-  onStart,
 }: {
   quizId: string;
-  activeRunId: string | null;
-  generating: boolean;
+  moduleId: string;
+  hasExistingQuestions: boolean;
   onClose: () => void;
-  onStart: (payload: {
-    target_count: number;
-    focus_topics: string[];
-  }) => void | Promise<void>;
 }) {
   const { t } = useTranslation();
-  const { data: run } = useQuizGenerationRun(quizId, activeRunId);
-  const [targetCount, setTargetCount] = useState(5);
-  const [focusInput, setFocusInput] = useState("");
-
-  const status = run?.status;
-  const isTerminal =
-    status === "completed" ||
-    status === "failed" ||
-    status === "cancelled";
-  const isRunning = !isTerminal && (Boolean(activeRunId) || generating);
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (targetCount < 1 || targetCount > 50) {
-      toast.error(t("teacher_quiz_manage.errors.count_out_of_range"));
-      return;
-    }
-    const focus_topics = focusInput
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
-    void onStart({ target_count: targetCount, focus_topics });
-  }
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div className="w-full max-w-lg rounded-xl bg-m3-surface p-6 shadow-xl space-y-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-8 overflow-y-auto">
+      <div className="w-full max-w-2xl rounded-xl bg-m3-surface p-6 shadow-xl space-y-4 my-auto">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3">
             <div className="h-10 w-10 rounded-xl gradient-primary flex items-center justify-center shadow-ai-glow shrink-0">
@@ -1279,163 +1216,16 @@ function GenerateModal({
           </Button>
         </div>
 
-        {!activeRunId && (
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">
-                {t("teacher_quiz_manage.generate_modal.count_label")}
-              </label>
-              <Input
-                type="number"
-                min={1}
-                max={50}
-                value={targetCount}
-                onChange={(e) =>
-                  setTargetCount(
-                    Math.max(1, Math.min(50, Number(e.target.value) || 1)),
-                  )
-                }
-                className="bg-m3-surface text-sm w-32"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant">
-                {t("teacher_quiz_manage.generate_modal.focus_label")}
-              </label>
-              <Input
-                value={focusInput}
-                onChange={(e) => setFocusInput(e.target.value)}
-                placeholder={t(
-                  "teacher_quiz_manage.generate_modal.focus_placeholder",
-                )}
-                className="bg-m3-surface text-sm"
-              />
-            </div>
-            <div className="flex justify-end gap-2 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onClose}
-                disabled={generating}
-              >
-                {t("common.cancel")}
-              </Button>
-              <Button
-                type="submit"
-                disabled={generating}
-                className="gap-2 gradient-primary text-white border-0"
-              >
-                {generating ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Sparkles className="h-4 w-4" />
-                )}
-                {t("teacher_quiz_manage.generate_modal.start")}
-              </Button>
-            </div>
-          </form>
-        )}
-
-        {activeRunId && isRunning && (
-          <RunProgress run={run} />
-        )}
-
-        {activeRunId && status === "completed" && (
-          <RunSucceeded run={run} onClose={onClose} />
-        )}
-
-        {activeRunId && (status === "failed" || status === "cancelled") && (
-          <RunFailed run={run} onClose={onClose} />
-        )}
+        <QuizGenerationPanel
+          quizId={quizId}
+          moduleId={moduleId}
+          hasExistingQuestions={hasExistingQuestions}
+        />
       </div>
     </div>
   );
 }
 
-function RunProgress({ run }: { run: GenerationRunRead | undefined }) {
-  const { t } = useTranslation();
-  return (
-    <div className="space-y-3 text-center py-6">
-      <div className="flex justify-center">
-        <Loader2 className="h-10 w-10 animate-spin text-m3-secondary" />
-      </div>
-      <p className="font-headline font-bold text-m3-on-surface">
-        {t("teacher_quiz_manage.generate_modal.running_title")}
-      </p>
-      <p className="text-sm text-m3-on-surface-variant">
-        {run?.status === "running"
-          ? t("teacher_quiz_manage.generate_modal.running_body")
-          : t("teacher_quiz_manage.generate_modal.queued")}
-      </p>
-      <div className="h-2 rounded-full bg-m3-surface-container-high overflow-hidden">
-        <div className="h-full w-1/2 gradient-primary animate-pulse" />
-      </div>
-    </div>
-  );
-}
-
-function RunSucceeded({
-  run,
-  onClose,
-}: {
-  run: GenerationRunRead | undefined;
-  onClose: () => void;
-}) {
-  const { t } = useTranslation();
-  void run;
-  return (
-    <div className="space-y-4 text-center py-4">
-      <div className="flex justify-center">
-        <div className="h-12 w-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
-          <CheckCircle2 className="h-6 w-6" />
-        </div>
-      </div>
-      <p className="font-headline font-bold text-m3-on-surface">
-        {t("teacher_quiz_manage.generate_modal.success_title")}
-      </p>
-      <p className="text-sm text-m3-on-surface-variant">
-        {t("teacher_quiz_manage.generate_modal.success_body")}
-      </p>
-      <div className="flex justify-center pt-2">
-        <Button type="button" onClick={onClose} className="gap-2">
-          <CheckCircle2 className="h-4 w-4" />
-          {t("common.close")}
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-function RunFailed({
-  run,
-  onClose,
-}: {
-  run: GenerationRunRead | undefined;
-  onClose: () => void;
-}) {
-  const { t } = useTranslation();
-  return (
-    <div className="space-y-4 py-4">
-      <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 flex items-start gap-2">
-        <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-        <div>
-          <p className="font-bold">
-            {t("teacher_quiz_manage.generate_modal.failure_title")}
-          </p>
-          <p className="mt-1">
-            {run?.error_message ??
-              t("teacher_quiz_manage.generate_modal.failure_body")}
-          </p>
-        </div>
-      </div>
-      <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={onClose}>
-          {t("common.close")}
-        </Button>
-      </div>
-    </div>
-  );
-}
 
 function SettingsTab({
   draft,

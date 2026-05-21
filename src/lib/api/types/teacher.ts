@@ -87,7 +87,7 @@ export interface OutlineSectionRead {
   chunk_count: number;
   char_count: number;
   page_range: [number, number];
-  content_role: "body" | "summary" | "review";
+  content_role: "body" | "summary" | "review" | "front_matter";
   preview: string;
 }
 

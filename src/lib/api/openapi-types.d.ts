@@ -445,6 +445,134 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/organizations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Organizations Endpoint */
+        get: operations["list_organizations_endpoint_api_v1_admin_organizations_get"];
+        put?: never;
+        /** Create Organization Endpoint */
+        post: operations["create_organization_endpoint_api_v1_admin_organizations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/organizations/{org_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Organization Endpoint */
+        get: operations["get_organization_endpoint_api_v1_admin_organizations__org_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Organization Endpoint */
+        delete: operations["delete_organization_endpoint_api_v1_admin_organizations__org_id__delete"];
+        options?: never;
+        head?: never;
+        /** Patch Organization Endpoint */
+        patch: operations["patch_organization_endpoint_api_v1_admin_organizations__org_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/admin/organizations/{org_id}/domains": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Domains Endpoint */
+        get: operations["list_domains_endpoint_api_v1_admin_organizations__org_id__domains_get"];
+        put?: never;
+        /** Create Domain Endpoint */
+        post: operations["create_domain_endpoint_api_v1_admin_organizations__org_id__domains_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/organization-domains/{domain_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Domain Endpoint */
+        delete: operations["delete_domain_endpoint_api_v1_admin_organization_domains__domain_id__delete"];
+        options?: never;
+        head?: never;
+        /** Patch Domain Endpoint */
+        patch: operations["patch_domain_endpoint_api_v1_admin_organization_domains__domain_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/admin/organizations/{org_id}/units": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Units Endpoint */
+        get: operations["list_units_endpoint_api_v1_admin_organizations__org_id__units_get"];
+        put?: never;
+        /** Create Unit Endpoint */
+        post: operations["create_unit_endpoint_api_v1_admin_organizations__org_id__units_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/org-units/{unit_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Unit Endpoint */
+        get: operations["get_unit_endpoint_api_v1_admin_org_units__unit_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Unit Endpoint */
+        delete: operations["delete_unit_endpoint_api_v1_admin_org_units__unit_id__delete"];
+        options?: never;
+        head?: never;
+        /** Patch Unit Endpoint */
+        patch: operations["patch_unit_endpoint_api_v1_admin_org_units__unit_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/admin/organization-memberships/{membership_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Membership Endpoint */
+        delete: operations["delete_membership_endpoint_api_v1_admin_organization_memberships__membership_id__delete"];
+        options?: never;
+        head?: never;
+        /** Patch Membership Endpoint */
+        patch: operations["patch_membership_endpoint_api_v1_admin_organization_memberships__membership_id__patch"];
+        trace?: never;
+    };
     "/api/v1/courses": {
         parameters: {
             query?: never;
@@ -1171,11 +1299,6 @@ export interface paths {
         /**
          * Get Course Roster
          * @description Enrolled students for HOD/Manager oversight (read-only).
-         *
-         *     The enrollments aggregate is owned by Phase 7; this endpoint reads
-         *     ``course_enrollments`` via raw SQL until the canonical
-         *     :class:`EnrollmentRead` schema lands. Plan §4461 documents the
-         *     deferred-ORM strategy.
          */
         get: operations["get_course_roster_api_v1_dept_courses__course_id__roster_get"];
         put?: never;
@@ -1306,8 +1429,6 @@ export interface paths {
          *     The baseline schema has no ``processing_jobs.course_id`` FK; the
          *     join walks ``ai_model_calls.processing_job_id`` and
          *     ``generation_runs.course_id`` to assemble the per-course view.
-         *     Replace with the canonical ORM helper when Phase 6's
-         *     ``ProcessingJob`` model lands.
          */
         get: operations["list_course_processing_jobs_api_v1_admin_courses__course_id__processing_get"];
         put?: never;
@@ -1524,6 +1645,26 @@ export interface paths {
         get: operations["list_materials_api_v1_teacher_lessons__lesson_id__materials_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teacher/lessons/{lesson_id}/materials/link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Link Existing Material
+         * @description Link an already-uploaded storage object as a material (no upload, no AI processing).
+         */
+        post: operations["link_existing_material_api_v1_teacher_lessons__lesson_id__materials_link_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5585,6 +5726,28 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** LessonOutline */
+        LessonOutline: {
+            /**
+             * Lesson Id
+             * Format: uuid
+             */
+            lesson_id: string;
+            /** Lesson Title */
+            lesson_title: string;
+            /** Sections */
+            sections: components["schemas"]["OutlineSection"][];
+            /**
+             * Suggested Question Count
+             * @default 0
+             */
+            suggested_question_count: number;
+            /**
+             * Min For Full Coverage
+             * @default 0
+             */
+            min_for_full_coverage: number;
+        };
         /** LessonOverviewItem */
         LessonOverviewItem: {
             /**
@@ -5946,6 +6109,35 @@ export interface components {
             created_at: string;
         };
         /**
+         * MaterialLinkExisting
+         * @description Body for ``POST /teacher/lessons/{id}/materials/link``.
+         *
+         *     Links an already-uploaded storage object into the AI Material Hub
+         *     without triggering upload or processing. Used when a lesson resource
+         *     is uploaded and should also appear as a material.
+         */
+        MaterialLinkExisting: {
+            /**
+             * Storage Object Id
+             * Format: uuid
+             */
+            storage_object_id: string;
+            /** Title */
+            title: string;
+            /** Material Type */
+            material_type?: ("video" | "pdf" | "code" | "audio" | "image" | "docx" | "pptx" | "xlsx" | "text") | null;
+            /**
+             * Ai Processing Enabled
+             * @default false
+             */
+            ai_processing_enabled: boolean;
+            /**
+             * Visible To Students
+             * @default false
+             */
+            visible_to_students: boolean;
+        };
+        /**
          * MaterialPublic
          * @description Student-facing material summary.
          *
@@ -6170,6 +6362,23 @@ export interface components {
             /** Employee Code */
             employee_code?: string | null;
         };
+        /**
+         * MembershipPatch
+         * @description Partial update for a membership row.
+         *
+         *     All fields are optional. ``status`` transitions to ``left`` should
+         *     additionally stamp ``left_at``; the service layer applies that.
+         */
+        MembershipPatch: {
+            /** Org Unit Id */
+            org_unit_id?: string | null;
+            /** Status */
+            status?: ("active" | "invited" | "inactive" | "suspended" | "left") | null;
+            /** Student Code */
+            student_code?: string | null;
+            /** Employee Code */
+            employee_code?: string | null;
+        };
         /** MembershipRead */
         MembershipRead: {
             /**
@@ -6351,7 +6560,7 @@ export interface components {
             item_type: "lesson" | "quiz" | "interview";
             /** Position */
             position: number;
-            target?: components["schemas"]["LessonPublic"] | null;
+            target?: components["schemas"]["ModuleItemTarget"] | null;
             /** Lesson Id */
             lesson_id?: string | null;
             /** Quiz Id */
@@ -6431,6 +6640,31 @@ export interface components {
             module_id: string;
             /** New Order */
             new_order: string[];
+        };
+        /**
+         * ModuleItemTarget
+         * @description Polymorphic target for authoring items — wider than LessonPublic.
+         */
+        ModuleItemTarget: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+            /** Slug */
+            slug?: string | null;
+            /** Lesson Type */
+            lesson_type?: string | null;
+            /** Status */
+            status?: string | null;
+            /** Summary */
+            summary?: string | null;
+            /** Estimated Minutes */
+            estimated_minutes?: number | null;
+            /** Difficulty */
+            difficulty?: string | null;
         };
         /**
          * ModuleItemUpdate
@@ -6639,6 +6873,225 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
+        };
+        /**
+         * OrgUnitCreate
+         * @description Create payload for ``POST /admin/organizations/{org_id}/units``.
+         */
+        OrgUnitCreate: {
+            /** Parent Unit Id */
+            parent_unit_id?: string | null;
+            /**
+             * Unit Type
+             * @enum {string}
+             */
+            unit_type: "faculty" | "department" | "office" | "program" | "campus" | "other";
+            /** Name */
+            name: string;
+            /** Code */
+            code?: string | null;
+        };
+        /** OrgUnitPatch */
+        OrgUnitPatch: {
+            /** Parent Unit Id */
+            parent_unit_id?: string | null;
+            /** Unit Type */
+            unit_type?: ("faculty" | "department" | "office" | "program" | "campus" | "other") | null;
+            /** Name */
+            name?: string | null;
+            /** Code */
+            code?: string | null;
+        };
+        /**
+         * OrgUnitRead
+         * @description Standalone org-unit row (different from the cross-feature
+         *     :class:`abridgeai.features.access_control.api._dto.OrgUnitDTO` which
+         *     is read-only and excludes audit columns).
+         */
+        OrgUnitRead: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Organization Id
+             * Format: uuid
+             */
+            organization_id: string;
+            /** Parent Unit Id */
+            parent_unit_id?: string | null;
+            /** Unit Type */
+            unit_type: string;
+            /** Name */
+            name: string;
+            /** Code */
+            code?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * OrganizationCreate
+         * @description Create payload for ``POST /admin/organizations``.
+         *
+         *     ``slug`` must be unique among non-deleted rows (partial unique index
+         *     from migration 0002). ``status`` defaults to ``active`` server-side.
+         */
+        OrganizationCreate: {
+            /** Slug */
+            slug: string;
+            /** Name */
+            name: string;
+            /**
+             * Status
+             * @default active
+             * @enum {string}
+             */
+            status: "active" | "inactive" | "archived";
+        };
+        /** OrganizationDomainCreate */
+        OrganizationDomainCreate: {
+            /** Domain */
+            domain: string;
+            /**
+             * Auto Provision
+             * @default false
+             */
+            auto_provision: boolean;
+        };
+        /** OrganizationDomainPatch */
+        OrganizationDomainPatch: {
+            /** Domain */
+            domain?: string | null;
+            /** Auto Provision */
+            auto_provision?: boolean | null;
+        };
+        /** OrganizationDomainRead */
+        OrganizationDomainRead: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Organization Id
+             * Format: uuid
+             */
+            organization_id: string;
+            /** Domain */
+            domain: string;
+            /** Auto Provision */
+            auto_provision: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * OrganizationPatch
+         * @description Partial update for ``PATCH /admin/organizations/{id}``.
+         */
+        OrganizationPatch: {
+            /** Slug */
+            slug?: string | null;
+            /** Name */
+            name?: string | null;
+            /** Status */
+            status?: ("active" | "inactive" | "archived") | null;
+        };
+        /** OrganizationRead */
+        OrganizationRead: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Slug */
+            slug: string;
+            /** Name */
+            name: string;
+            /** Status */
+            status: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * OutlineSection
+         * @description One section row in ``GET /lessons/{id}/outline``.
+         *
+         *     Mirrors the SPA's ``OutlineSectionRead`` interface verbatim. Today
+         *     this surface returns a single synthetic ``body`` section per lesson
+         *     until the legacy ``build_lesson_outline`` semantic-section pipeline
+         *     is ported. The contract is deliberately stable so the SPA can render
+         *     today and the section list can grow without an API break.
+         */
+        OutlineSection: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+            /**
+             * Depth
+             * @default 0
+             */
+            depth: number;
+            /**
+             * Chunk Count
+             * @default 0
+             */
+            chunk_count: number;
+            /**
+             * Char Count
+             * @default 0
+             */
+            char_count: number;
+            /**
+             * Page Range
+             * @default [
+             *       0,
+             *       0
+             *     ]
+             */
+            page_range: [
+                number,
+                number
+            ];
+            /**
+             * Content Role
+             * @default body
+             * @enum {string}
+             */
+            content_role: "body" | "summary" | "review";
+            /**
+             * Preview
+             * @default
+             */
+            preview: string;
         };
         /** OverviewOut */
         OverviewOut: {
@@ -7587,7 +8040,7 @@ export interface components {
         };
         /**
          * RosterEntry
-         * @description Single row in the ``GET /dept/courses/{id}/roster`` response.
+         * @description Single row in the roster response (shared by authoring + assignment routers).
          *
          *     Phase 7 will replace this with the canonical ``EnrollmentRead``
          *     schema once the enrollments aggregate lands; the raw-SQL read here
@@ -7605,7 +8058,7 @@ export interface components {
              */
             student_id: string;
             /** Display Name */
-            display_name: string | null;
+            display_name?: string | null;
             /** Primary Email */
             primary_email: string;
             /** Status */
@@ -7630,6 +8083,11 @@ export interface components {
             /** Students */
             students: components["schemas"]["StudentProgressRow"][];
         };
+        /** SlugAvailability */
+        SlugAvailability: {
+            /** Available */
+            available: boolean;
+        };
         /** StageBreakdown */
         StageBreakdown: {
             /** Stage Name */
@@ -7638,6 +8096,23 @@ export interface components {
             tokens: number;
             /** Usd */
             usd: number;
+        };
+        /**
+         * StreamUrlResponse
+         * @description Response shape for ``GET /teacher/lesson-resources/{id}/download-url``.
+         *
+         *     Field name ``stream_url`` (not ``url``) matches the SPA's
+         *     ``StreamUrlResponse`` TypeScript interface so the existing
+         *     ``fetchTeacherResourceDownloadUrl`` helper works unchanged.
+         */
+        StreamUrlResponse: {
+            /** Stream Url */
+            stream_url: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
         };
         /** StudentCareerEnrollmentAuthoring */
         StudentCareerEnrollmentAuthoring: {
@@ -8111,149 +8586,12 @@ export interface components {
             /** Etag */
             etag: string;
         };
-        /** _LessonOutline */
-        _LessonOutline: {
-            /**
-             * Lesson Id
-             * Format: uuid
-             */
-            lesson_id: string;
-            /** Lesson Title */
-            lesson_title: string;
-            /** Sections */
-            sections: components["schemas"]["_OutlineSection"][];
-            /**
-             * Suggested Question Count
-             * @default 0
-             */
-            suggested_question_count: number;
-            /**
-             * Min For Full Coverage
-             * @default 0
-             */
-            min_for_full_coverage: number;
-        };
         /** _MultipartPartOut */
         _MultipartPartOut: {
             /** Part Number */
             part_number: number;
             /** Url */
             url: string;
-        };
-        /**
-         * _OutlineSection
-         * @description One section row in ``GET /lessons/{id}/outline``.
-         *
-         *     Mirrors the SPA's ``OutlineSectionRead`` interface verbatim. Today
-         *     this surface returns a single synthetic ``body`` section per lesson
-         *     until the legacy ``build_lesson_outline`` semantic-section pipeline
-         *     is ported (see ``quizzes/ai/pipelines/coverage.py:104``). The
-         *     contract is deliberately stable so the SPA can render today and
-         *     the section list can grow without an API break.
-         */
-        _OutlineSection: {
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Title */
-            title: string;
-            /**
-             * Depth
-             * @default 0
-             */
-            depth: number;
-            /**
-             * Chunk Count
-             * @default 0
-             */
-            chunk_count: number;
-            /**
-             * Char Count
-             * @default 0
-             */
-            char_count: number;
-            /**
-             * Page Range
-             * @default [
-             *       0,
-             *       0
-             *     ]
-             */
-            page_range: [
-                number,
-                number
-            ];
-            /**
-             * Content Role
-             * @default body
-             * @enum {string}
-             */
-            content_role: "body" | "summary" | "review";
-            /**
-             * Preview
-             * @default
-             */
-            preview: string;
-        };
-        /**
-         * _RosterEntry
-         * @description Roster row for ``GET /teacher/courses/{course_id}/roster``.
-         *
-         *     Same shape as the HOD-scope ``RosterEntry`` in ``assignment.py`` —
-         *     duplicated here intentionally to keep the authoring router free of
-         *     cross-router imports. Both should evolve together; if Phase 7 lands
-         *     a canonical ``EnrollmentRead`` shared schema, both can replace this.
-         */
-        _RosterEntry: {
-            /**
-             * Enrollment Id
-             * Format: uuid
-             */
-            enrollment_id: string;
-            /**
-             * Student Id
-             * Format: uuid
-             */
-            student_id: string;
-            /** Display Name */
-            display_name?: string | null;
-            /** Primary Email */
-            primary_email: string;
-            /** Status */
-            status: string;
-            /**
-             * Enrolled At
-             * Format: date-time
-             */
-            enrolled_at: string;
-            /** Completed At */
-            completed_at?: string | null;
-            /** Dropped At */
-            dropped_at?: string | null;
-        };
-        /** _SlugAvailability */
-        _SlugAvailability: {
-            /** Available */
-            available: boolean;
-        };
-        /**
-         * _StreamUrlResponse
-         * @description Response shape for ``GET /teacher/lesson-resources/{id}/download-url``.
-         *
-         *     Field name ``stream_url`` (not ``url``) matches the SPA's
-         *     ``StreamUrlResponse`` TypeScript interface so the existing
-         *     ``fetchTeacherResourceDownloadUrl`` helper works unchanged.
-         */
-        _StreamUrlResponse: {
-            /** Stream Url */
-            stream_url: string;
-            /**
-             * Expires At
-             * Format: date-time
-             */
-            expires_at: string;
         };
         /**
          * _UploadUrlRequest
@@ -8391,6 +8729,7 @@ export type SchemaInvitationCodeCreate = components['schemas']['InvitationCodeCr
 export type SchemaInvitationCodePatch = components['schemas']['InvitationCodePatch'];
 export type SchemaLessonAuthoring = components['schemas']['LessonAuthoring'];
 export type SchemaLessonCreate = components['schemas']['LessonCreate'];
+export type SchemaLessonOutline = components['schemas']['LessonOutline'];
 export type SchemaLessonOverviewItem = components['schemas']['LessonOverviewItem'];
 export type SchemaLessonProcessingSummary = components['schemas']['LessonProcessingSummary'];
 export type SchemaLessonProgressPublic = components['schemas']['LessonProgressPublic'];
@@ -8403,6 +8742,7 @@ export type SchemaLessonUpdate = components['schemas']['LessonUpdate'];
 export type SchemaMaterialAuthoring = components['schemas']['MaterialAuthoring'];
 export type SchemaMaterialEngagementCreate = components['schemas']['MaterialEngagementCreate'];
 export type SchemaMaterialEngagementPublic = components['schemas']['MaterialEngagementPublic'];
+export type SchemaMaterialLinkExisting = components['schemas']['MaterialLinkExisting'];
 export type SchemaMaterialPublic = components['schemas']['MaterialPublic'];
 export type SchemaMaterialStreamUrl = components['schemas']['MaterialStreamUrl'];
 export type SchemaMaterialUpdate = components['schemas']['MaterialUpdate'];
@@ -8411,6 +8751,7 @@ export type SchemaMaterialUploadInit = components['schemas']['MaterialUploadInit
 export type SchemaMaterialUploadInitOut = components['schemas']['MaterialUploadInitOut'];
 export type SchemaMaterialVersionAuthoring = components['schemas']['MaterialVersionAuthoring'];
 export type SchemaMembershipCreate = components['schemas']['MembershipCreate'];
+export type SchemaMembershipPatch = components['schemas']['MembershipPatch'];
 export type SchemaMembershipRead = components['schemas']['MembershipRead'];
 export type SchemaMfaChallengeResponse = components['schemas']['MfaChallengeResponse'];
 export type SchemaMfaEnrollResponse = components['schemas']['MfaEnrollResponse'];
@@ -8422,6 +8763,7 @@ export type SchemaModuleCreate = components['schemas']['ModuleCreate'];
 export type SchemaModuleItemAuthoring = components['schemas']['ModuleItemAuthoring'];
 export type SchemaModuleItemPublic = components['schemas']['ModuleItemPublic'];
 export type SchemaModuleItemReorder = components['schemas']['ModuleItemReorder'];
+export type SchemaModuleItemTarget = components['schemas']['ModuleItemTarget'];
 export type SchemaModuleItemUpdate = components['schemas']['ModuleItemUpdate'];
 export type SchemaModulePrerequisiteSet = components['schemas']['ModulePrerequisiteSet'];
 export type SchemaModulePublic = components['schemas']['ModulePublic'];
@@ -8434,6 +8776,16 @@ export type SchemaMyCourseProgressSummary = components['schemas']['MyCourseProgr
 export type SchemaNotificationPreferenceRead = components['schemas']['NotificationPreferenceRead'];
 export type SchemaNotificationPreferenceUpdate = components['schemas']['NotificationPreferenceUpdate'];
 export type SchemaNotificationRead = components['schemas']['NotificationRead'];
+export type SchemaOrgUnitCreate = components['schemas']['OrgUnitCreate'];
+export type SchemaOrgUnitPatch = components['schemas']['OrgUnitPatch'];
+export type SchemaOrgUnitRead = components['schemas']['OrgUnitRead'];
+export type SchemaOrganizationCreate = components['schemas']['OrganizationCreate'];
+export type SchemaOrganizationDomainCreate = components['schemas']['OrganizationDomainCreate'];
+export type SchemaOrganizationDomainPatch = components['schemas']['OrganizationDomainPatch'];
+export type SchemaOrganizationDomainRead = components['schemas']['OrganizationDomainRead'];
+export type SchemaOrganizationPatch = components['schemas']['OrganizationPatch'];
+export type SchemaOrganizationRead = components['schemas']['OrganizationRead'];
+export type SchemaOutlineSection = components['schemas']['OutlineSection'];
 export type SchemaOverviewOut = components['schemas']['OverviewOut'];
 export type SchemaPermissionRead = components['schemas']['PermissionRead'];
 export type SchemaPipelineSpendOut = components['schemas']['PipelineSpendOut'];
@@ -8468,7 +8820,9 @@ export type SchemaRoleRead = components['schemas']['RoleRead'];
 export type SchemaRoleWithPermissionsRead = components['schemas']['RoleWithPermissionsRead'];
 export type SchemaRosterEntry = components['schemas']['RosterEntry'];
 export type SchemaRosterProgressRead = components['schemas']['RosterProgressRead'];
+export type SchemaSlugAvailability = components['schemas']['SlugAvailability'];
 export type SchemaStageBreakdown = components['schemas']['StageBreakdown'];
+export type SchemaStreamUrlResponse = components['schemas']['StreamUrlResponse'];
 export type SchemaStudentCareerEnrollmentAuthoring = components['schemas']['StudentCareerEnrollmentAuthoring'];
 export type SchemaStudentLessonSummaryRead = components['schemas']['StudentLessonSummaryRead'];
 export type SchemaStudentPathProgressAuthoring = components['schemas']['StudentPathProgressAuthoring'];
@@ -8496,12 +8850,7 @@ export type SchemaUserRead = components['schemas']['UserRead'];
 export type SchemaUserSpendOut = components['schemas']['UserSpendOut'];
 export type SchemaValidationError = components['schemas']['ValidationError'];
 export type SchemaCompletedPartIn = components['schemas']['_CompletedPartIn'];
-export type SchemaLessonOutline = components['schemas']['_LessonOutline'];
 export type SchemaMultipartPartOut = components['schemas']['_MultipartPartOut'];
-export type SchemaOutlineSection = components['schemas']['_OutlineSection'];
-export type SchemaRosterEntry_2 = components['schemas']['_RosterEntry'];
-export type SchemaSlugAvailability = components['schemas']['_SlugAvailability'];
-export type SchemaStreamUrlResponse = components['schemas']['_StreamUrlResponse'];
 export type SchemaUploadUrlRequest = components['schemas']['_UploadUrlRequest'];
 export type SchemaUploadUrlResponse = components['schemas']['_UploadUrlResponse'];
 export type SchemaUploadUrlStorageObject = components['schemas']['_UploadUrlStorageObject'];
@@ -9187,6 +9536,526 @@ export interface operations {
             };
         };
     };
+    list_organizations_endpoint_api_v1_admin_organizations_get: {
+        parameters: {
+            query?: {
+                include_deleted?: boolean;
+                org_status?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganizationRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_organization_endpoint_api_v1_admin_organizations_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrganizationCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganizationRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_organization_endpoint_api_v1_admin_organizations__org_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                org_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganizationRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_organization_endpoint_api_v1_admin_organizations__org_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                org_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_organization_endpoint_api_v1_admin_organizations__org_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                org_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrganizationPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganizationRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_domains_endpoint_api_v1_admin_organizations__org_id__domains_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                org_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganizationDomainRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_domain_endpoint_api_v1_admin_organizations__org_id__domains_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                org_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrganizationDomainCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganizationDomainRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_domain_endpoint_api_v1_admin_organization_domains__domain_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                domain_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_domain_endpoint_api_v1_admin_organization_domains__domain_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                domain_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrganizationDomainPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganizationDomainRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_units_endpoint_api_v1_admin_organizations__org_id__units_get: {
+        parameters: {
+            query?: {
+                parent_unit_id?: string | null;
+                only_roots?: boolean;
+            };
+            header?: never;
+            path: {
+                org_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrgUnitRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_unit_endpoint_api_v1_admin_organizations__org_id__units_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                org_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrgUnitCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrgUnitRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_unit_endpoint_api_v1_admin_org_units__unit_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                unit_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrgUnitRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_unit_endpoint_api_v1_admin_org_units__unit_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                unit_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_unit_endpoint_api_v1_admin_org_units__unit_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                unit_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrgUnitPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrgUnitRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_membership_endpoint_api_v1_admin_organization_memberships__membership_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                membership_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_membership_endpoint_api_v1_admin_organization_memberships__membership_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                membership_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MembershipPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MembershipRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_courses_api_v1_courses_get: {
         parameters: {
             query?: {
@@ -9704,7 +10573,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["_SlugAvailability"];
+                    "application/json": components["schemas"]["SlugAvailability"];
                 };
             };
             /** @description Validation Error */
@@ -9834,7 +10703,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["_RosterEntry"][];
+                    "application/json": components["schemas"]["RosterEntry"][];
                 };
             };
             /** @description Validation Error */
@@ -10232,7 +11101,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["_LessonOutline"];
+                    "application/json": components["schemas"]["LessonOutline"];
                 };
             };
             /** @description Validation Error */
@@ -10358,7 +11227,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["_StreamUrlResponse"];
+                    "application/json": components["schemas"]["StreamUrlResponse"];
                 };
             };
             /** @description Validation Error */
@@ -10997,6 +11866,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MaterialAuthoring"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    link_existing_material_api_v1_teacher_lessons__lesson_id__materials_link_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lesson_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MaterialLinkExisting"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MaterialAuthoring"];
                 };
             };
             /** @description Validation Error */

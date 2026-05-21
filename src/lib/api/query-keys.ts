@@ -98,6 +98,40 @@ export const queryKeys = {
       recent: (limit: number) =>
         ["admin", "ai-costs", "recent", limit] as const,
     },
+    organizations: (
+      includeDeleted?: boolean,
+      orgStatus?: string,
+      limit?: number,
+      offset?: number,
+    ) =>
+      [
+        "admin",
+        "organizations",
+        includeDeleted ?? false,
+        orgStatus,
+        limit,
+        offset,
+      ] as const,
+    organizationDetail: (id: string) =>
+      ["admin", "organizations", "detail", id] as const,
+    organizationDomains: (orgId: string) =>
+      ["admin", "organizations", orgId, "domains"] as const,
+    organizationUnits: (
+      orgId: string,
+      parentUnitId?: string | null,
+      onlyRoots?: boolean,
+    ) =>
+      [
+        "admin",
+        "organizations",
+        orgId,
+        "units",
+        parentUnitId,
+        onlyRoots ?? false,
+      ] as const,
+    organizationMemberships: (orgId: string) =>
+      ["admin", "organizations", orgId, "memberships"] as const,
+    orgUnitDetail: (id: string) => ["admin", "org-units", "detail", id] as const,
   },
 
   dept: {
