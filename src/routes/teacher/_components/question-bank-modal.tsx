@@ -24,7 +24,7 @@
  * bounded.
  */
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Filter,
   Loader2,
@@ -36,6 +36,10 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  useCourseModules,
+  useModuleLessons,
+} from "@/lib/api/hooks/courses";
 import {
   useImportQuestionsFromBank,
   useQuestionBank,
@@ -91,6 +95,7 @@ export function QuestionBankModal({
   onClose,
 }: Props) {
   const [moduleId, setModuleId] = useState<string>(defaultModuleId ?? "");
+  const [lessonId, setLessonId] = useState<string>("");
   const [questionType, setQuestionType] = useState<string>("");
   const [bloomLevel, setBloomLevel] = useState<string>("");
   const [difficulty, setDifficulty] = useState<string>("");
@@ -99,8 +104,26 @@ export function QuestionBankModal({
   const [search, setSearch] = useState<string>("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
+  // Debounce live search — 300 ms after the user stops typing.
+  useEffect(() => {
+    const handle = window.setTimeout(() => {
+      setSearch(searchInput.trim());
+    }, 300);
+    return () => window.clearTimeout(handle);
+  }, [searchInput]);
+
+  const modulesQuery = useCourseModules(courseId);
+  const lessonsQuery = useModuleLessons(moduleId || undefined);
+
+  // Reset lesson selection when module changes (the lesson list is
+  // module-scoped, so a lesson from module A is meaningless under B).
+  useEffect(() => {
+    setLessonId("");
+  }, [moduleId]);
+
   const { data: rows, isLoading, error } = useQuestionBank(courseId, {
     moduleId: moduleId || undefined,
+    lessonId: lessonId || undefined,
     questionType: questionType || undefined,
     bloomLevel: bloomLevel || undefined,
     difficulty: difficulty || undefined,
@@ -111,6 +134,18 @@ export function QuestionBankModal({
 
   const importer = useImportQuestionsFromBank(quizId);
 
+  const activeFilterCount = useMemo(() => {
+    return [
+      moduleId,
+      lessonId,
+      questionType,
+      bloomLevel,
+      difficulty,
+      reviewStatus !== "approved" ? "x" : "",
+      search,
+    ].filter(Boolean).length;
+  }, [moduleId, lessonId, questionType, bloomLevel, difficulty, reviewStatus, search]);
+
   function toggle(id: string) {
     setSelected((current) => {
       const next = new Set(current);
@@ -118,6 +153,30 @@ export function QuestionBankModal({
       else next.add(id);
       return next;
     });
+  }
+
+  function selectAllVisible() {
+    if (!rows) return;
+    setSelected((current) => {
+      const next = new Set(current);
+      for (const entry of rows) next.add(entry.question.id);
+      return next;
+    });
+  }
+
+  function clearSelection() {
+    setSelected(new Set());
+  }
+
+  function resetFilters() {
+    setModuleId(defaultModuleId ?? "");
+    setLessonId("");
+    setQuestionType("");
+    setBloomLevel("");
+    setDifficulty("");
+    setReviewStatus("approved");
+    setSearchInput("");
+    setSearch("");
   }
 
   async function handleImport() {
@@ -133,6 +192,11 @@ export function QuestionBankModal({
       toast.error((err as Error).message ?? "Import failed");
     }
   }
+
+  const modules = modulesQuery.data ?? [];
+  const lessons = lessonsQuery.data ?? [];
+  const allVisibleSelected = !!rows && rows.length > 0
+    && rows.every((entry) => selected.has(entry.question.id));
 
   return (
     <div
@@ -171,15 +235,89 @@ export function QuestionBankModal({
           </Button>
         </div>
 
+        {/* Search bar — full-width, debounced live search */}
+        <div className="relative shrink-0">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-m3-on-surface-variant pointer-events-none" />
+          <Input
+            type="text"
+            placeholder="Search prompt or quiz title…"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            className="h-10 bg-m3-surface pl-9 pr-9"
+            autoFocus
+          />
+          {searchInput ? (
+            <button
+              type="button"
+              onClick={() => setSearchInput("")}
+              className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full hover:bg-m3-surface-container-low flex items-center justify-center"
+              title="Clear search"
+            >
+              <X className="h-3.5 w-3.5 text-m3-on-surface-variant" />
+            </button>
+          ) : null}
+        </div>
+
         {/* Filters */}
         <div className="rounded-xl border border-m3-outline-variant/20 bg-m3-surface-container-lowest p-3 space-y-2 shrink-0">
-          <div className="flex items-center gap-1.5">
-            <Filter className="h-3 w-3 text-m3-secondary" />
-            <p className="text-[10px] font-bold uppercase tracking-widest text-m3-secondary">
-              Filters
-            </p>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5">
+              <Filter className="h-3 w-3 text-m3-secondary" />
+              <p className="text-[10px] font-bold uppercase tracking-widest text-m3-secondary">
+                Filters
+              </p>
+              {activeFilterCount > 0 ? (
+                <Badge className="border-0 bg-m3-secondary-fixed/40 text-m3-on-secondary-fixed text-[10px] h-4 px-1.5">
+                  {activeFilterCount}
+                </Badge>
+              ) : null}
+            </div>
+            {activeFilterCount > 0 ? (
+              <button
+                type="button"
+                onClick={resetFilters}
+                className="text-[10px] font-medium text-m3-secondary hover:underline"
+              >
+                Clear all
+              </button>
+            ) : null}
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            <select
+              value={moduleId}
+              onChange={(e) => setModuleId(e.target.value)}
+              className="h-8 rounded-md border border-m3-outline-variant/30 bg-m3-surface px-2 text-xs text-m3-on-surface focus:border-m3-secondary focus:outline-none"
+              disabled={modulesQuery.isLoading}
+            >
+              <option value="">
+                {modulesQuery.isLoading ? "Loading modules…" : "All modules"}
+              </option>
+              {modules.map((m) => (
+                <option key={m.id} value={m.id}>
+                  Module {m.position + 1} · {m.title}
+                </option>
+              ))}
+            </select>
+            <select
+              value={lessonId}
+              onChange={(e) => setLessonId(e.target.value)}
+              className="h-8 rounded-md border border-m3-outline-variant/30 bg-m3-surface px-2 text-xs text-m3-on-surface focus:border-m3-secondary focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={!moduleId || lessonsQuery.isLoading}
+              title={moduleId ? undefined : "Pick a module first"}
+            >
+              <option value="">
+                {!moduleId
+                  ? "All lessons (pick module)"
+                  : lessonsQuery.isLoading
+                    ? "Loading lessons…"
+                    : "All lessons in module"}
+              </option>
+              {lessons.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.title}
+                </option>
+              ))}
+            </select>
             <select
               value={questionType}
               onChange={(e) => setQuestionType(e.target.value)}
@@ -224,29 +362,6 @@ export function QuestionBankModal({
                 </option>
               ))}
             </select>
-            <Input
-              type="text"
-              placeholder="Filter by module ID (optional)"
-              value={moduleId}
-              onChange={(e) => setModuleId(e.target.value)}
-              className="h-8 bg-m3-surface text-xs"
-            />
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                setSearch(searchInput.trim());
-              }}
-              className="relative flex items-center"
-            >
-              <Search className="absolute left-2 h-3.5 w-3.5 text-m3-on-surface-variant pointer-events-none" />
-              <Input
-                type="text"
-                placeholder="Search prompt or quiz title…"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                className="h-8 bg-m3-surface pl-7 text-xs"
-              />
-            </form>
           </div>
         </div>
 
@@ -261,9 +376,17 @@ export function QuestionBankModal({
               Failed to load bank: {(error as Error).message}
             </div>
           ) : !rows || rows.length === 0 ? (
-            <div className="p-8 text-center text-sm text-m3-on-surface-variant">
-              No bank questions match these filters. Try widening the
-              review status or clearing the search.
+            <div className="p-8 text-center text-sm text-m3-on-surface-variant space-y-2">
+              <p>No bank questions match these filters.</p>
+              {activeFilterCount > 0 ? (
+                <button
+                  type="button"
+                  onClick={resetFilters}
+                  className="text-xs font-medium text-m3-secondary hover:underline"
+                >
+                  Clear filters
+                </button>
+              ) : null}
             </div>
           ) : (
             <ul className="divide-y divide-m3-outline-variant/20">
@@ -281,10 +404,21 @@ export function QuestionBankModal({
 
         {/* Footer */}
         <div className="flex items-center justify-between gap-2 shrink-0">
-          <span className="text-xs text-m3-on-surface-variant">
-            {selected.size} selected
-            {rows ? ` · ${rows.length} shown` : ""}
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-m3-on-surface-variant">
+              <strong className="text-m3-on-surface">{selected.size}</strong> selected
+              {rows ? ` · ${rows.length} shown` : ""}
+            </span>
+            {rows && rows.length > 0 ? (
+              <button
+                type="button"
+                onClick={allVisibleSelected ? clearSelection : selectAllVisible}
+                className="text-xs font-medium text-m3-secondary hover:underline"
+              >
+                {allVisibleSelected ? "Clear selection" : "Select all visible"}
+              </button>
+            ) : null}
+          </div>
           <div className="flex items-center gap-2">
             <Button
               type="button"
