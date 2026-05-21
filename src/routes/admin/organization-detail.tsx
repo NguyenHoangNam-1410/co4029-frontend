@@ -18,7 +18,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  useAdminUsersForSearch,
+  useAdminUsersSearch,
+  type AdminUserSearchRow,
   useCreateDomain,
   useCreateMembership,
   useCreateOrgUnit,
@@ -33,7 +34,6 @@ import {
   usePatchOrganization,
 } from "@/lib/api/hooks/admin-organizations";
 import { useMyPermissions } from "@/lib/api/hooks/auth";
-import type { User } from "@/lib/api/types";
 import type {
   MembershipRead,
   MembershipStatus,
@@ -623,42 +623,40 @@ function MembershipRow({
   );
 }
 
-// Combobox typeahead — pulls active users from /admin/users and filters
-// client-side on email. The membership-add button enables the query so
-// we don't pay the network round-trip until the user opens the form.
+// Combobox typeahead — server-side search via /admin/users?q=. Fires
+// the request 200ms after the user stops typing. The membership-add
+// button enables the query so we don't pay the round-trip until the
+// form opens.
 function UserSearchCombobox({
   value,
   onSelect,
   enabled,
 }: {
-  value: User | null;
-  onSelect: (user: User | null) => void;
+  value: AdminUserSearchRow | null;
+  onSelect: (user: AdminUserSearchRow | null) => void;
   enabled: boolean;
 }) {
   const { t } = useTranslation();
-  const { data: pool, isLoading } = useAdminUsersForSearch(enabled);
   const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [open, setOpen] = useState(false);
 
-  const matches = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    const all = pool ?? [];
-    if (!q) return all.slice(0, 8);
-    return all
-      .filter((u) => {
-        const email = u.primary_email.toLowerCase();
-        const name = u.profile?.display_name?.toLowerCase() ?? "";
-        return email.includes(q) || name.includes(q);
-      })
-      .slice(0, 8);
-  }, [pool, query]);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(query), 200);
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  const { data: matches, isLoading } = useAdminUsersSearch(
+    debouncedQuery,
+    enabled,
+  );
 
   if (value) {
     return (
       <div className="rounded-md border border-m3-outline-variant bg-white px-3 py-2 flex items-center gap-3">
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-text-strong truncate">
-            {value.profile?.display_name?.trim() || value.primary_email}
+            {value.display_name?.trim() || value.primary_email}
           </p>
           <p className="text-xs text-text-muted truncate">
             {value.primary_email}
@@ -699,14 +697,14 @@ function UserSearchCombobox({
             <p className="p-3 text-sm text-text-muted">
               {t("admin.organizations.memberships.user_search_loading")}
             </p>
-          ) : matches.length === 0 ? (
+          ) : !matches || matches.length === 0 ? (
             <p className="p-3 text-sm text-text-muted">
               {t("admin.organizations.memberships.user_search_empty")}
             </p>
           ) : (
             <ul className="py-1">
               {matches.map((u) => (
-                <li key={u.id}>
+                <li key={u.user_id}>
                   <button
                     type="button"
                     onClick={() => {
@@ -721,7 +719,7 @@ function UserSearchCombobox({
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold text-text-strong truncate">
-                        {u.profile?.display_name?.trim() || u.primary_email}
+                        {u.display_name?.trim() || u.primary_email}
                       </p>
                       <p className="text-xs text-text-muted truncate">
                         {u.primary_email}
@@ -743,7 +741,7 @@ function MembershipsTab({ orgId }: { orgId: string }) {
   const { data: members, isLoading } = useOrganizationMemberships(orgId);
   const create = useCreateMembership(orgId);
   const [showAdd, setShowAdd] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<AdminUserSearchRow | null>(null);
   const [studentCode, setStudentCode] = useState("");
   const [employeeCode, setEmployeeCode] = useState("");
   const [memStatus, setMemStatus] = useState<MembershipStatus>("active");
@@ -753,7 +751,7 @@ function MembershipsTab({ orgId }: { orgId: string }) {
     if (!selectedUser) return;
     try {
       await create.mutateAsync({
-        user_id: selectedUser.id,
+        user_id: selectedUser.user_id,
         org_unit_id: null,
         status: memStatus,
         student_code: studentCode || null,

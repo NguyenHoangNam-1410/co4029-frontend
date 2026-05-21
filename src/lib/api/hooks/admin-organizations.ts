@@ -10,7 +10,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiDelete, apiFetch, apiPatch, apiPost } from "../client";
 import { queryKeys } from "../query-keys";
-import type { User, UserListPage } from "../types";
 import type {
   MembershipCreate,
   MembershipPatch,
@@ -31,21 +30,41 @@ import type {
 // ---------------------------------------------------------------------------
 
 /**
- * Lightweight admin-users fetch for the membership-search combobox.
- * Filters client-side on email since the backend `/admin/users` doesn't
- * expose a full-text search query yet. Caps at 200 rows which fits
- * the current dataset comfortably.
+ * Search row returned by `/admin/users` with the `q=` filter applied.
+ *
+ * Mirrors `UserListRow` in the backend (admin/routers/users.py) — the
+ * organization-membership search uses this shape directly so we don't pay
+ * for the heavier `UserRead` profile join.
  */
-export function useAdminUsersForSearch(enabled = true) {
+export interface AdminUserSearchRow {
+  user_id: string;
+  primary_email: string;
+  status: string;
+  display_name: string | null;
+  last_login_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Server-side admin-users search for the membership combobox.
+ *
+ * Backend `/admin/users?q=` does case-insensitive substring match against
+ * primary_email and user_profiles.display_name. Empty query returns the
+ * first 20 active users so the dropdown has something to render on focus.
+ */
+export function useAdminUsersSearch(query: string, enabled = true) {
+  const trimmed = query.trim();
   return useQuery({
-    queryKey: ["admin", "users", "search-pool"] as const,
+    queryKey: ["admin", "users", "search", trimmed] as const,
     queryFn: async () => {
-      const page = await apiFetch<UserListPage>(
-        `/admin/users?limit=200&status=active`,
-      );
-      return page.items as User[];
+      const qs = new URLSearchParams();
+      qs.set("status", "active");
+      qs.set("limit", "20");
+      if (trimmed.length > 0) qs.set("q", trimmed);
+      return apiFetch<AdminUserSearchRow[]>(`/admin/users?${qs.toString()}`);
     },
-    staleTime: 1000 * 30,
+    staleTime: 1000 * 15,
     enabled,
   });
 }
