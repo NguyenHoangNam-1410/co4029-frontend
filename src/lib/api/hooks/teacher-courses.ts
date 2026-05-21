@@ -74,7 +74,7 @@ export function useLessonOutline(
   lessonId: string | undefined,
   params: LessonOutlineParams = {},
 ) {
-  const { slidesPerSection = 4, sectionGrouping = "fixed" } = params;
+  const { slidesPerSection = 4, sectionGrouping = "auto" } = params;
   const search = new URLSearchParams({
     slides_per_section: String(slidesPerSection),
     section_grouping: sectionGrouping,

@@ -112,7 +112,7 @@ const INITIAL_FORM: FormState = {
   coverage_max_per_section: 5,
   skip_summaries: true,
   slides_per_section: 4,
-  section_grouping: "fixed",
+  section_grouping: "auto",
   selected_section_ids: {},
   bloom_enabled: false,
   bloom_distribution: { ...EMPTY_BLOOM_DISTRIBUTION },
