@@ -32,7 +32,7 @@
  * follow-up i18n pass alongside the rest of the route.
  */
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   AlertCircle,
@@ -348,7 +348,14 @@ export function QuizGenerationPanel({
 }) {
   const generateQuiz = useGenerateQuiz(quizId);
   const { data: lessons = [] } = useAuthoringModuleLessons(moduleId);
-  const [activeRunId, setActiveRunId] = useState<string | null>(null);
+  // Persist activeRunId so a page reload mid-generation reattaches to
+  // the same poll instead of leaving the user staring at a static
+  // form. Cleared once the run reaches a terminal state below.
+  const activeRunStorageKey = `abridgeai.quiz.${quizId}.active_run_id`;
+  const [activeRunId, setActiveRunId] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    return window.sessionStorage.getItem(activeRunStorageKey);
+  });
   const { data: activeRun } = useQuizGenerationRun(quizId, activeRunId);
 
   const [selectedLessonIds, setSelectedLessonIds] = useState<string[]>([]);
@@ -375,6 +382,42 @@ export function QuizGenerationPanel({
           activeRun.status === "running"),
     );
   const generationFailed = activeRun?.status === "failed";
+
+  // Persist activeRunId across page reloads so the user reattaches to
+  // the running poll, and surface terminal-state toasts exactly once
+  // (the polling hook re-runs on every refetch — without the ref guard
+  // we'd fire the toast on every successful 3s tick).
+  const toastedRunIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (typeof window === "undefined" || !activeRunId) return;
+    window.sessionStorage.setItem(activeRunStorageKey, activeRunId);
+  }, [activeRunId, activeRunStorageKey]);
+
+  useEffect(() => {
+    if (!activeRun || !activeRunId) return;
+    const status = activeRun.status;
+    if (status !== "completed" && status !== "failed" && status !== "cancelled") {
+      return;
+    }
+    if (toastedRunIdRef.current === activeRunId) return;
+    toastedRunIdRef.current = activeRunId;
+
+    if (status === "completed") {
+      toast.success("Quiz generation completed");
+    } else if (status === "failed") {
+      toast.error(
+        activeRun.error_message ?? "Quiz generation failed",
+        { duration: 8000 },
+      );
+    } else {
+      toast.info("Quiz generation cancelled");
+    }
+    // Clear persisted run id once we've shown the terminal state, so
+    // a future reload starts fresh instead of replaying old failures.
+    if (typeof window !== "undefined") {
+      window.sessionStorage.removeItem(activeRunStorageKey);
+    }
+  }, [activeRun, activeRunId, activeRunStorageKey]);
 
   function toggleLesson(lessonId: string) {
     setSelectedLessonIds((current) =>
