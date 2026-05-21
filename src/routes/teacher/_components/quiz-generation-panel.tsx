@@ -47,7 +47,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ApiError } from "@/lib/api/client";
-import { useModuleLessons } from "@/lib/api/hooks/courses";
+import { useAuthoringModuleLessons } from "@/lib/api/hooks/teacher-courses";
 import {
   useGenerateQuiz,
   useQuizGenerationRun,
@@ -319,7 +319,7 @@ export function QuizGenerationPanel({
   onRunStarted?: (runId: string) => void;
 }) {
   const generateQuiz = useGenerateQuiz(quizId);
-  const { data: lessons = [] } = useModuleLessons(moduleId);
+  const { data: lessons = [] } = useAuthoringModuleLessons(moduleId);
   const [activeRunId, setActiveRunId] = useState<string | null>(null);
   const { data: activeRun } = useQuizGenerationRun(quizId, activeRunId);
 

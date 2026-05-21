@@ -1083,7 +1083,17 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * List Module Lessons For Authoring
+         * @description List all lessons under ``module_id`` (drafts included) for authoring.
+         *
+         *     Authoring sibling of the learner-facing ``GET /modules/{id}/lessons``
+         *     in :mod:`courses.routers.learner`: that endpoint filters to
+         *     published-only, which hides drafts from teachers building a quiz on
+         *     a yet-unpublished module. The FR-5 quiz generation panel needs the
+         *     full list, so this authoring variant skips the publish filter.
+         */
+        get: operations["list_module_lessons_for_authoring_api_v1_teacher_modules__module_id__lessons_get"];
         put?: never;
         /**
          * Create Lesson
@@ -1133,10 +1143,19 @@ export interface paths {
          *
          *     Surfaces under the teacher router (rather than the learner one) so
          *     the auth boundary matches the SPA's ``useLessonOutline`` consumer
-         *     pages, and so drafts surface during course assembly. Returns a
-         *     single synthetic ``body`` section until ``build_lesson_outline``
-         *     lands; the contract matches the eventual semantic-section
-         *     response field-for-field.
+         *     pages, and so drafts surface during course assembly.
+         *
+         *     Phase 3 of the FR-5 schema port (T5.14): now invokes the real
+         *     :func:`abridgeai.features.quizzes.ai.outline.build_lesson_outline`
+         *     against the lesson's ``document_chunks``. Falls back to a single
+         *     synthetic ``body`` section sourced from the lesson summary when no
+         *     chunks have been ingested yet — keeps the SPA renderable for
+         *     lessons that don't have material attached.
+         *
+         *     ``suggested_question_count`` mirrors the legacy heuristic: 1
+         *     question per eligible body section, capped to a 1..50 band.
+         *     ``min_for_full_coverage`` reports the same number so the SPA can
+         *     surface "you need at least N questions for coverage mode" copy.
          */
         get: operations["get_lesson_outline_api_v1_teacher_lessons__lesson_id__outline_get"];
         put?: never;
@@ -4413,6 +4432,40 @@ export interface components {
             enrollment_cap?: number | null;
         };
         /**
+         * CoverageOptions
+         * @description Per-coverage-mode tunables.
+         *
+         *     Plumbed into ``GenerationRun.config_json`` and read by
+         *     ``allocate_question_budget`` in the ported outline component.
+         *     Defaults match the legacy schema so behaviour is preserved.
+         */
+        CoverageOptions: {
+            /**
+             * Min Per Section
+             * @default 1
+             */
+            min_per_section: number;
+            /**
+             * Max Per Section
+             * @default 5
+             */
+            max_per_section: number;
+            /**
+             * Skip Summaries
+             * @default true
+             */
+            skip_summaries: boolean;
+            /** Section Ids */
+            section_ids?: string[] | null;
+            /**
+             * Slides Per Section
+             * @default 4
+             */
+            slides_per_section: number;
+            /** Parallelism */
+            parallelism?: number | null;
+        };
+        /**
          * DeepHealthOut
          * @description Composite payload returned by ``GET /healthz/deep``.
          */
@@ -7041,17 +7094,15 @@ export interface components {
          * OutlineSection
          * @description One section row in ``GET /lessons/{id}/outline``.
          *
-         *     Mirrors the SPA's ``OutlineSectionRead`` interface verbatim. Today
-         *     this surface returns a single synthetic ``body`` section per lesson
-         *     until the legacy ``build_lesson_outline`` semantic-section pipeline
-         *     is ported. The contract is deliberately stable so the SPA can render
-         *     today and the section list can grow without an API break.
+         *     Mirrors the SPA's ``OutlineSectionRead`` interface verbatim.
+         *
+         *     The ``id`` is a deterministic slug like ``sec_<lesson8>_<title-slug>_<page>``
+         *     (see :func:`abridgeai.features.quizzes.ai.outline._section_id`), NOT a
+         *     database UUID. Stable across re-runs against the same chunks so
+         *     ``coverage_options.section_ids`` keeps working between calls.
          */
         OutlineSection: {
-            /**
-             * Id
-             * Format: uuid
-             */
+            /** Id */
             id: string;
             /** Title */
             title: string;
@@ -7086,7 +7137,7 @@ export interface components {
              * @default body
              * @enum {string}
              */
-            content_role: "body" | "summary" | "review";
+            content_role: "body" | "summary" | "review" | "front_matter";
             /**
              * Preview
              * @default
@@ -7532,36 +7583,70 @@ export interface components {
          * QuizGenerationRequest
          * @description Body for ``POST /teacher/quizzes/{id}/generate``.
          *
-         *     ``regenerate_question_id`` is required when ``mode == "regenerate"``;
-         *     the service layer (T5.10) enforces the cross-field constraint.
+         *     Defaults preserve topic-mode behaviour so callers that send only
+         *     ``question_count`` still work; coverage-mode and personalisation
+         *     knobs are opt-in via the advanced disclosure on the SPA panel.
          */
         QuizGenerationRequest: {
+            /** Quiz Id */
+            quiz_id?: string | null;
+            /** Title */
+            title: string;
+            /** Description */
+            description?: string | null;
             /**
-             * Mode
+             * Question Count
+             * @default 3
+             */
+            question_count: number;
+            /** Question Types */
+            question_types?: ("multiple_choice" | "true_false" | "short_answer" | "fill_blank" | "code")[];
+            /**
+             * Difficulty
+             * @default mixed
+             */
+            difficulty: ("easy" | "medium" | "hard") | "mixed";
+            /** Bloom Distribution */
+            bloom_distribution?: {
+                [key: string]: number;
+            };
+            /**
+             * Include Prerequisites
+             * @default false
+             */
+            include_prerequisites: boolean;
+            /** Model Preference */
+            model_preference?: string | null;
+            /** Source Lesson Ids */
+            source_lesson_ids?: string[];
+            /** Config Json */
+            config_json?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Generation Mode
+             * @default topic
              * @enum {string}
              */
-            mode: "full" | "coverage" | "manual" | "regenerate";
-            /** Target Count */
-            target_count?: number | null;
+            generation_mode: "topic" | "coverage";
+            /** Focus Topics */
+            focus_topics?: string[];
+            /** Avoid Topics */
+            avoid_topics?: string[];
+            /** Extra Instructions */
+            extra_instructions?: string | null;
             /**
-             * Focus Topics
-             * @default []
+             * Append
+             * @default false
              */
-            focus_topics: string[];
-            /**
-             * Source Lessons
-             * @default []
-             */
-            source_lessons: string[];
-            /** Regenerate Question Id */
-            regenerate_question_id?: string | null;
+            append: boolean;
+            coverage_options?: components["schemas"]["CoverageOptions"] | null;
         };
         /**
          * QuizGenerationRunRead
          * @description Status-poll projection of a quiz generation run.
          *
-         *     Service layer (T5.10) joins the
-         *     ``backend/app/models/ai_processing.py:GenerationRun`` row with the
+         *     Service layer joins the ``GenerationRun`` row with the
          *     quiz / pipeline-run linkage to populate this DTO.
          */
         QuizGenerationRunRead: {
@@ -8688,6 +8773,7 @@ export type SchemaCoursePublic = components['schemas']['CoursePublic'];
 export type SchemaCourseStats = components['schemas']['CourseStats'];
 export type SchemaCourseStatusCount = components['schemas']['CourseStatusCount'];
 export type SchemaCourseUpdate = components['schemas']['CourseUpdate'];
+export type SchemaCoverageOptions = components['schemas']['CoverageOptions'];
 export type SchemaDeepHealthOut = components['schemas']['DeepHealthOut'];
 export type SchemaDifficultCardRead = components['schemas']['DifficultCardRead'];
 export type SchemaDisableUserOut = components['schemas']['DisableUserOut'];
@@ -10972,6 +11058,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ModuleItemAuthoring"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_module_lessons_for_authoring_api_v1_teacher_modules__module_id__lessons_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                module_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LessonAuthoring"][];
                 };
             };
             /** @description Validation Error */
