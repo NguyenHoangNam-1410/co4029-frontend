@@ -33,7 +33,8 @@
     "health": "Tình trạng hệ thống",
     "settings": "Cài đặt",
     "profile": "Hồ sơ",
-    "logout": "Đăng xuất"
+    "logout": "Đăng xuất",
+    "admin": "Quản trị"
   },
   "auth": {
     "sign_in": "Đăng nhập",
@@ -936,6 +937,103 @@
         "title": "Vô hiệu hoá người dùng?",
         "body": "Tất cả phiên đăng nhập sẽ bị huỷ. Người dùng không thể đăng nhập cho đến khi được kích hoạt lại."
       }
+    },
+    "organizations": {
+      "title": "Tổ chức",
+      "list_title": "Tổ chức",
+      "list_subtitle": "Quản lý các tổ chức (trường, doanh nghiệp) trên hệ thống.",
+      "search_placeholder": "Tìm theo tên hoặc slug...",
+      "create_button": "Tổ chức mới",
+      "create_dialog_title": "Tổ chức mới",
+      "count": "{{count}} tổ chức",
+      "empty_title": "Chưa có tổ chức nào",
+      "empty_search": "Không tìm thấy tổ chức nào khớp.",
+      "back_to_list": "Quay lại danh sách",
+      "fields": {
+        "slug": "Slug",
+        "slug_hint": "Chỉ chữ thường, số, và dấu gạch ngang.",
+        "name": "Tên",
+        "status": "Trạng thái",
+        "created_at": "Tạo lúc",
+        "updated_at": "Cập nhật",
+        "id": "ID",
+        "domain": "Tên miền",
+        "auto_provision": "Auto-provision khi đăng ký",
+        "code": "Mã",
+        "unit_type": "Loại",
+        "joined_at": "Tham gia",
+        "student_code": "MSSV",
+        "employee_code": "MSNV",
+        "parent_unit": "Đơn vị cha",
+        "user_email": "Email người dùng"
+      },
+      "status_label": {
+        "active": "Đang hoạt động",
+        "inactive": "Tạm ngưng",
+        "archived": "Lưu trữ"
+      },
+      "membership_status_label": {
+        "active": "Đang hoạt động",
+        "invited": "Đã mời",
+        "inactive": "Tạm ngưng",
+        "suspended": "Đình chỉ",
+        "left": "Đã rời"
+      },
+      "unit_type_label": {
+        "faculty": "Khoa",
+        "department": "Bộ môn / phòng ban",
+        "office": "Văn phòng",
+        "program": "Chương trình",
+        "campus": "Cơ sở",
+        "other": "Khác"
+      },
+      "tabs": {
+        "info": "Thông tin",
+        "domains": "Tên miền",
+        "units": "Đơn vị",
+        "memberships": "Thành viên"
+      },
+      "actions": {
+        "save": "Lưu thay đổi",
+        "saving": "Đang lưu...",
+        "create": "Tạo",
+        "creating": "Đang tạo...",
+        "cancel": "Hủy",
+        "delete": "Xóa",
+        "add": "Thêm",
+        "adding": "Đang thêm...",
+        "edit": "Chỉnh sửa"
+      },
+      "confirm": {
+        "delete_domain": "Xóa tên miền này?",
+        "delete_unit": "Xóa đơn vị này?",
+        "delete_membership": "Xóa thành viên này khỏi tổ chức?",
+        "delete_organization": "Xóa tổ chức này? Hành động này sẽ xóa mềm tất cả dữ liệu liên quan."
+      },
+      "toasts": {
+        "create_success": "Tạo tổ chức thành công",
+        "create_failed": "Tạo thất bại",
+        "update_success": "Đã cập nhật tổ chức",
+        "update_failed": "Cập nhật thất bại",
+        "delete_success": "Đã xóa",
+        "delete_failed": "Xóa thất bại",
+        "domain_added": "Đã thêm tên miền",
+        "unit_added": "Đã thêm đơn vị",
+        "member_added": "Đã thêm thành viên",
+        "member_updated": "Đã cập nhật thành viên"
+      },
+      "empty": {
+        "domains": "Chưa có tên miền nào.",
+        "units": "Chưa có đơn vị nào.",
+        "memberships": "Chưa có thành viên nào trong tổ chức này."
+      },
+      "memberships": {
+        "add_title": "Thêm thành viên",
+        "add_intro": "Thêm người dùng đã có trong hệ thống vào tổ chức này.",
+        "user_id_placeholder": "UUID của user",
+        "user_id_hint": "Nhập UUID hoặc email người dùng đã được tạo trong /admin/users.",
+        "edit_status_title": "Cập nhật trạng thái"
+      }
     }
   },
   "languages": {
@@ -1705,5 +1803,17 @@
     "title": "Trải nghiệm tốt nhất trên màn hình lớn",
     "description": "Khu vực này được tối ưu cho màn hình từ 1024px trở lên. Một số bảng dữ liệu có thể khó đọc trên màn hình nhỏ.",
     "dismiss": "Đã hiểu"
+  },
+  "settings_hub": {
+    "title": "Cài đặt",
+    "subtitle": "Quản lý hồ sơ, bảo mật và thông báo của bạn.",
+    "cards": {
+      "profile_title": "Hồ sơ",
+      "profile_body": "Cập nhật tên, ảnh đại diện và thông tin cá nhân.",
+      "security_title": "Bảo mật",
+      "security_body": "Bật xác thực hai lớp (2FA), xem mã khôi phục.",
+      "notifications_title": "Thông báo",
+      "notifications_body": "Tùy chỉnh cách bạn nhận thông báo từ hệ thống."
+    }
   }
 }
