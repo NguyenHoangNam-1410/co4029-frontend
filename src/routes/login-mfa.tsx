@@ -29,6 +29,18 @@ export default function LoginMfaPage() {
   const verify = useVerifyMfa();
   const requestedRef = useRef(false);
 
+  // Stable refs so we can drop the mutation objects from the effect's
+  // dep array. React Query returns a new mutation object on every
+  // render — including it in deps caused the effect to re-run after
+  // every render and (despite ``requestedRef``) the rapid double-mount
+  // under StrictMode plus the AuthProvider re-render flow produced
+  // multiple ``POST /auth/me/mfa/challenge`` calls back-to-back. Each
+  // POST is fine on its own (200 OK), but while they're in-flight the
+  // input was disabled by ``challenge.isPending``, so the user
+  // couldn't type. Mutate functions from react-query are referentially
+  // stable, so we capture once and use that.
+  const challengeMutate = challenge.mutate;
+
   useEffect(() => {
     if (!isAuthenticated) {
       void navigate({ to: "/login", search: { next: undefined }, replace: true });
@@ -44,15 +56,21 @@ export default function LoginMfaPage() {
     if (requestedRef.current) return;
     requestedRef.current = true;
 
-    challenge.mutate(undefined, {
+    challengeMutate(undefined, {
       onSuccess: (response) => {
         setChallengeId(response.challenge_id);
       },
       onError: () => {
+        // Allow a retry: the next nav into this page (or a manual
+        // refresh) should mint a new challenge instead of being
+        // permanently locked out by the ref guard.
+        requestedRef.current = false;
         toast.error(t("login_mfa.errors.challenge_failed"));
       },
     });
-  }, [isAuthenticated, requiresMfa, search.next, navigate, challenge, t]);
+    // challengeMutate is stable; deliberately exclude it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, requiresMfa, search.next, navigate, t]);
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -158,18 +176,18 @@ export default function LoginMfaPage() {
             >
               {mode === "totp" ? t("login_mfa.totp_label") : t("login_mfa.recovery_label")}
             </label>
-            <Input
-              id="mfa-code"
-              autoComplete="one-time-code"
-              inputMode={mode === "totp" ? "numeric" : "text"}
-              autoFocus
-              value={code}
-              onChange={(event) => setCode(event.target.value)}
-              disabled={isLoadingChallenge || isVerifying}
-              placeholder={mode === "totp" ? "123456" : "abcd-efgh-ijkl"}
-              className="h-12 text-center text-lg tracking-[0.4em]"
-              maxLength={mode === "totp" ? 6 : 32}
-            />
+          <Input
+            id="mfa-code"
+            autoComplete="one-time-code"
+            inputMode={mode === "totp" ? "numeric" : "text"}
+            autoFocus
+            value={code}
+            onChange={(event) => setCode(event.target.value)}
+            disabled={isVerifying}
+            placeholder={mode === "totp" ? "123456" : "abcd-efgh-ijkl"}
+            className="h-12 text-center text-lg tracking-[0.4em]"
+            maxLength={mode === "totp" ? 6 : 32}
+          />
           </div>
 
           <Button
