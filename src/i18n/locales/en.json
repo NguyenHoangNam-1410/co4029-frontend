@@ -33,7 +33,8 @@
     "health": "Health",
     "settings": "Settings",
     "profile": "Profile",
-    "logout": "Log Out"
+    "logout": "Log Out",
+    "admin": "Admin"
   },
   "auth": {
     "sign_in": "Sign in",
@@ -946,6 +947,103 @@
         "title": "Disable user?",
         "body": "All login sessions will be revoked. The user will not be able to sign in until they are reactivated."
       }
+    },
+    "organizations": {
+      "title": "Organizations",
+      "list_title": "Organizations",
+      "list_subtitle": "Manage organizations (schools, businesses) on the platform.",
+      "search_placeholder": "Search by name or slug...",
+      "create_button": "New organization",
+      "create_dialog_title": "New organization",
+      "count": "{{count}} organizations",
+      "empty_title": "No organizations yet",
+      "empty_search": "No organizations match your search.",
+      "back_to_list": "Back to list",
+      "fields": {
+        "slug": "Slug",
+        "slug_hint": "Lowercase letters, digits, and hyphens only.",
+        "name": "Name",
+        "status": "Status",
+        "created_at": "Created",
+        "updated_at": "Updated",
+        "id": "ID",
+        "domain": "Domain",
+        "auto_provision": "Auto-provision on signup",
+        "code": "Code",
+        "unit_type": "Type",
+        "joined_at": "Joined",
+        "student_code": "Student ID",
+        "employee_code": "Employee ID",
+        "parent_unit": "Parent unit",
+        "user_email": "User email"
+      },
+      "status_label": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "archived": "Archived"
+      },
+      "membership_status_label": {
+        "active": "Active",
+        "invited": "Invited",
+        "inactive": "Inactive",
+        "suspended": "Suspended",
+        "left": "Left"
+      },
+      "unit_type_label": {
+        "faculty": "Faculty",
+        "department": "Department",
+        "office": "Office",
+        "program": "Program",
+        "campus": "Campus",
+        "other": "Other"
+      },
+      "tabs": {
+        "info": "Info",
+        "domains": "Domains",
+        "units": "Units",
+        "memberships": "Memberships"
+      },
+      "actions": {
+        "save": "Save changes",
+        "saving": "Saving...",
+        "create": "Create",
+        "creating": "Creating...",
+        "cancel": "Cancel",
+        "delete": "Delete",
+        "add": "Add",
+        "adding": "Adding...",
+        "edit": "Edit"
+      },
+      "confirm": {
+        "delete_domain": "Remove this domain?",
+        "delete_unit": "Remove this unit?",
+        "delete_membership": "Remove this member from the organization?",
+        "delete_organization": "Delete this organization? This will soft-delete all related data."
+      },
+      "toasts": {
+        "create_success": "Organization created",
+        "create_failed": "Create failed",
+        "update_success": "Organization updated",
+        "update_failed": "Update failed",
+        "delete_success": "Removed",
+        "delete_failed": "Remove failed",
+        "domain_added": "Domain added",
+        "unit_added": "Unit added",
+        "member_added": "Member added",
+        "member_updated": "Member updated"
+      },
+      "empty": {
+        "domains": "No domains yet.",
+        "units": "No units yet.",
+        "memberships": "No members in this organization."
+      },
+      "memberships": {
+        "add_title": "Add member",
+        "add_intro": "Add an existing user to this organization.",
+        "user_id_placeholder": "User UUID",
+        "user_id_hint": "Enter the UUID of a user already created via /admin/users.",
+        "edit_status_title": "Update status"
+      }
     }
   },
   "languages": {
@@ -1715,5 +1813,17 @@
     "title": "Best on a larger screen",
     "description": "This area is optimized for screens 1024px and wider. Some data tables may be hard to read on smaller screens.",
     "dismiss": "Got it"
+  },
+  "settings_hub": {
+    "title": "Settings",
+    "subtitle": "Manage your profile, security, and notifications.",
+    "cards": {
+      "profile_title": "Profile",
+      "profile_body": "Update your name, avatar, and personal information.",
+      "security_title": "Security",
+      "security_body": "Enable two-factor authentication and view recovery codes.",
+      "notifications_title": "Notifications",
+      "notifications_body": "Customize how you receive system notifications."
+    }
   }
 }
