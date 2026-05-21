@@ -7785,7 +7785,7 @@ export interface components {
             /** Quiz Id */
             quiz_id?: string | null;
             /** Title */
-            title: string;
+            title?: string | null;
             /** Description */
             description?: string | null;
             /**
