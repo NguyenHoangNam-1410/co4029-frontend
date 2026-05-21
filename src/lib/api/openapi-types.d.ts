@@ -8481,6 +8481,8 @@ export interface components {
             primary_email: string;
             /** Status */
             status: string;
+            /** Display Name */
+            display_name?: string | null;
             /** Last Login At */
             last_login_at?: unknown | null;
             /** Created At */
@@ -14991,6 +14993,7 @@ export interface operations {
             query?: {
                 status?: string | null;
                 role_code?: string | null;
+                q?: string | null;
                 limit?: number;
                 offset?: number;
             };
