@@ -79,6 +79,11 @@ export interface paths {
         /**
          * Logout
          * @description Revoke the bearer-token session. Idempotent.
+         *
+         *     Uses ``get_current_user_pre_mfa`` so a user who is mid-MFA (fresh
+         *     post-login session, ``mfa_verified_at IS NULL``) can still log out
+         *     without first completing MFA — abandoning the login flow is the
+         *     whole point.
          */
         post: operations["logout_api_v1_auth_logout_post"];
         delete?: never;
@@ -94,7 +99,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Read Me */
+        /**
+         * Read Me
+         * @description Return the signed-in user's identity.
+         *
+         *     Uses ``get_current_user_pre_mfa`` so the SPA can hydrate basic
+         *     identity (name, avatar) on the ``/login/mfa`` page before the user
+         *     completes the second factor. All other endpoints stay behind the
+         *     full ``get_current_user`` MFA gate.
+         */
         get: operations["read_me_api_v1_users_me_get"];
         put?: never;
         post?: never;
@@ -156,6 +169,31 @@ export interface paths {
          *     de-duplicated across scopes.
          */
         get: operations["read_my_roles_api_v1_me_roles_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/me/mfa/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Mfa Status
+         * @description Return whether the caller has enrolled MFA + current-session state.
+         *
+         *     Powers the SPA's settings page so it can render "Two-factor enabled
+         *     ✓" instead of always showing the Enable button. Uses the pre-MFA
+         *     dependency so the answer is reachable from the ``/login/mfa`` flow
+         *     too (the SPA renders the user's name there).
+         */
+        get: operations["get_mfa_status_api_v1_auth_me_mfa_status_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -230,7 +268,9 @@ export interface paths {
          *
          *     Used during step-up flows (e.g. before sensitive actions) and as the
          *     second leg of a login that flagged ``requires_mfa`` in
-         *     :class:`TokenResponse`.
+         *     :class:`TokenResponse`. Uses ``get_current_user_pre_mfa`` so a fresh
+         *     post-login session (``mfa_verified_at IS NULL``) can still mint a
+         *     challenge — that's the whole point of this endpoint.
          */
         post: operations["create_mfa_challenge_api_v1_auth_me_mfa_challenge_post"];
         delete?: never;
@@ -255,7 +295,8 @@ export interface paths {
          *     On success the challenge row gets ``consumed_at`` stamped and
          *     ``session.mfa_verified_at`` is refreshed; callers can subsequently use
          *     ``/auth/me/mfa/recovery-codes/regenerate`` within the freshness
-         *     window.
+         *     window. Pre-MFA gate so the post-login session can complete the
+         *     second leg.
          */
         post: operations["verify_mfa_challenge_api_v1_auth_me_mfa_verify_post"];
         delete?: never;
@@ -6550,6 +6591,21 @@ export interface components {
             /** Recovery Codes */
             recovery_codes: string[];
         };
+        /**
+         * MfaStatusResponse
+         * @description Surface the user's MFA enrollment + current-session MFA state.
+         *
+         *     ``enrolled`` is True when the user has at least one active TOTP
+         *     factor (``verified_at IS NOT NULL AND disabled_at IS NULL``).
+         *     ``mfa_verified_at`` is the current ``auth_sessions.mfa_verified_at``
+         *     so the SPA can show a "verified <ago>" badge if it wants.
+         */
+        MfaStatusResponse: {
+            /** Enrolled */
+            enrolled: boolean;
+            /** Mfa Verified At */
+            mfa_verified_at?: string | null;
+        };
         /** MfaTotpVerifyRequest */
         MfaTotpVerifyRequest: {
             /**
@@ -8938,6 +8994,7 @@ export type SchemaMembershipRead = components['schemas']['MembershipRead'];
 export type SchemaMfaChallengeResponse = components['schemas']['MfaChallengeResponse'];
 export type SchemaMfaEnrollResponse = components['schemas']['MfaEnrollResponse'];
 export type SchemaMfaRecoveryCodesResponse = components['schemas']['MfaRecoveryCodesResponse'];
+export type SchemaMfaStatusResponse = components['schemas']['MfaStatusResponse'];
 export type SchemaMfaTotpVerifyRequest = components['schemas']['MfaTotpVerifyRequest'];
 export type SchemaMfaVerifyRequest = components['schemas']['MfaVerifyRequest'];
 export type SchemaModuleAuthoring = components['schemas']['ModuleAuthoring'];
@@ -9231,6 +9288,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": string[];
+                };
+            };
+        };
+    };
+    get_mfa_status_api_v1_auth_me_mfa_status_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MfaStatusResponse"];
                 };
             };
         };

@@ -172,6 +172,7 @@ export type TokenResponse = Schemas["TokenResponse"];
 
 export type MfaEnrollResponse = Schemas["MfaEnrollResponse"];
 export type MfaChallengeResponse = Schemas["MfaChallengeResponse"];
+export type MfaStatusResponse = Schemas["MfaStatusResponse"];
 export type MfaRecoveryCodesResponse = Schemas["MfaRecoveryCodesResponse"];
 export type MfaTotpVerifyRequest = Schemas["MfaTotpVerifyRequest"];
 export type MfaVerifyRequest = Schemas["MfaVerifyRequest"];

@@ -7,6 +7,7 @@ import type {
   MfaChallengeResponse,
   MfaEnrollResponse,
   MfaRecoveryCodesResponse,
+  MfaStatusResponse,
   MfaTotpVerifyRequest,
   MfaVerifyRequest,
   MyPermissions,
@@ -94,6 +95,14 @@ export function useEnrollTotp() {
   return useMutation({
     mutationFn: () =>
       apiPost<MfaEnrollResponse>("/auth/me/mfa/totp/enroll"),
+  });
+}
+
+export function useMfaStatus() {
+  return useQuery({
+    queryKey: queryKeys.auth.mfaStatus(),
+    queryFn: () => apiFetch<MfaStatusResponse>("/auth/me/mfa/status"),
+    staleTime: 30_000,
   });
 }
 
