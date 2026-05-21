@@ -2142,6 +2142,55 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/teacher/courses/{course_id}/question-bank": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Question Bank
+         * @description Browse authored questions across the course for cross-quiz reuse.
+         *
+         *     Defaults to ``review_status='approved'`` so only vetted questions
+         *     surface; pass ``review_status=`` (empty) to widen. ``exclude_quiz_id``
+         *     is convenient for the modal launched from a target quiz so its own
+         *     questions don't appear in the bank list.
+         */
+        get: operations["list_question_bank_api_v1_teacher_courses__course_id__question_bank_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teacher/quizzes/{quiz_id}/questions/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Questions From Bank
+         * @description Clone bank questions into ``quiz_id``.
+         *
+         *     Each clone has a fresh id, ``review_status='pending'``, and an
+         *     ``imported_from_question_id`` back-pointer. Options are cloned in
+         *     place. Source questions must live in the same course as the target.
+         */
+        post: operations["import_questions_from_bank_api_v1_teacher_quizzes__quiz_id__questions_import_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/interview-configs/{config_id}": {
         parameters: {
             query?: never;
@@ -7321,6 +7370,43 @@ export interface components {
             /** Error Message */
             error_message?: string | null;
         };
+        /**
+         * QuestionBankEntry
+         * @description One row in a question-bank listing — question + parent context.
+         */
+        QuestionBankEntry: {
+            question: components["schemas"]["QuizQuestionAuthoring"];
+            /**
+             * Quiz Id
+             * Format: uuid
+             */
+            quiz_id: string;
+            /** Quiz Title */
+            quiz_title: string;
+            /**
+             * Module Id
+             * Format: uuid
+             */
+            module_id: string;
+            /** Module Title */
+            module_title: string;
+            /**
+             * Course Id
+             * Format: uuid
+             */
+            course_id: string;
+        };
+        /**
+         * QuestionBankImportRequest
+         * @description Body for ``POST /teacher/quizzes/{quiz_id}/questions/import``.
+         */
+        QuestionBankImportRequest: {
+            /**
+             * Source Question Ids
+             * @description IDs of bank questions to clone into the target quiz. Each source must be authored under a course the actor can edit.
+             */
+            source_question_ids: string[];
+        };
         /** QueueDepthOut */
         QueueDepthOut: {
             /** Pending */
@@ -7797,6 +7883,8 @@ export interface components {
             original_generated_payload?: {
                 [key: string]: unknown;
             } | null;
+            /** Imported From Question Id */
+            imported_from_question_id?: string | null;
             /** Reviewed By */
             reviewed_by?: string | null;
             /** Reviewed At */
@@ -8887,6 +8975,8 @@ export type SchemaPipelineStage = components['schemas']['PipelineStage'];
 export type SchemaProcessingJobOut = components['schemas']['ProcessingJobOut'];
 export type SchemaProcessingJobRow = components['schemas']['ProcessingJobRow'];
 export type SchemaProcessingProgress = components['schemas']['ProcessingProgress'];
+export type SchemaQuestionBankEntry = components['schemas']['QuestionBankEntry'];
+export type SchemaQuestionBankImportRequest = components['schemas']['QuestionBankImportRequest'];
 export type SchemaQueueDepthOut = components['schemas']['QueueDepthOut'];
 export type SchemaQuizAttemptAnswerInput = components['schemas']['QuizAttemptAnswerInput'];
 export type SchemaQuizAttemptAnswerRead = components['schemas']['QuizAttemptAnswerRead'];
@@ -12879,6 +12969,83 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["QuizGenerationRunRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_question_bank_api_v1_teacher_courses__course_id__question_bank_get: {
+        parameters: {
+            query?: {
+                module_id?: string | null;
+                lesson_id?: string | null;
+                question_type?: string | null;
+                bloom_level?: string | null;
+                difficulty?: string | null;
+                review_status?: string | null;
+                search?: string | null;
+                exclude_quiz_id?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                course_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuestionBankEntry"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_questions_from_bank_api_v1_teacher_quizzes__quiz_id__questions_import_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quiz_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QuestionBankImportRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuizQuestionAuthoring"][];
                 };
             };
             /** @description Validation Error */

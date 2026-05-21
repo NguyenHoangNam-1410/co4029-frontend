@@ -91,6 +91,8 @@ export type QuizQuestionPublic = Schemas["QuizQuestionPublic"];
 export type QuizQuestionAuthoring = Schemas["QuizQuestionAuthoring"];
 export type QuizQuestionOptionPublic = Schemas["QuizQuestionOptionPublic"];
 export type QuizQuestionOptionAuthoring = Schemas["QuizQuestionOptionAuthoring"];
+export type QuestionBankEntry = Schemas["QuestionBankEntry"];
+export type QuestionBankImportRequest = Schemas["QuestionBankImportRequest"];
 
 export type GenerationRunRead = Schemas["QuizGenerationRunRead"];
 export type QuizGenerationRunRead = Schemas["QuizGenerationRunRead"];

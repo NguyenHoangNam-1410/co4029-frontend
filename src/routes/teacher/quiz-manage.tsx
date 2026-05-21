@@ -5,6 +5,7 @@ import {
   AlertCircle,
   ArrowLeft,
   ArrowRight,
+  BookOpen,
   CheckCircle2,
   Clock,
   Eye,
@@ -47,6 +48,7 @@ import type {
 } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
 import { QuizGenerationPanel } from "./_components/quiz-generation-panel";
+import { QuestionBankModal } from "./_components/question-bank-modal";
 
 type TabKey = "questions" | "settings" | "preview";
 
@@ -142,6 +144,7 @@ export default function QuizManagePage() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [draft, setDraft] = useState<SettingsDraft | null>(null);
   const [showGenerateModal, setShowGenerateModal] = useState(false);
+  const [showBankModal, setShowBankModal] = useState(false);
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<Set<string>>(
     new Set(),
   );
@@ -490,6 +493,7 @@ export default function QuizManagePage() {
           onAddQuestion={handleAddQuestion}
           addPending={addQuestion.isPending}
           onOpenGenerator={() => setShowGenerateModal(true)}
+          onOpenBank={() => setShowBankModal(true)}
         />
       )}
 
@@ -512,6 +516,15 @@ export default function QuizManagePage() {
           moduleId={quiz.module_id}
           hasExistingQuestions={questions.length > 0}
           onClose={() => setShowGenerateModal(false)}
+        />
+      )}
+
+      {showBankModal && quiz?.course_id && (
+        <QuestionBankModal
+          courseId={quiz.course_id}
+          quizId={quizId}
+          defaultModuleId={quiz.module_id}
+          onClose={() => setShowBankModal(false)}
         />
       )}
 
@@ -573,6 +586,7 @@ function QuestionsTab({
   onAddQuestion,
   addPending,
   onOpenGenerator,
+  onOpenBank,
 }: {
   quizId: string;
   questions: QuizQuestionAuthoring[];
@@ -585,6 +599,7 @@ function QuestionsTab({
   onAddQuestion: () => void | Promise<void>;
   addPending: boolean;
   onOpenGenerator: () => void;
+  onOpenBank: () => void;
 }) {
   const { t } = useTranslation();
   const bulkSet = useBulkSetExpectedTime(quizId);
@@ -722,6 +737,15 @@ function QuestionsTab({
             >
               <Sparkles className="h-4 w-4" />
               {t("teacher_quiz_manage.ai_panel.open_generator")}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onOpenBank}
+              className="w-full gap-2"
+            >
+              <BookOpen className="h-4 w-4" />
+              {t("teacher_quiz_manage.ai_panel.import_from_bank", "Import from bank")}
             </Button>
           </div>
         </div>
@@ -876,6 +900,14 @@ function QuestionCard({
         explanation: draft.explanation.trim() || null,
         difficulty: draft.difficulty,
         bloom_level: draft.bloom_level,
+        expected_response_time_ms:
+          draft.expected_response_seconds == null
+            ? null
+            : Math.max(1, Math.round(draft.expected_response_seconds)) * 1000,
+        expected_ef_ceiling:
+          draft.expected_ef_ceiling == null
+            ? null
+            : draft.expected_ef_ceiling,
         review_status: reviewStatus,
         ...(hasOptions
           ? {
@@ -1119,6 +1151,128 @@ function QuestionCard({
         </div>
       )}
 
+      <div className="rounded-xl border border-m3-outline-variant/20 bg-m3-surface-container-lowest p-3 space-y-2.5">
+        <div className="flex items-center gap-1.5">
+          <Sparkles className="h-3 w-3 text-m3-secondary" />
+          <p className="text-[10px] font-bold uppercase tracking-widest text-m3-secondary">
+            {t(
+              "teacher_quiz_manage.editor.metadata_label",
+              "Cognitive metadata",
+            )}
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-2.5">
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold uppercase tracking-widest text-m3-on-surface-variant">
+              {t("teacher_quiz_manage.editor.bloom_label", "Bloom level")}
+            </label>
+            <select
+              value={draft.bloom_level}
+              onChange={(e) =>
+                setDraft((current) => ({
+                  ...current,
+                  bloom_level: e.target.value,
+                }))
+              }
+              className="h-8 w-full rounded-md border border-m3-outline-variant/30 bg-m3-surface px-2 text-xs text-m3-on-surface focus:border-m3-secondary focus:outline-none capitalize"
+            >
+              {[
+                "remember",
+                "understand",
+                "apply",
+                "analyze",
+                "evaluate",
+                "create",
+              ].map((level) => (
+                <option key={level} value={level}>
+                  {level}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold uppercase tracking-widest text-m3-on-surface-variant">
+              {t("teacher_quiz_manage.editor.difficulty_label", "Difficulty")}
+            </label>
+            <select
+              value={draft.difficulty}
+              onChange={(e) =>
+                setDraft((current) => ({
+                  ...current,
+                  difficulty: e.target.value,
+                }))
+              }
+              className="h-8 w-full rounded-md border border-m3-outline-variant/30 bg-m3-surface px-2 text-xs text-m3-on-surface focus:border-m3-secondary focus:outline-none capitalize"
+            >
+              {["easy", "medium", "hard"].map((level) => (
+                <option key={level} value={level}>
+                  {level}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold uppercase tracking-widest text-m3-on-surface-variant">
+              {t(
+                "teacher_quiz_manage.editor.t_exp_label",
+                "Expected time (s)",
+              )}
+            </label>
+            <Input
+              type="number"
+              min={1}
+              max={600}
+              value={draft.expected_response_seconds ?? ""}
+              placeholder={t(
+                "teacher_quiz_manage.editor.t_exp_placeholder",
+                "e.g. 45",
+              )}
+              onChange={(e) =>
+                setDraft((current) => ({
+                  ...current,
+                  expected_response_seconds:
+                    e.target.value === "" ? null : Number(e.target.value),
+                }))
+              }
+              className="h-8 bg-m3-surface text-xs"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold uppercase tracking-widest text-m3-on-surface-variant">
+              {t(
+                "teacher_quiz_manage.editor.ef_ceiling_label",
+                "EF ceiling",
+              )}
+            </label>
+            <Input
+              type="number"
+              step={0.05}
+              min={1.3}
+              max={3.5}
+              value={draft.expected_ef_ceiling ?? ""}
+              placeholder={t(
+                "teacher_quiz_manage.editor.ef_ceiling_placeholder",
+                "e.g. 2.50",
+              )}
+              onChange={(e) =>
+                setDraft((current) => ({
+                  ...current,
+                  expected_ef_ceiling:
+                    e.target.value === "" ? null : Number(e.target.value),
+                }))
+              }
+              className="h-8 bg-m3-surface text-xs"
+            />
+          </div>
+        </div>
+        <p className="text-[10px] text-m3-on-surface-variant">
+          {t(
+            "teacher_quiz_manage.editor.metadata_hint",
+            "Bloom + difficulty drive analytics. Expected time gates publishing. EF ceiling caps the SR scheduler's mastery factor (1.30–3.50).",
+          )}
+        </p>
+      </div>
+
       <div className="space-y-1.5">
         <label className="text-[10px] font-bold uppercase tracking-widest text-m3-on-surface-variant">
           {t("teacher_quiz_manage.editor.explanation_label")}
@@ -1226,6 +1380,8 @@ interface QuestionDraft {
   explanation: string;
   difficulty: string;
   bloom_level: string;
+  expected_response_seconds: number | null;
+  expected_ef_ceiling: number | null;
   review_status: string;
   options: Array<{
     id: string;
@@ -1264,6 +1420,14 @@ function buildQuestionDraft(question: QuizQuestionAuthoring): QuestionDraft {
     explanation: question.explanation ?? "",
     difficulty: question.difficulty ?? "medium",
     bloom_level: question.bloom_level ?? "understand",
+    expected_response_seconds:
+      question.expected_response_time_ms == null
+        ? null
+        : Math.round(question.expected_response_time_ms / 1000),
+    expected_ef_ceiling:
+      question.expected_ef_ceiling == null
+        ? null
+        : Number(question.expected_ef_ceiling),
     review_status: question.review_status ?? "pending",
     options: (question.options ?? []).map((o) => ({
       id: o.id,

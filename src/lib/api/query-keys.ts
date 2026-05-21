@@ -163,6 +163,19 @@ export const queryKeys = {
     questions: (quizId: string) => ["quizzes", "questions", quizId] as const,
     generationRun: (quizId: string, runId: string) =>
       ["quizzes", "gen-run", quizId, runId] as const,
+    bank: (
+      courseId: string,
+      filters?: {
+        moduleId?: string;
+        lessonId?: string;
+        questionType?: string;
+        bloomLevel?: string;
+        difficulty?: string;
+        reviewStatus?: string;
+        search?: string;
+        excludeQuizId?: string;
+      },
+    ) => ["quizzes", "bank", courseId, filters ?? {}] as const,
   },
 
   interviews: {
