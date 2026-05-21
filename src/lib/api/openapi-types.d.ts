@@ -330,6 +330,35 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/me/mfa/disable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Disable Mfa
+         * @description Turn off MFA after verifying a TOTP or recovery code.
+         *
+         *     Uses the strict ``get_current_user`` (post-MFA) dep so the caller
+         *     has already cleared the gate for the current request, but still
+         *     requires a fresh code in the body so a stolen access token alone
+         *     cannot silently disable the second factor. On success every active
+         *     factor is marked ``disabled_at`` and recovery codes are wiped; the
+         *     caller's session keeps its existing ``mfa_verified_at`` so no
+         *     redirect happens, and the next login will go straight through with
+         *     no challenge until the user re-enrolls.
+         */
+        post: operations["disable_mfa_api_v1_auth_me_mfa_disable_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/users": {
         parameters: {
             query?: never;
@@ -6574,6 +6603,23 @@ export interface components {
              */
             expires_at: string;
         };
+        /**
+         * MfaDisableRequest
+         * @description Disable MFA on the caller's account.
+         *
+         *     Requires proof-of-possession to prevent a stolen access token from
+         *     silently turning off the second factor: the caller must present
+         *     either a current TOTP code or a single-use recovery code. The code
+         *     is verified against the user's currently-active TOTP factor; on
+         *     success that factor (and any pending unverified ones) is marked
+         *     ``disabled_at`` and recovery codes are wiped.
+         */
+        MfaDisableRequest: {
+            /** Code */
+            code?: string | null;
+            /** Recovery Code */
+            recovery_code?: string | null;
+        };
         /** MfaEnrollResponse */
         MfaEnrollResponse: {
             /**
@@ -8992,6 +9038,7 @@ export type SchemaMembershipCreate = components['schemas']['MembershipCreate'];
 export type SchemaMembershipPatch = components['schemas']['MembershipPatch'];
 export type SchemaMembershipRead = components['schemas']['MembershipRead'];
 export type SchemaMfaChallengeResponse = components['schemas']['MfaChallengeResponse'];
+export type SchemaMfaDisableRequest = components['schemas']['MfaDisableRequest'];
 export type SchemaMfaEnrollResponse = components['schemas']['MfaEnrollResponse'];
 export type SchemaMfaRecoveryCodesResponse = components['schemas']['MfaRecoveryCodesResponse'];
 export type SchemaMfaStatusResponse = components['schemas']['MfaStatusResponse'];
@@ -9432,6 +9479,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MfaRecoveryCodesResponse"];
+                };
+            };
+        };
+    };
+    disable_mfa_api_v1_auth_me_mfa_disable_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MfaDisableRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

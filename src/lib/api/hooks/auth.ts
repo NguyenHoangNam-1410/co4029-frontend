@@ -5,6 +5,7 @@ import { queryKeys } from "../query-keys";
 import type {
   GoogleLoginResponse,
   MfaChallengeResponse,
+  MfaDisableRequest,
   MfaEnrollResponse,
   MfaRecoveryCodesResponse,
   MfaStatusResponse,
@@ -155,6 +156,31 @@ export function useRegenerateRecoveryCodes() {
       apiPost<MfaRecoveryCodesResponse>(
         "/auth/me/mfa/recovery-codes/regenerate",
       ),
+  });
+}
+
+export function useDisableMfa() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (body: MfaDisableRequest) => {
+      const response = await authenticatedFetch("/auth/me/mfa/disable", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) {
+        const detail = await readErrorDetail(response);
+        throw new Error(
+          detail ?? response.statusText ?? "Failed to disable two-factor",
+        );
+      }
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: queryKeys.auth.mfaStatus() });
+      void qc.invalidateQueries({ queryKey: queryKeys.auth.me() });
+    },
   });
 }
 
