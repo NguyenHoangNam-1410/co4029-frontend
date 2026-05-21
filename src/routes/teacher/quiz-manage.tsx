@@ -778,7 +778,7 @@ function BulkSetExpectedTimeBar({
   const { t } = useTranslation();
   if (totalQuestions === 0) return null;
   return (
-    <div className="rounded-xl border border-m3-outline-variant/20 bg-m3-surface-container-lowest p-4 flex flex-col sm:flex-row sm:items-center gap-3 shadow-glass">
+    <div className="rounded-xl border border-m3-outline-variant/20 bg-m3-surface-container-lowest p-4 flex flex-wrap items-center gap-3 shadow-glass">
       <div className="flex items-center gap-2 text-sm text-m3-on-surface">
         <Clock className="h-4 w-4 text-m3-secondary" />
         <span className="font-bold">
@@ -791,7 +791,7 @@ function BulkSetExpectedTimeBar({
           })}
         </Badge>
       </div>
-      <div className="flex flex-1 items-center gap-2 min-w-0">
+      <div className="flex items-center gap-2 min-w-0">
         <label className="text-xs font-bold uppercase tracking-widest text-m3-on-surface-variant whitespace-nowrap">
           {t("teacher_quiz_manage.bulk_time.duration_seconds")}
         </label>
@@ -801,10 +801,10 @@ function BulkSetExpectedTimeBar({
           step={1}
           value={bulkSeconds}
           onChange={(e) => onBulkSecondsChange(e.target.value)}
-          className="bg-m3-surface text-sm w-28"
+          className="bg-m3-surface text-sm w-24"
         />
       </div>
-      <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex items-center gap-2 flex-wrap ml-auto">
         <Button
           type="button"
           variant="outline"
