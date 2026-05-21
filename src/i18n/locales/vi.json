@@ -303,6 +303,7 @@
     "verify": "Xác thực",
     "verifying": "Đang xác thực...",
     "creating_challenge": "Đang tạo phiên xác thực...",
+    "resend_challenge": "Tạo lại phiên xác thực",
     "errors": {
       "challenge_failed": "Không thể bắt đầu xác thực hai bước. Vui lòng thử lại.",
       "session_not_ready": "Phiên xác thực chưa sẵn sàng. Vui lòng đợi trong giây lát.",
