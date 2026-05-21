@@ -22,7 +22,7 @@ export default function LoginMfaPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const search = useSearch({ strict: false }) as { next?: string };
-  const { isAuthenticated, requiresMfa } = useAuth();
+  const { isAuthenticated, requiresMfa, status } = useAuth();
 
   const verify = useVerifyMfa();
   const requestedRef = useRef(false);
@@ -62,6 +62,12 @@ export default function LoginMfaPage() {
   }
 
   useEffect(() => {
+    // Wait for AuthProvider to finish hydrating from localStorage —
+    // otherwise we'd evaluate ``isAuthenticated`` while ``status``
+    // is still "loading" right after a page reload, see false, and
+    // bounce the user back to /login on a fresh OAuth round-trip.
+    if (status === "loading") return;
+
     if (!isAuthenticated) {
       void navigate({ to: "/login", search: { next: undefined }, replace: true });
       return;
@@ -81,7 +87,7 @@ export default function LoginMfaPage() {
     // only track auth-state inputs to keep the array shape constant
     // across HMR swaps.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, requiresMfa, search.next, navigate, t]);
+  }, [status, isAuthenticated, requiresMfa, search.next, navigate, t]);
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
