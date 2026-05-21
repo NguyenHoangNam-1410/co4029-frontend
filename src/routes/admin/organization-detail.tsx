@@ -6,6 +6,7 @@ import {
   Globe,
   Layers,
   Plus,
+  Search,
   Trash2,
   Users,
   X,
@@ -17,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
+  useAdminUsersForSearch,
   useCreateDomain,
   useCreateMembership,
   useCreateOrgUnit,
@@ -31,6 +33,7 @@ import {
   usePatchOrganization,
 } from "@/lib/api/hooks/admin-organizations";
 import { useMyPermissions } from "@/lib/api/hooks/auth";
+import type { User } from "@/lib/api/types";
 import type {
   MembershipRead,
   MembershipStatus,
@@ -620,27 +623,143 @@ function MembershipRow({
   );
 }
 
+// Combobox typeahead — pulls active users from /admin/users and filters
+// client-side on email. The membership-add button enables the query so
+// we don't pay the network round-trip until the user opens the form.
+function UserSearchCombobox({
+  value,
+  onSelect,
+  enabled,
+}: {
+  value: User | null;
+  onSelect: (user: User | null) => void;
+  enabled: boolean;
+}) {
+  const { t } = useTranslation();
+  const { data: pool, isLoading } = useAdminUsersForSearch(enabled);
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+
+  const matches = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const all = pool ?? [];
+    if (!q) return all.slice(0, 8);
+    return all
+      .filter((u) => {
+        const email = u.primary_email.toLowerCase();
+        const name = u.profile?.display_name?.toLowerCase() ?? "";
+        return email.includes(q) || name.includes(q);
+      })
+      .slice(0, 8);
+  }, [pool, query]);
+
+  if (value) {
+    return (
+      <div className="rounded-md border border-m3-outline-variant bg-white px-3 py-2 flex items-center gap-3">
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-text-strong truncate">
+            {value.profile?.display_name?.trim() || value.primary_email}
+          </p>
+          <p className="text-xs text-text-muted truncate">
+            {value.primary_email}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => onSelect(null)}
+          className="text-text-muted hover:text-text-strong shrink-0"
+          aria-label={t("admin.organizations.actions.cancel")}
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative">
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted pointer-events-none" />
+        <Input
+          type="text"
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setOpen(true);
+          }}
+          onFocus={() => setOpen(true)}
+          onBlur={() => setTimeout(() => setOpen(false), 150)}
+          placeholder={t("admin.organizations.memberships.user_search_placeholder")}
+          className="pl-10"
+        />
+      </div>
+      {open && (
+        <div className="absolute z-10 mt-1 w-full rounded-md border border-m3-outline-variant bg-white shadow-lg max-h-64 overflow-auto">
+          {isLoading ? (
+            <p className="p-3 text-sm text-text-muted">
+              {t("admin.organizations.memberships.user_search_loading")}
+            </p>
+          ) : matches.length === 0 ? (
+            <p className="p-3 text-sm text-text-muted">
+              {t("admin.organizations.memberships.user_search_empty")}
+            </p>
+          ) : (
+            <ul className="py-1">
+              {matches.map((u) => (
+                <li key={u.id}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onSelect(u);
+                      setQuery("");
+                      setOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-2 hover:bg-m3-primary-fixed/40 flex items-center gap-3"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-m3-primary-fixed flex items-center justify-center shrink-0">
+                      <Users className="h-4 w-4 text-m3-primary" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-text-strong truncate">
+                        {u.profile?.display_name?.trim() || u.primary_email}
+                      </p>
+                      <p className="text-xs text-text-muted truncate">
+                        {u.primary_email}
+                      </p>
+                    </div>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function MembershipsTab({ orgId }: { orgId: string }) {
   const { t } = useTranslation();
   const { data: members, isLoading } = useOrganizationMemberships(orgId);
   const create = useCreateMembership(orgId);
   const [showAdd, setShowAdd] = useState(false);
-  const [userId, setUserId] = useState("");
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [studentCode, setStudentCode] = useState("");
   const [employeeCode, setEmployeeCode] = useState("");
   const [memStatus, setMemStatus] = useState<MembershipStatus>("active");
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
+    if (!selectedUser) return;
     try {
       await create.mutateAsync({
-        user_id: userId,
+        user_id: selectedUser.id,
         org_unit_id: null,
         status: memStatus,
         student_code: studentCode || null,
         employee_code: employeeCode || null,
       });
-      setUserId("");
+      setSelectedUser(null);
       setStudentCode("");
       setEmployeeCode("");
       setMemStatus("active");
@@ -685,20 +804,18 @@ function MembershipsTab({ orgId }: { orgId: string }) {
           </p>
           <label className="block">
             <span className="text-sm font-semibold text-text-strong">
-              user_id <span className="text-red-500">*</span>
+              {t("admin.organizations.memberships.user_label")}{" "}
+              <span className="text-red-500">*</span>
             </span>
-            <Input
-              type="text"
-              required
-              value={userId}
-              onChange={(e) => setUserId(e.target.value)}
-              placeholder={t(
-                "admin.organizations.memberships.user_id_placeholder",
-              )}
-              className="mt-1 font-mono"
-            />
+            <div className="mt-1">
+              <UserSearchCombobox
+                value={selectedUser}
+                onSelect={setSelectedUser}
+                enabled={showAdd}
+              />
+            </div>
             <span className="text-xs text-text-muted mt-1 block">
-              {t("admin.organizations.memberships.user_id_hint")}
+              {t("admin.organizations.memberships.user_search_hint")}
             </span>
           </label>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -752,7 +869,10 @@ function MembershipsTab({ orgId }: { orgId: string }) {
             </label>
           </div>
           <div className="flex justify-end">
-            <Button type="submit" disabled={create.isPending}>
+            <Button
+              type="submit"
+              disabled={create.isPending || !selectedUser}
+            >
               {create.isPending
                 ? t("admin.organizations.actions.adding")
                 : t("admin.organizations.actions.add")}

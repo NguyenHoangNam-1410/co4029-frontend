@@ -10,6 +10,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiDelete, apiFetch, apiPatch, apiPost } from "../client";
 import { queryKeys } from "../query-keys";
+import type { User, UserListPage } from "../types";
 import type {
   MembershipCreate,
   MembershipPatch,
@@ -24,6 +25,30 @@ import type {
   OrgUnitPatch,
   OrgUnitRead,
 } from "../types/admin-organizations";
+
+// ---------------------------------------------------------------------------
+// Admin user search (for membership add typeahead)
+// ---------------------------------------------------------------------------
+
+/**
+ * Lightweight admin-users fetch for the membership-search combobox.
+ * Filters client-side on email since the backend `/admin/users` doesn't
+ * expose a full-text search query yet. Caps at 200 rows which fits
+ * the current dataset comfortably.
+ */
+export function useAdminUsersForSearch(enabled = true) {
+  return useQuery({
+    queryKey: ["admin", "users", "search-pool"] as const,
+    queryFn: async () => {
+      const page = await apiFetch<UserListPage>(
+        `/admin/users?limit=200&status=active`,
+      );
+      return page.items as User[];
+    },
+    staleTime: 1000 * 30,
+    enabled,
+  });
+}
 
 // ---------------------------------------------------------------------------
 // Organizations
