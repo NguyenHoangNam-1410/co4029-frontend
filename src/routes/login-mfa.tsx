@@ -21,13 +21,19 @@ export default function LoginMfaPage() {
   const search = useSearch({ strict: false }) as { next?: string };
   const { isAuthenticated, requiresMfa } = useAuth();
 
-  const [challengeId, setChallengeId] = useState<string | null>(null);
-  const [mode, setMode] = useState<Mode>("totp");
-  const [code, setCode] = useState("");
-
   const challenge = useMfaChallenge();
   const verify = useVerifyMfa();
   const requestedRef = useRef(false);
+
+  const [mode, setMode] = useState<Mode>("totp");
+  const [code, setCode] = useState("");
+
+  // Source of truth for the active challenge id is the mutation's
+  // own ``data`` field — it survives mid-component HMR swaps that
+  // would otherwise leave a separate ``useState`` stuck at null when
+  // ``onSuccess`` doesn't fire (the user-reported "button stays
+  // disabled even after typing 6 digits" bug).
+  const challengeId = challenge.data?.challenge_id ?? null;
 
   // Stable refs so we can drop the mutation objects from the effect's
   // dep array. React Query returns a new mutation object on every
@@ -43,9 +49,6 @@ export default function LoginMfaPage() {
 
   function requestChallenge() {
     challengeMutate(undefined, {
-      onSuccess: (response) => {
-        setChallengeId(response.challenge_id);
-      },
       onError: () => {
         // Allow a retry: the next nav into this page (or a manual
         // refresh) should mint a new challenge instead of being
