@@ -25,6 +25,8 @@ export const queryKeys = {
     moduleDetail: (id: string) => ["courses", "module-detail", id] as const,
     moduleItems: (id: string) => ["courses", "module-items", id] as const,
     moduleLessons: (id: string) => ["courses", "module-lessons", id] as const,
+    moduleLessonsAuthoring: (id: string) =>
+      ["courses", "module-lessons-authoring", id] as const,
     lesson: (id: string) => ["courses", "lesson", id] as const,
     lessonResources: (id: string) => ["courses", "lesson-resources", id] as const,
     resourceDownload: (id: string) =>

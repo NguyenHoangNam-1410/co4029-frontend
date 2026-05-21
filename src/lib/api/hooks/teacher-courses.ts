@@ -238,6 +238,23 @@ type CreateLessonInput = Omit<
 };
 
 /**
+ * List all lessons under a module for authoring — drafts INCLUDED.
+ *
+ * Sibling of the learner `useModuleLessons` (which filters publish-only).
+ * The FR-5 quiz generation panel needs the full list when teachers are
+ * building quizzes on yet-unpublished modules; learner endpoint hides
+ * those.
+ */
+export function useAuthoringModuleLessons(moduleId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.courses.moduleLessonsAuthoring(moduleId ?? ""),
+    queryFn: () =>
+      apiFetch<LessonAuthoring[]>(`/teacher/modules/${moduleId}/lessons`),
+    enabled: !!moduleId,
+  });
+}
+
+/**
  * Server atomically inserts the linking `ModuleItem` row alongside the
  * lesson — callers must NOT also POST to `/modules/{id}/items` after this
  * or they will create a duplicate item pointing at the same lesson.
@@ -257,6 +274,9 @@ export function useCreateLesson(moduleId: string, courseId: string) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.courses.content(courseId) });
       qc.invalidateQueries({ queryKey: queryKeys.courses.moduleLessons(moduleId) });
+      qc.invalidateQueries({
+        queryKey: queryKeys.courses.moduleLessonsAuthoring(moduleId),
+      });
       qc.invalidateQueries({ queryKey: queryKeys.courses.moduleItems(moduleId) });
       qc.invalidateQueries({ queryKey: ["teacher", "courses", courseId, "content"] });
     },
