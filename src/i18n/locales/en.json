@@ -303,6 +303,7 @@
     "verify": "Verify",
     "verifying": "Verifying…",
     "creating_challenge": "Creating verification challenge…",
+    "resend_challenge": "Resend verification challenge",
     "errors": {
       "challenge_failed": "Couldn't start two-factor verification. Please try again.",
       "session_not_ready": "Verification session not ready. Please wait a moment.",

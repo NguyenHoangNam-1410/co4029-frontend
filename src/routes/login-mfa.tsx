@@ -41,6 +41,21 @@ export default function LoginMfaPage() {
   // stable, so we capture once and use that.
   const challengeMutate = challenge.mutate;
 
+  function requestChallenge() {
+    challengeMutate(undefined, {
+      onSuccess: (response) => {
+        setChallengeId(response.challenge_id);
+      },
+      onError: () => {
+        // Allow a retry: the next nav into this page (or a manual
+        // refresh) should mint a new challenge instead of being
+        // permanently locked out by the ref guard.
+        requestedRef.current = false;
+        toast.error(t("login_mfa.errors.challenge_failed"));
+      },
+    });
+  }
+
   useEffect(() => {
     if (!isAuthenticated) {
       void navigate({ to: "/login", search: { next: undefined }, replace: true });
@@ -56,19 +71,12 @@ export default function LoginMfaPage() {
     if (requestedRef.current) return;
     requestedRef.current = true;
 
-    challengeMutate(undefined, {
-      onSuccess: (response) => {
-        setChallengeId(response.challenge_id);
-      },
-      onError: () => {
-        // Allow a retry: the next nav into this page (or a manual
-        // refresh) should mint a new challenge instead of being
-        // permanently locked out by the ref guard.
-        requestedRef.current = false;
-        toast.error(t("login_mfa.errors.challenge_failed"));
-      },
-    });
-    // challengeMutate is stable; deliberately exclude it.
+    requestChallenge();
+    // ``requestChallenge`` is intentionally excluded — the body uses
+    // ``challengeMutate`` (stable from react-query) and the ref guard
+    // prevents re-entry. Keeping deps to the actual auth-state inputs
+    // also makes deps a stable size across HMR swaps, so React doesn't
+    // throw "deps array changed size between renders".
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, requiresMfa, search.next, navigate, t]);
 
@@ -211,6 +219,19 @@ export default function LoginMfaPage() {
             {t("login_mfa.creating_challenge")}
           </p>
         )}
+
+        {!challengeId && !isLoadingChallenge && isAuthenticated && requiresMfa ? (
+          <button
+            type="button"
+            onClick={() => {
+              requestedRef.current = true;
+              requestChallenge();
+            }}
+            className="mx-auto block text-xs font-medium text-m3-secondary hover:underline"
+          >
+            {t("login_mfa.resend_challenge")}
+          </button>
+        ) : null}
       </section>
     </main>
   );
