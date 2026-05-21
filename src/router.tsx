@@ -9,6 +9,7 @@ import {
 
 import { getStoredAuthSession } from "@/lib/auth";
 import { AuthProvider } from "@/components/auth/AuthProvider";
+import { MfaGate } from "@/components/auth/MfaGate";
 import { Toaster } from "sonner";
 
 import LandingPage from "@/routes/landing";
@@ -37,7 +38,9 @@ import StudyCardsDuePage from "@/routes/study-cards-due";
 function Root() {
   return (
     <AuthProvider>
-      <Outlet />
+      <MfaGate>
+        <Outlet />
+      </MfaGate>
       <Toaster position="top-right" richColors />
     </AuthProvider>
   );
