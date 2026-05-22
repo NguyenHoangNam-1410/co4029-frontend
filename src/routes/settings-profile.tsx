@@ -1,6 +1,8 @@
 import { type FormEvent, useState } from "react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { useNavigate, useRouter } from "@tanstack/react-router";
+import { ArrowLeft } from "lucide-react";
 import { useMe, useUpdateProfile } from "@/lib/api/hooks/auth";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -16,9 +18,22 @@ interface FieldErrors {
 
 export default function SettingsProfilePage() {
   const { t } = useTranslation();
+  const router = useRouter();
+  const navigate = useNavigate();
   const { data: me } = useMe();
   const updateProfile = useUpdateProfile();
   const [errors, setErrors] = useState<FieldErrors>({});
+
+  // Go back to previous page if available, fall back to settings hub.
+  // Direct deep-links / refreshes have no useful history entry, so the
+  // fallback prevents a no-op back button.
+  function goBack() {
+    if (window.history.length > 1) {
+      router.history.back();
+    } else {
+      void navigate({ to: "/settings" });
+    }
+  }
 
   function validate(form: FormData): FieldErrors | null {
     const errs: FieldErrors = {};
@@ -70,6 +85,8 @@ export default function SettingsProfilePage() {
       {
         onSuccess: () => {
           toast.success(t("settings_profile.toasts.saved"));
+          // Return to the page the user came from once the save lands.
+          goBack();
         },
         onError: () => {
           toast.error(t("settings_profile.toasts.save_failed"));
@@ -79,7 +96,22 @@ export default function SettingsProfilePage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-2xl space-y-4 p-6">
+      <div className="flex items-center gap-3">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={goBack}
+          aria-label={t("settings_profile.back")}
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <span className="text-sm font-medium text-m3-on-surface-variant">
+          {t("settings_profile.back")}
+        </span>
+      </div>
       <Card>
         <CardHeader>
           <CardTitle>{t("settings_profile.title")}</CardTitle>

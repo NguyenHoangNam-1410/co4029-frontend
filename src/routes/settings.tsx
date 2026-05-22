@@ -1,6 +1,7 @@
-import { Link } from "@tanstack/react-router";
-import { Bell, ChevronRight, Shield, User } from "lucide-react";
+import { Link, useNavigate, useRouter } from "@tanstack/react-router";
+import { ArrowLeft, Bell, ChevronRight, Shield, User } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { Button } from "@/components/ui/button";
 
 interface HubCard {
   to: "/settings/profile" | "/settings/security" | "/settings/notifications";
@@ -32,9 +33,36 @@ const CARDS: HubCard[] = [
 
 export default function SettingsHubPage() {
   const { t } = useTranslation();
+  const router = useRouter();
+  const navigate = useNavigate();
+
+  // Settings hub is reachable from many places (sidebar, profile menu).
+  // Prefer real history; fall back to dashboard for direct loads.
+  function goBack() {
+    if (window.history.length > 1) {
+      router.history.back();
+    } else {
+      void navigate({ to: "/dashboard" });
+    }
+  }
 
   return (
     <div className="mx-auto w-full max-w-2xl space-y-6 p-6 pb-12">
+      <div className="flex items-center gap-3">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={goBack}
+          aria-label={t("settings_hub.back")}
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <span className="text-sm font-medium text-m3-on-surface-variant">
+          {t("settings_hub.back")}
+        </span>
+      </div>
       <header>
         <h1 className="font-headline text-3xl font-extrabold tracking-tight text-m3-on-surface">
           {t("settings_hub.title")}

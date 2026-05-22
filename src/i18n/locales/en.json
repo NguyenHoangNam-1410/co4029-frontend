@@ -411,6 +411,7 @@
     },
     "save": "Save profile",
     "saving": "Saving…",
+    "back": "Back",
     "errors": {
       "display_name_required": "Display name cannot be empty.",
       "display_name_max": "Display name must be at most 100 characters.",
@@ -1834,6 +1835,7 @@
   "settings_hub": {
     "title": "Settings",
     "subtitle": "Manage your profile, security, and notifications.",
+    "back": "Back",
     "cards": {
       "profile_title": "Profile",
       "profile_body": "Update your name, avatar, and personal information.",

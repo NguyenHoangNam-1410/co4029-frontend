@@ -408,6 +408,7 @@
     },
     "save": "Lưu hồ sơ",
     "saving": "Đang lưu...",
+    "back": "Quay lại",
     "errors": {
       "display_name_required": "Tên hiển thị không được để trống.",
       "display_name_max": "Tên hiển thị tối đa 100 ký tự.",
@@ -1824,6 +1825,7 @@
   "settings_hub": {
     "title": "Cài đặt",
     "subtitle": "Quản lý hồ sơ, bảo mật và thông báo của bạn.",
+    "back": "Quay lại",
     "cards": {
       "profile_title": "Hồ sơ",
       "profile_body": "Cập nhật tên, ảnh đại diện và thông tin cá nhân.",
