@@ -552,13 +552,13 @@ export function QuizGenerationPanel({
           <Input
             type="number"
             min={1}
-            max={20}
+            max={50}
             value={form.question_count}
             onChange={(e) =>
               setForm((current) => ({
                 ...current,
                 question_count: Math.min(
-                  20,
+                  50,
                   Math.max(1, Number(e.target.value) || 1),
                 ),
               }))
