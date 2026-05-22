@@ -15,6 +15,7 @@ import {
   Cpu,
   DollarSign,
   Briefcase,
+  User,
   type LucideIcon,
 } from "lucide-react";
 
@@ -58,7 +59,8 @@ export const adminNavItems: NavItem[] = [
 ];
 
 export const settingsNavItems: NavItem[] = [
-  { label: "Profile", i18nKey: "nav.profile", href: "/settings", icon: Settings },
+  { label: "Profile", i18nKey: "nav.profile", href: "/profile", icon: User },
+  { label: "Account settings", i18nKey: "nav.settings", href: "/settings", icon: Settings },
   { label: "Security", i18nKey: "nav.health", href: "/settings/security", icon: Shield },
   { label: "Notifications", i18nKey: "nav.processing", href: "/settings/notifications", icon: MessageSquare },
 ];
@@ -66,7 +68,7 @@ export const settingsNavItems: NavItem[] = [
 export const bottomNavItems: NavItem[] = [
   { label: "Home", i18nKey: "nav.dashboard", href: "/dashboard", icon: Home },
   { label: "Courses", i18nKey: "nav.courses", href: "/courses", icon: BookOpen },
-  { label: "Profile", i18nKey: "nav.profile", href: "/settings", icon: Settings },
+  { label: "Profile", i18nKey: "nav.profile", href: "/profile", icon: User },
 ];
 
 export const instructorBottomNavItems: NavItem[] = [

@@ -846,6 +846,7 @@ export default function LessonMaterialsPage() {
           {
             label: course?.title ?? t("teacher_common.breadcrumb_course"),
             to: "/teacher/courses/$courseId",
+            params: { courseId },
           },
           { label: lesson?.title ?? t("teacher_common.lesson_fallback") },
           { label: t("teacher_lesson_materials.breadcrumb.materials") },

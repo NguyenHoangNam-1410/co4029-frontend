@@ -156,6 +156,7 @@ export default function TeacherSrAtRiskPage() {
             {
               label: course?.title ?? t("teacher_sr_cohort.breadcrumb_course"),
               to: "/teacher/courses/$courseId",
+              params: { courseId },
             },
             { label: t("teacher_sr_at_risk.breadcrumb_at_risk") },
           ]}

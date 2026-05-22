@@ -1844,5 +1844,35 @@
       "notifications_title": "Notifications",
       "notifications_body": "Customize how you receive system notifications."
     }
+  },
+  "profile": {
+    "title": "My profile",
+    "subtitle": "An overview of your personal and account information.",
+    "back": "Back",
+    "edit": "Edit profile",
+    "go_to_settings": "Open settings",
+    "sections": {
+      "personal": "Personal information",
+      "account": "Account"
+    },
+    "fields": {
+      "full_name": "Full name",
+      "email": "Email",
+      "bio": "Bio",
+      "joined_at": "Joined",
+      "last_login_at": "Last sign-in"
+    },
+    "empty": {
+      "bio": "No bio yet",
+      "last_login": "No data yet"
+    },
+    "status": {
+      "active": "Active",
+      "invited": "Invited",
+      "pending": "Pending",
+      "disabled": "Disabled",
+      "inactive": "Inactive",
+      "suspended": "Suspended"
+    }
   }
 }

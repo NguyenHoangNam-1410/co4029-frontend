@@ -606,6 +606,7 @@ export default function LessonManagePage() {
             {
               label: course?.title ?? t("teacher_common.breadcrumb_course"),
               to: "/teacher/courses/$courseId",
+              params: { courseId },
             },
             { label: title || lesson?.title || t("teacher_common.lesson_fallback") },
           ]}

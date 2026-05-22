@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 export type BreadcrumbItem = {
   label: string;
   to?: string;
+  params?: Record<string, string>;
 };
 
 export function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
@@ -30,6 +31,7 @@ export function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
             {item.to && !isLast ? (
               <Link
                 to={item.to}
+                params={item.params ?? {}}
                 className="rounded-md px-1 hover:text-m3-primary hover:underline focus-visible:outline-2 focus-visible:outline-m3-primary transition-colors"
               >
                 {item.label}

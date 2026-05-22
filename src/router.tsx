@@ -27,6 +27,7 @@ import LoginMfaPage from "@/routes/login-mfa";
 import SettingsProfilePage from "@/routes/settings-profile";
 import SettingsSecurityPage from "@/routes/settings-security";
 import SettingsHubPage from "@/routes/settings";
+import ProfilePage from "@/routes/profile";
 import { ProgressPage, InterviewPage } from "@/routes/placeholder";
 import CareerPathsPage from "@/routes/career-paths";
 import CareerPathDetailPage from "@/routes/career-path-detail";
@@ -140,6 +141,12 @@ const settingsRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/settings",
   component: SettingsHubPage,
+});
+
+const profileRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/profile",
+  component: ProfilePage,
 });
 
 const settingsNotificationsRoute = createRoute({
@@ -455,6 +462,7 @@ const routeTree = rootRoute.addChildren([
     courseInterviewRoute,
     progressRoute,
     settingsRoute,
+    profileRoute,
     settingsNotificationsRoute,
     settingsProfileRoute,
     settingsSecurityRoute,

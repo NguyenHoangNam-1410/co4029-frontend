@@ -348,10 +348,12 @@ export default function QuizManagePage() {
           {
             label: course?.title ?? t("teacher_common.breadcrumb_course"),
             to: "/teacher/courses/$courseId",
+            params: { courseId },
           },
           {
             label: courseModule.title,
             to: "/teacher/courses/$courseId/modules/$moduleId",
+            params: { courseId, moduleId },
           },
           { label: quiz.title },
         ]}

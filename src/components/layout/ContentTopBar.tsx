@@ -81,7 +81,7 @@ export default function ContentTopBar() {
               </DropdownMenuItem>
 
               <DropdownMenuItem className="rounded-md px-3 py-2 gap-3 cursor-pointer text-m3-on-surface hover:bg-primary-soft focus:bg-primary-soft focus:text-primary">
-                <Link to="/settings" className="flex items-center gap-3 w-full">
+                <Link to="/profile" className="flex items-center gap-3 w-full">
                   <User className="h-4 w-4 text-m3-on-surface-variant" />
                   <span className="text-sm font-medium">{t("nav.profile")}</span>
                 </Link>

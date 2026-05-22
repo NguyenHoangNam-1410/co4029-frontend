@@ -248,6 +248,7 @@ export default function InterviewConfigPage() {
           {
             label: course?.title ?? t("teacher_common.breadcrumb_course"),
             to: "/teacher/courses/$courseId",
+            params: { courseId },
           },
           ...(courseModule ? [{ label: courseModule.title }] : []),
           { label: config.title },

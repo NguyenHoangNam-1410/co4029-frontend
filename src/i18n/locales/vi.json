@@ -1834,5 +1834,35 @@
       "notifications_title": "Thông báo",
       "notifications_body": "Tùy chỉnh cách bạn nhận thông báo từ hệ thống."
     }
+  },
+  "profile": {
+    "title": "Hồ sơ của tôi",
+    "subtitle": "Tổng quan thông tin cá nhân và tài khoản của bạn.",
+    "back": "Quay lại",
+    "edit": "Chỉnh sửa hồ sơ",
+    "go_to_settings": "Mở cài đặt",
+    "sections": {
+      "personal": "Thông tin cá nhân",
+      "account": "Tài khoản"
+    },
+    "fields": {
+      "full_name": "Họ và tên",
+      "email": "Email",
+      "bio": "Giới thiệu",
+      "joined_at": "Ngày tham gia",
+      "last_login_at": "Lần đăng nhập gần nhất"
+    },
+    "empty": {
+      "bio": "Chưa có giới thiệu",
+      "last_login": "Chưa có dữ liệu"
+    },
+    "status": {
+      "active": "Đang hoạt động",
+      "invited": "Đã mời",
+      "pending": "Đang chờ",
+      "disabled": "Đã vô hiệu",
+      "inactive": "Không hoạt động",
+      "suspended": "Tạm khoá"
+    }
   }
 }

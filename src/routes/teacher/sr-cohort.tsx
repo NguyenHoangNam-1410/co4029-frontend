@@ -185,6 +185,7 @@ export default function TeacherSrCohortPage() {
             {
               label: course?.title ?? t("teacher_sr_cohort.breadcrumb_course"),
               to: "/teacher/courses/$courseId",
+              params: { courseId },
             },
             { label: t("teacher_sr_cohort.breadcrumb_overview") },
           ]}

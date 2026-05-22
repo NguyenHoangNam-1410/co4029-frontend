@@ -569,6 +569,7 @@ export default function ModuleManagePage() {
           {
             label: course?.title ?? t("teacher_common.breadcrumb_course"),
             to: "/teacher/courses/$courseId",
+            params: { courseId },
           },
           { label: module.title },
         ]}
