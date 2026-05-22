@@ -317,6 +317,7 @@ export default function LessonManagePage() {
   const deleteResource = useDeleteLessonResource(lessonId);
 
   const moduleId = lesson?.module_id ?? "";
+  const courseModule = (content?.modules ?? []).find((m) => m.id === moduleId);
   const createMaterial = useCreateMaterial(courseId, moduleId, lessonId);
   const initVideoUpload = useInitMaterialUpload(lessonId);
   const completeVideoUpload = useCompleteMaterialUpload();
@@ -608,13 +609,25 @@ export default function LessonManagePage() {
               to: "/teacher/courses/$courseId",
               params: { courseId },
             },
+            ...(courseModule
+              ? [
+                  {
+                    label: courseModule.title,
+                    to: "/teacher/courses/$courseId/modules/$moduleId",
+                    params: { courseId, moduleId },
+                  },
+                ]
+              : []),
             { label: title || lesson?.title || t("teacher_common.lesson_fallback") },
           ]}
         />
       </div>
 
       <div className="py-3 mb-8 flex items-center justify-between gap-3">
-        <Link to="/teacher/courses/$courseId" params={{ courseId }}>
+        <Link
+          to={moduleId ? "/teacher/courses/$courseId/modules/$moduleId" : "/teacher/courses/$courseId"}
+          params={moduleId ? { courseId, moduleId } : { courseId }}
+        >
           <Button variant="ghost" size="sm" className="-ml-2.5 gap-2 text-m3-on-surface-variant">
             <ArrowLeft className="h-4 w-4" />
             <span className="hidden sm:inline">{t("teacher_common.back_to_course")}</span>
