@@ -1,7 +1,9 @@
 import { useMemo } from "react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
-import { Bell, Loader2 } from "lucide-react";
+import { useNavigate, useRouter } from "@tanstack/react-router";
+import { ArrowLeft, Bell, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { SectionHeader } from "@/components/ui/section-header";
 import {
   useNotificationPreferences,
@@ -69,9 +71,22 @@ function ToggleSwitch({
 
 export default function SettingsNotificationsPage() {
   const { t } = useTranslation();
+  const router = useRouter();
+  const navigate = useNavigate();
   const { data: prefs, isLoading, isError, error } =
     useNotificationPreferences();
   const patch = usePatchNotificationPreference();
+
+  // Settings sub-pages are typically reached from /settings; fall back there
+  // if the user lands here directly (refresh / deep link) so the back button
+  // never becomes a no-op.
+  function goBack() {
+    if (window.history.length > 1) {
+      router.history.back();
+    } else {
+      void navigate({ to: "/settings" });
+    }
+  }
 
   const matrix = useMemo(
     () =>
@@ -104,7 +119,22 @@ export default function SettingsNotificationsPage() {
 
   return (
     <div className="min-h-screen pb-16">
-      <div className="max-w-3xl mx-auto pb-6 space-y-6">
+      <div className="max-w-3xl mx-auto pb-6 space-y-6 p-6">
+        <div className="flex items-center gap-3">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={goBack}
+            aria-label={t("settings_hub.back")}
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-sm font-medium text-m3-on-surface-variant">
+            {t("settings_hub.back")}
+          </span>
+        </div>
         <SectionHeader
           title={t("settings_notifications.title")}
           subtitle={t("settings_notifications.subtitle")}

@@ -1,6 +1,7 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { useState } from "react";
-import { Bell, Loader2, Settings, User, LogOut } from "lucide-react";
+import { Bell, Loader2, LayoutDashboard, Settings, User, LogOut } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -12,17 +13,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { getAuthDisplayName, getAuthUserInitials } from "@/lib/auth";
 import { topNavLinks } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 
 export default function TopNavBar() {
   const { isAuthenticated, logout, status, user } = useAuth();
+  const { t } = useTranslation();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const location = useLocation();
   const displayName = getAuthDisplayName(user);
 
-  async function handleLogout() {
+  async function handleConfirmLogout() {
+    if (isLoggingOut) return;
     setIsLoggingOut(true);
     try {
       await logout();
@@ -38,15 +43,16 @@ export default function TopNavBar() {
           <Link to="/" className="text-2xl font-bold tracking-tight text-primary font-heading cursor-pointer">
             aBridgeAI
           </Link>
-          <div className="hidden md:flex gap-6 items-center">
+          <div className="hidden md:flex gap-2 items-center">
             {topNavLinks.map((link) => (
               <Link
                 key={link.href}
                 to={link.href}
                 className={cn(
-                  "font-heading tracking-tight text-sm font-semibold transition-colors cursor-pointer",
+                  "font-heading tracking-tight text-sm font-semibold transition-all duration-200 cursor-pointer",
+                  "px-3 py-1.5 rounded-md hover:bg-m3-primary-fixed/40 hover:opacity-90",
                   location.pathname === link.href
-                    ? "text-primary border-b-2 border-primary pb-1"
+                    ? "text-primary"
                     : "text-text-muted hover:text-primary"
                 )}
               >
@@ -98,15 +104,22 @@ export default function TopNavBar() {
                   <DropdownMenuGroup>
                     <DropdownMenuItem className="rounded-lg px-3 py-2 gap-3 cursor-pointer text-m3-on-surface hover:bg-m3-primary-fixed focus:bg-m3-primary-fixed focus:text-m3-primary">
                       <Link to="/dashboard" className="flex items-center gap-3 w-full">
-                        <User className="h-4 w-4 text-m3-on-surface-variant" />
-                        <span className="text-sm font-medium">Dashboard</span>
+                        <LayoutDashboard className="h-4 w-4 text-m3-on-surface-variant" />
+                        <span className="text-sm font-medium">{t("nav.dashboard")}</span>
                       </Link>
                     </DropdownMenuItem>
 
                     <DropdownMenuItem className="rounded-lg px-3 py-2 gap-3 cursor-pointer text-m3-on-surface hover:bg-m3-primary-fixed focus:bg-m3-primary-fixed focus:text-m3-primary">
                       <Link to="/settings" className="flex items-center gap-3 w-full">
                         <Settings className="h-4 w-4 text-m3-on-surface-variant" />
-                        <span className="text-sm font-medium">Settings</span>
+                        <span className="text-sm font-medium">{t("nav.settings")}</span>
+                      </Link>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem className="rounded-lg px-3 py-2 gap-3 cursor-pointer text-m3-on-surface hover:bg-m3-primary-fixed focus:bg-m3-primary-fixed focus:text-m3-primary">
+                      <Link to="/profile" className="flex items-center gap-3 w-full">
+                        <User className="h-4 w-4 text-m3-on-surface-variant" />
+                        <span className="text-sm font-medium">{t("nav.profile")}</span>
                       </Link>
                     </DropdownMenuItem>
                   </DropdownMenuGroup>
@@ -117,14 +130,14 @@ export default function TopNavBar() {
                     variant="destructive"
                     className="rounded-lg px-3 py-2 gap-3 cursor-pointer"
                     disabled={isLoggingOut}
-                    onClick={() => void handleLogout()}
+                    onClick={() => setConfirmOpen(true)}
                   >
                     {isLoggingOut ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
                       <LogOut className="h-4 w-4" />
                     )}
-                    <span className="text-sm font-medium">Log out</span>
+                    <span className="text-sm font-medium">{t("nav.logout")}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -136,6 +149,31 @@ export default function TopNavBar() {
           )}
         </div>
       </div>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={(next) => {
+          // Block dismissal while the logout request is in flight.
+          if (isLoggingOut && !next) return;
+          setConfirmOpen(next);
+        }}
+        title={t("logout_confirm.title")}
+        description={t("logout_confirm.description")}
+        confirmLabel={
+          isLoggingOut ? (
+            <span className="flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              {t("logout_confirm.confirming")}
+            </span>
+          ) : (
+            t("logout_confirm.confirm")
+          )
+        }
+        cancelLabel={t("logout_confirm.cancel")}
+        confirmVariant="destructive"
+        isPending={isLoggingOut}
+        onConfirm={() => void handleConfirmLogout()}
+      />
     </nav>
   );
 }
