@@ -1137,7 +1137,42 @@
       "source_interview_session": "Phiên phỏng vấn nguồn"
     }
   },
+  "course_quiz_review": {
+    "back_to_quiz": "Quay lại quiz",
+    "not_found_title": "Không tìm thấy lượt làm bài",
+    "not_found_body": "Lượt làm bài này có thể đã bị xóa, hoặc bạn không có quyền xem.",
+    "attempt_label": "Lượt #{{n}}",
+    "passed": "Đạt",
+    "failed": "Chưa đạt",
+    "passing_score": "Điểm đạt",
+    "questions_title": "Chi tiết từng câu hỏi",
+    "correct": "Đúng",
+    "incorrect": "Sai",
+    "skipped": "Bỏ qua",
+    "your_answer": "Câu trả lời của bạn",
+    "explanation": "Giải thích",
+    "points": "{{n}} điểm",
+    "hint_used": "Đã dùng gợi ý",
+    "stats": {
+      "correct": "Đúng",
+      "incorrect": "Sai",
+      "skipped": "Bỏ qua",
+      "time": "Thời gian"
+    },
+    "option": {
+      "your_correct": "Bạn chọn · Đúng",
+      "your_incorrect": "Bạn chọn",
+      "correct": "Đáp án đúng"
+    }
+  },
   "course_quiz": {
+    "history": {
+      "title": "Các lượt trước",
+      "review": "Xem lại",
+      "passed": "Đạt",
+      "failed": "Chưa đạt",
+      "no_score": "Chưa có điểm"
+    },
     "sections": {
       "config": "Cấu hình bài quiz",
       "module_review": "Đánh giá module",

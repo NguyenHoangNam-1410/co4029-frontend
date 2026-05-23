@@ -2002,6 +2002,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/attempts/{attempt_id}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Attempt Review
+         * @description Full review payload — attempt summary + per-question correctness.
+         *
+         *     Returns 404 when the attempt is missing, belongs to a different student,
+         *     or hasn't been submitted yet (review only opens after submission so
+         *     correct-option flags can't leak mid-attempt).
+         */
+        get: operations["get_attempt_review_api_v1_attempts__attempt_id__review_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/quizzes/{quiz_id}/attempts": {
         parameters: {
             query?: never;
@@ -7736,6 +7760,85 @@ export interface components {
             correct_count?: number | null;
         };
         /**
+         * QuizAttemptReviewOption
+         * @description Option projection used for attempt review.
+         *
+         *     Surfaces ``is_correct`` (which the student is normally not allowed to
+         *     see at quiz-take time) because review happens *after* the attempt is
+         *     submitted/graded — there's nothing left to cheat at.
+         */
+        QuizAttemptReviewOption: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Option Key */
+            option_key: string;
+            /** Option Text */
+            option_text: string;
+            /** Is Correct */
+            is_correct: boolean;
+            /** Position */
+            position: number;
+        };
+        /**
+         * QuizAttemptReviewQuestion
+         * @description One question + the student's answer + the correct answer.
+         */
+        QuizAttemptReviewQuestion: {
+            /**
+             * Question Id
+             * Format: uuid
+             */
+            question_id: string;
+            /** Position */
+            position: number;
+            /** Question Type */
+            question_type: string;
+            /** Prompt Text */
+            prompt_text: string;
+            /** Explanation */
+            explanation?: string | null;
+            /** Hint Text */
+            hint_text?: string | null;
+            /**
+             * Options
+             * @default []
+             */
+            options: components["schemas"]["QuizAttemptReviewOption"][];
+            /** Selected Option Id */
+            selected_option_id?: string | null;
+            /** Answer Text */
+            answer_text?: string | null;
+            /**
+             * Is Correct
+             * @default false
+             */
+            is_correct: boolean;
+            /**
+             * Points Awarded
+             * @default 0
+             */
+            points_awarded: string;
+            /**
+             * Hint Used
+             * @default false
+             */
+            hint_used: boolean;
+            /** T Actual Ms */
+            t_actual_ms?: number | null;
+        };
+        /**
+         * QuizAttemptReviewRead
+         * @description Full review payload — attempt summary + per-question breakdown.
+         */
+        QuizAttemptReviewRead: {
+            attempt: components["schemas"]["QuizAttemptRead"];
+            /** Questions */
+            questions: components["schemas"]["QuizAttemptReviewQuestion"][];
+        };
+        /**
          * QuizAttemptStart
          * @description Body for ``POST /quizzes/{id}/attempts``.
          *
@@ -9216,6 +9319,9 @@ export type SchemaQueueDepthOut = components['schemas']['QueueDepthOut'];
 export type SchemaQuizAttemptAnswerInput = components['schemas']['QuizAttemptAnswerInput'];
 export type SchemaQuizAttemptAnswerRead = components['schemas']['QuizAttemptAnswerRead'];
 export type SchemaQuizAttemptRead = components['schemas']['QuizAttemptRead'];
+export type SchemaQuizAttemptReviewOption = components['schemas']['QuizAttemptReviewOption'];
+export type SchemaQuizAttemptReviewQuestion = components['schemas']['QuizAttemptReviewQuestion'];
+export type SchemaQuizAttemptReviewRead = components['schemas']['QuizAttemptReviewRead'];
 export type SchemaQuizAttemptStart = components['schemas']['QuizAttemptStart'];
 export type SchemaQuizAuthoring = components['schemas']['QuizAuthoring'];
 export type SchemaQuizForAuthoringPublic = components['schemas']['QuizForAuthoringPublic'];
@@ -12821,6 +12927,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["QuizAttemptRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_attempt_review_api_v1_attempts__attempt_id__review_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attempt_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuizAttemptReviewRead"];
                 };
             };
             /** @description Validation Error */
