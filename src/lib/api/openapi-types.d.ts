@@ -2276,7 +2276,8 @@ export interface paths {
          *     Defaults to ``review_status='approved'`` so only vetted questions
          *     surface; pass ``review_status=`` (empty) to widen. ``exclude_quiz_id``
          *     is convenient for the modal launched from a target quiz so its own
-         *     questions don't appear in the bank list.
+         *     questions don't appear in the bank list. ``cursor`` is opaque and
+         *     round-trips through subsequent calls.
          */
         get: operations["list_question_bank_api_v1_teacher_courses__course_id__question_bank_get"];
         put?: never;
@@ -4184,6 +4185,20 @@ export interface components {
             name: string;
             /** Description */
             description?: string | null;
+        };
+        /**
+         * CareerPathListPage
+         * @description Cursor-paginated published career paths.
+         *
+         *     ``next_cursor`` is opaque and round-trips through subsequent calls.
+         *     Set when the page filled to ``limit`` (more rows may exist); ``None``
+         *     otherwise. Reconciliation §A10/§D2: cursor pagination, not offset.
+         */
+        CareerPathListPage: {
+            /** Items */
+            items: components["schemas"]["CareerPathPublic"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
         };
         /** CareerPathProgressRead */
         CareerPathProgressRead: {
@@ -7348,6 +7363,20 @@ export interface components {
             updated_at: string;
         };
         /**
+         * OrganizationListPage
+         * @description Cursor-paginated organisation listing.
+         *
+         *     ``next_cursor`` is opaque and round-trips through subsequent calls.
+         *     Set when the page filled to ``limit`` (more rows may exist); ``None``
+         *     otherwise. Reconciliation §A10/§D2: cursor pagination, not offset.
+         */
+        OrganizationListPage: {
+            /** Items */
+            items: components["schemas"]["OrganizationRead"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
+        /**
          * OrganizationPatch
          * @description Partial update for ``PATCH /admin/organizations/{id}``.
          */
@@ -7644,6 +7673,20 @@ export interface components {
              * @description IDs of bank questions to clone into the target quiz. Each source must be authored under a course the actor can edit.
              */
             source_question_ids: string[];
+        };
+        /**
+         * QuestionBankPage
+         * @description Cursor-paginated question-bank listing.
+         *
+         *     ``next_cursor`` is opaque and round-trips through subsequent calls.
+         *     Set when the page filled to ``limit`` (more rows may exist); ``None``
+         *     otherwise. Reconciliation §A10/§D2: cursor pagination, not offset.
+         */
+        QuestionBankPage: {
+            /** Items */
+            items: components["schemas"]["QuestionBankEntry"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
         };
         /** QueueDepthOut */
         QueueDepthOut: {
@@ -8975,16 +9018,6 @@ export interface components {
              */
             pipeline_run_id: string;
         };
-        /**
-         * UserListPage
-         * @description Cursor-paginated list of users (T1.9 ``GET /users``).
-         */
-        UserListPage: {
-            /** Items */
-            items: components["schemas"]["UserRead"][];
-            /** Next Cursor */
-            next_cursor?: string | null;
-        };
         /** UserListRow */
         UserListRow: {
             /**
@@ -9150,6 +9183,30 @@ export interface components {
             /** Bucket */
             bucket: string;
         };
+        /**
+         * UserListPage
+         * @description Cursor-paginated admin user listing.
+         *
+         *     ``next_cursor`` is opaque and round-trips through subsequent calls.
+         *     Set when the page is full (more rows may exist); ``None`` otherwise.
+         *     Reconciliation §A10/§D2: cursor pagination, not offset.
+         */
+        abridgeai__features__admin__routers__users__UserListPage: {
+            /** Items */
+            items: components["schemas"]["UserListRow"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
+        /**
+         * UserListPage
+         * @description Cursor-paginated list of users (T1.9 ``GET /users``).
+         */
+        abridgeai__features__identity__schemas__profile__UserListPage: {
+            /** Items */
+            items: components["schemas"]["UserRead"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
     };
     responses: never;
     parameters: never;
@@ -9157,229 +9214,6 @@ export interface components {
     headers: never;
     pathItems: never;
 }
-export type SchemaActiveUsersOut = components['schemas']['ActiveUsersOut'];
-export type SchemaAdminCoursePage = components['schemas']['AdminCoursePage'];
-export type SchemaAssignTeacherRequest = components['schemas']['AssignTeacherRequest'];
-export type SchemaAtRiskListRead = components['schemas']['AtRiskListRead'];
-export type SchemaAtRiskReason = components['schemas']['AtRiskReason'];
-export type SchemaAtRiskStudent = components['schemas']['AtRiskStudent'];
-export type SchemaAtRiskStudentRead = components['schemas']['AtRiskStudentRead'];
-export type SchemaBulkEnrollFailure = components['schemas']['BulkEnrollFailure'];
-export type SchemaBulkEnrollRequest = components['schemas']['BulkEnrollRequest'];
-export type SchemaBulkEnrollResult = components['schemas']['BulkEnrollResult'];
-export type SchemaBulkSetExpectedTimeRequest = components['schemas']['BulkSetExpectedTimeRequest'];
-export type SchemaBulkSetExpectedTimeResponse = components['schemas']['BulkSetExpectedTimeResponse'];
-export type SchemaBulkSetItem = components['schemas']['BulkSetItem'];
-export type SchemaCsvImportFailure = components['schemas']['CSVImportFailure'];
-export type SchemaCsvImportPayload = components['schemas']['CSVImportPayload'];
-export type SchemaCsvImportResult = components['schemas']['CSVImportResult'];
-export type SchemaCardsDueItem = components['schemas']['CardsDueItem'];
-export type SchemaCardsDuePage = components['schemas']['CardsDuePage'];
-export type SchemaCareerPathAuthoring = components['schemas']['CareerPathAuthoring'];
-export type SchemaCareerPathCourseAdd = components['schemas']['CareerPathCourseAdd'];
-export type SchemaCareerPathCourseAuthoring = components['schemas']['CareerPathCourseAuthoring'];
-export type SchemaCareerPathCoursePublic = components['schemas']['CareerPathCoursePublic'];
-export type SchemaCareerPathCourseReorder = components['schemas']['CareerPathCourseReorder'];
-export type SchemaCareerPathCreate = components['schemas']['CareerPathCreate'];
-export type SchemaCareerPathProgressRead = components['schemas']['CareerPathProgressRead'];
-export type SchemaCareerPathPublic = components['schemas']['CareerPathPublic'];
-export type SchemaCareerPathStudentEnroll = components['schemas']['CareerPathStudentEnroll'];
-export type SchemaCareerPathUpdate = components['schemas']['CareerPathUpdate'];
-export type SchemaCheckStatus = components['schemas']['CheckStatus'];
-export type SchemaChunkPreview = components['schemas']['ChunkPreview'];
-export type SchemaClassKrDistributionRead = components['schemas']['ClassKRDistributionRead'];
-export type SchemaContentOut = components['schemas']['ContentOut'];
-export type SchemaCostTotals = components['schemas']['CostTotals'];
-export type SchemaCourseAuthoring = components['schemas']['CourseAuthoring'];
-export type SchemaCourseContentAuthoring = components['schemas']['CourseContentAuthoring'];
-export type SchemaCourseContentPublic = components['schemas']['CourseContentPublic'];
-export type SchemaCourseCreate = components['schemas']['CourseCreate'];
-export type SchemaCourseLearningOutcomeAuthoring = components['schemas']['CourseLearningOutcomeAuthoring'];
-export type SchemaCourseLearningOutcomePublic = components['schemas']['CourseLearningOutcomePublic'];
-export type SchemaCoursePage = components['schemas']['CoursePage'];
-export type SchemaCourseProcessingAudit = components['schemas']['CourseProcessingAudit'];
-export type SchemaCourseProgressSummary = components['schemas']['CourseProgressSummary'];
-export type SchemaCoursePublic = components['schemas']['CoursePublic'];
-export type SchemaCourseStats = components['schemas']['CourseStats'];
-export type SchemaCourseStatusCount = components['schemas']['CourseStatusCount'];
-export type SchemaCourseUpdate = components['schemas']['CourseUpdate'];
-export type SchemaCoverageOptions = components['schemas']['CoverageOptions'];
-export type SchemaDeepHealthOut = components['schemas']['DeepHealthOut'];
-export type SchemaDifficultCardRead = components['schemas']['DifficultCardRead'];
-export type SchemaDisableUserOut = components['schemas']['DisableUserOut'];
-export type SchemaEnableUserOut = components['schemas']['EnableUserOut'];
-export type SchemaEnrollmentAuthoring = components['schemas']['EnrollmentAuthoring'];
-export type SchemaEnrollmentPatch = components['schemas']['EnrollmentPatch'];
-export type SchemaEnrollmentRead = components['schemas']['EnrollmentRead'];
-export type SchemaGapReportAuthoringRead = components['schemas']['GapReportAuthoringRead'];
-export type SchemaGapReportRead = components['schemas']['GapReportRead'];
-export type SchemaGoogleLoginResponse = components['schemas']['GoogleLoginResponse'];
-export type SchemaGrantCreate = components['schemas']['GrantCreate'];
-export type SchemaGrantRead = components['schemas']['GrantRead'];
-export type SchemaHttpValidationError = components['schemas']['HTTPValidationError'];
-export type SchemaHealthOut = components['schemas']['HealthOut'];
-export type SchemaHistogramBucket = components['schemas']['HistogramBucket'];
-export type SchemaHttpAuditRow = components['schemas']['HttpAuditRow'];
-export type SchemaInstructorAuthoring = components['schemas']['InstructorAuthoring'];
-export type SchemaInstructorRead = components['schemas']['InstructorRead'];
-export type SchemaInterviewConfigAuthoring = components['schemas']['InterviewConfigAuthoring'];
-export type SchemaInterviewConfigCreate = components['schemas']['InterviewConfigCreate'];
-export type SchemaInterviewConfigPublic = components['schemas']['InterviewConfigPublic'];
-export type SchemaInterviewConfigUpdate = components['schemas']['InterviewConfigUpdate'];
-export type SchemaInterviewForTakingPublic = components['schemas']['InterviewForTakingPublic'];
-export type SchemaInterviewGenerationRequest = components['schemas']['InterviewGenerationRequest'];
-export type SchemaInterviewGenerationRunPublic = components['schemas']['InterviewGenerationRunPublic'];
-export type SchemaInterviewOutcomeAuthoring = components['schemas']['InterviewOutcomeAuthoring'];
-export type SchemaInterviewOutcomeCreate = components['schemas']['InterviewOutcomeCreate'];
-export type SchemaInterviewOutcomePublic = components['schemas']['InterviewOutcomePublic'];
-export type SchemaInterviewQuestionAuthoring = components['schemas']['InterviewQuestionAuthoring'];
-export type SchemaInterviewQuestionCreate = components['schemas']['InterviewQuestionCreate'];
-export type SchemaInterviewQuestionPublic = components['schemas']['InterviewQuestionPublic'];
-export type SchemaInterviewRubricScore = components['schemas']['InterviewRubricScore'];
-export type SchemaInterviewSessionFinishResponse = components['schemas']['InterviewSessionFinishResponse'];
-export type SchemaInterviewSessionPublic = components['schemas']['InterviewSessionPublic'];
-export type SchemaInterviewSessionStartRequest = components['schemas']['InterviewSessionStartRequest'];
-export type SchemaInterviewSessionStartResponse = components['schemas']['InterviewSessionStartResponse'];
-export type SchemaInterviewSubmitAnswerRequest = components['schemas']['InterviewSubmitAnswerRequest'];
-export type SchemaInterviewSubmitAnswerResponse = components['schemas']['InterviewSubmitAnswerResponse'];
-export type SchemaInvitationCodeAuthoring = components['schemas']['InvitationCodeAuthoring'];
-export type SchemaInvitationCodeCreate = components['schemas']['InvitationCodeCreate'];
-export type SchemaInvitationCodePatch = components['schemas']['InvitationCodePatch'];
-export type SchemaLessonAuthoring = components['schemas']['LessonAuthoring'];
-export type SchemaLessonCreate = components['schemas']['LessonCreate'];
-export type SchemaLessonOutline = components['schemas']['LessonOutline'];
-export type SchemaLessonOverviewItem = components['schemas']['LessonOverviewItem'];
-export type SchemaLessonProcessingSummary = components['schemas']['LessonProcessingSummary'];
-export type SchemaLessonProgressPublic = components['schemas']['LessonProgressPublic'];
-export type SchemaLessonProgressSummary = components['schemas']['LessonProgressSummary'];
-export type SchemaLessonPublic = components['schemas']['LessonPublic'];
-export type SchemaLessonResourceAuthoring = components['schemas']['LessonResourceAuthoring'];
-export type SchemaLessonResourceCreate = components['schemas']['LessonResourceCreate'];
-export type SchemaLessonResourcePublic = components['schemas']['LessonResourcePublic'];
-export type SchemaLessonUpdate = components['schemas']['LessonUpdate'];
-export type SchemaMaterialAuthoring = components['schemas']['MaterialAuthoring'];
-export type SchemaMaterialEngagementCreate = components['schemas']['MaterialEngagementCreate'];
-export type SchemaMaterialEngagementPublic = components['schemas']['MaterialEngagementPublic'];
-export type SchemaMaterialLinkExisting = components['schemas']['MaterialLinkExisting'];
-export type SchemaMaterialPublic = components['schemas']['MaterialPublic'];
-export type SchemaMaterialStreamUrl = components['schemas']['MaterialStreamUrl'];
-export type SchemaMaterialUpdate = components['schemas']['MaterialUpdate'];
-export type SchemaMaterialUploadComplete = components['schemas']['MaterialUploadComplete'];
-export type SchemaMaterialUploadInit = components['schemas']['MaterialUploadInit'];
-export type SchemaMaterialUploadInitOut = components['schemas']['MaterialUploadInitOut'];
-export type SchemaMaterialVersionAuthoring = components['schemas']['MaterialVersionAuthoring'];
-export type SchemaMembershipCreate = components['schemas']['MembershipCreate'];
-export type SchemaMembershipPatch = components['schemas']['MembershipPatch'];
-export type SchemaMembershipRead = components['schemas']['MembershipRead'];
-export type SchemaMfaChallengeResponse = components['schemas']['MfaChallengeResponse'];
-export type SchemaMfaDisableRequest = components['schemas']['MfaDisableRequest'];
-export type SchemaMfaEnrollResponse = components['schemas']['MfaEnrollResponse'];
-export type SchemaMfaRecoveryCodesResponse = components['schemas']['MfaRecoveryCodesResponse'];
-export type SchemaMfaStatusResponse = components['schemas']['MfaStatusResponse'];
-export type SchemaMfaTotpVerifyRequest = components['schemas']['MfaTotpVerifyRequest'];
-export type SchemaMfaVerifyRequest = components['schemas']['MfaVerifyRequest'];
-export type SchemaModuleAuthoring = components['schemas']['ModuleAuthoring'];
-export type SchemaModuleCreate = components['schemas']['ModuleCreate'];
-export type SchemaModuleItemAuthoring = components['schemas']['ModuleItemAuthoring'];
-export type SchemaModuleItemPublic = components['schemas']['ModuleItemPublic'];
-export type SchemaModuleItemReorder = components['schemas']['ModuleItemReorder'];
-export type SchemaModuleItemTarget = components['schemas']['ModuleItemTarget'];
-export type SchemaModuleItemUpdate = components['schemas']['ModuleItemUpdate'];
-export type SchemaModulePrerequisiteSet = components['schemas']['ModulePrerequisiteSet'];
-export type SchemaModulePublic = components['schemas']['ModulePublic'];
-export type SchemaModuleUpdate = components['schemas']['ModuleUpdate'];
-export type SchemaMultipartAbortIn = components['schemas']['MultipartAbortIn'];
-export type SchemaMultipartCompleteIn = components['schemas']['MultipartCompleteIn'];
-export type SchemaMultipartPartsOut = components['schemas']['MultipartPartsOut'];
-export type SchemaMyCareerEnrollmentRead = components['schemas']['MyCareerEnrollmentRead'];
-export type SchemaMyCourseProgressSummary = components['schemas']['MyCourseProgressSummary'];
-export type SchemaNotificationPreferenceRead = components['schemas']['NotificationPreferenceRead'];
-export type SchemaNotificationPreferenceUpdate = components['schemas']['NotificationPreferenceUpdate'];
-export type SchemaNotificationRead = components['schemas']['NotificationRead'];
-export type SchemaOrgUnitCreate = components['schemas']['OrgUnitCreate'];
-export type SchemaOrgUnitPatch = components['schemas']['OrgUnitPatch'];
-export type SchemaOrgUnitRead = components['schemas']['OrgUnitRead'];
-export type SchemaOrganizationCreate = components['schemas']['OrganizationCreate'];
-export type SchemaOrganizationDomainCreate = components['schemas']['OrganizationDomainCreate'];
-export type SchemaOrganizationDomainPatch = components['schemas']['OrganizationDomainPatch'];
-export type SchemaOrganizationDomainRead = components['schemas']['OrganizationDomainRead'];
-export type SchemaOrganizationPatch = components['schemas']['OrganizationPatch'];
-export type SchemaOrganizationRead = components['schemas']['OrganizationRead'];
-export type SchemaOutlineSection = components['schemas']['OutlineSection'];
-export type SchemaOverviewOut = components['schemas']['OverviewOut'];
-export type SchemaPermissionRead = components['schemas']['PermissionRead'];
-export type SchemaPipelineSpendOut = components['schemas']['PipelineSpendOut'];
-export type SchemaPipelineStage = components['schemas']['PipelineStage'];
-export type SchemaProcessingJobOut = components['schemas']['ProcessingJobOut'];
-export type SchemaProcessingJobRow = components['schemas']['ProcessingJobRow'];
-export type SchemaProcessingProgress = components['schemas']['ProcessingProgress'];
-export type SchemaQuestionBankEntry = components['schemas']['QuestionBankEntry'];
-export type SchemaQuestionBankImportRequest = components['schemas']['QuestionBankImportRequest'];
-export type SchemaQueueDepthOut = components['schemas']['QueueDepthOut'];
-export type SchemaQuizAttemptAnswerInput = components['schemas']['QuizAttemptAnswerInput'];
-export type SchemaQuizAttemptAnswerRead = components['schemas']['QuizAttemptAnswerRead'];
-export type SchemaQuizAttemptRead = components['schemas']['QuizAttemptRead'];
-export type SchemaQuizAttemptReviewOption = components['schemas']['QuizAttemptReviewOption'];
-export type SchemaQuizAttemptReviewQuestion = components['schemas']['QuizAttemptReviewQuestion'];
-export type SchemaQuizAttemptReviewRead = components['schemas']['QuizAttemptReviewRead'];
-export type SchemaQuizAttemptStart = components['schemas']['QuizAttemptStart'];
-export type SchemaQuizAuthoring = components['schemas']['QuizAuthoring'];
-export type SchemaQuizForAuthoringPublic = components['schemas']['QuizForAuthoringPublic'];
-export type SchemaQuizForTakingPublic = components['schemas']['QuizForTakingPublic'];
-export type SchemaQuizGenerationRequest = components['schemas']['QuizGenerationRequest'];
-export type SchemaQuizGenerationRunRead = components['schemas']['QuizGenerationRunRead'];
-export type SchemaQuizPublic = components['schemas']['QuizPublic'];
-export type SchemaQuizQuestionAuthoring = components['schemas']['QuizQuestionAuthoring'];
-export type SchemaQuizQuestionOptionAuthoring = components['schemas']['QuizQuestionOptionAuthoring'];
-export type SchemaQuizQuestionOptionPublic = components['schemas']['QuizQuestionOptionPublic'];
-export type SchemaQuizQuestionPublic = components['schemas']['QuizQuestionPublic'];
-export type SchemaQuizSummaryPublic = components['schemas']['QuizSummaryPublic'];
-export type SchemaRecentCallOut = components['schemas']['RecentCallOut'];
-export type SchemaRefreshTokenRequest = components['schemas']['RefreshTokenRequest'];
-export type SchemaReprocessOut = components['schemas']['ReprocessOut'];
-export type SchemaResourceDownloadUrlResponse = components['schemas']['ResourceDownloadUrlResponse'];
-export type SchemaRoleAssignmentCreate = components['schemas']['RoleAssignmentCreate'];
-export type SchemaRoleAssignmentRead = components['schemas']['RoleAssignmentRead'];
-export type SchemaRoleBreakdown = components['schemas']['RoleBreakdown'];
-export type SchemaRoleChangeRow = components['schemas']['RoleChangeRow'];
-export type SchemaRoleRead = components['schemas']['RoleRead'];
-export type SchemaRoleWithPermissionsRead = components['schemas']['RoleWithPermissionsRead'];
-export type SchemaRosterEntry = components['schemas']['RosterEntry'];
-export type SchemaRosterProgressRead = components['schemas']['RosterProgressRead'];
-export type SchemaSlugAvailability = components['schemas']['SlugAvailability'];
-export type SchemaStageBreakdown = components['schemas']['StageBreakdown'];
-export type SchemaStreamUrlResponse = components['schemas']['StreamUrlResponse'];
-export type SchemaStudentCareerEnrollmentAuthoring = components['schemas']['StudentCareerEnrollmentAuthoring'];
-export type SchemaStudentLessonSummaryRead = components['schemas']['StudentLessonSummaryRead'];
-export type SchemaStudentPathProgressAuthoring = components['schemas']['StudentPathProgressAuthoring'];
-export type SchemaStudentProgressRow = components['schemas']['StudentProgressRow'];
-export type SchemaStudentSrDetailLessonRead = components['schemas']['StudentSrDetailLessonRead'];
-export type SchemaStudentSrDetailRead = components['schemas']['StudentSrDetailRead'];
-export type SchemaStudentSrDetailReviewRead = components['schemas']['StudentSrDetailReviewRead'];
-export type SchemaStudyPlanItem = components['schemas']['StudyPlanItem'];
-export type SchemaSummaryOut = components['schemas']['SummaryOut'];
-export type SchemaTagAuthoring = components['schemas']['TagAuthoring'];
-export type SchemaTagPublic = components['schemas']['TagPublic'];
-export type SchemaTeacherAssignmentCreated = components['schemas']['TeacherAssignmentCreated'];
-export type SchemaTeacherAssignmentRead = components['schemas']['TeacherAssignmentRead'];
-export type SchemaTimeBucket = components['schemas']['TimeBucket'];
-export type SchemaTokenResponse = components['schemas']['TokenResponse'];
-export type SchemaTopOwnerRow = components['schemas']['TopOwnerRow'];
-export type SchemaUnreadCount = components['schemas']['UnreadCount'];
-export type SchemaUploadCompleteOut = components['schemas']['UploadCompleteOut'];
-export type SchemaUserListPage = components['schemas']['UserListPage'];
-export type SchemaUserListRow = components['schemas']['UserListRow'];
-export type SchemaUserPermissionsRead = components['schemas']['UserPermissionsRead'];
-export type SchemaUserProfileRead = components['schemas']['UserProfileRead'];
-export type SchemaUserProfileUpdate = components['schemas']['UserProfileUpdate'];
-export type SchemaUserRead = components['schemas']['UserRead'];
-export type SchemaUserSpendOut = components['schemas']['UserSpendOut'];
-export type SchemaValidationError = components['schemas']['ValidationError'];
-export type SchemaCompletedPartIn = components['schemas']['_CompletedPartIn'];
-export type SchemaMultipartPartOut = components['schemas']['_MultipartPartOut'];
-export type SchemaUploadUrlRequest = components['schemas']['_UploadUrlRequest'];
-export type SchemaUploadUrlResponse = components['schemas']['_UploadUrlResponse'];
-export type SchemaUploadUrlStorageObject = components['schemas']['_UploadUrlStorageObject'];
 export type $defs = Record<string, never>;
 export interface operations {
     google_login_api_v1_auth_google_login_get: {
@@ -9770,7 +9604,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UserListPage"];
+                    "application/json": components["schemas"]["abridgeai__features__identity__schemas__profile__UserListPage"];
                 };
             };
             /** @description Validation Error */
@@ -10119,7 +9953,7 @@ export interface operations {
                 include_deleted?: boolean;
                 org_status?: string | null;
                 limit?: number;
-                offset?: number;
+                cursor?: string | null;
             };
             header?: never;
             path?: never;
@@ -10133,7 +9967,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["OrganizationRead"][];
+                    "application/json": components["schemas"]["OrganizationListPage"];
                 };
             };
             /** @description Validation Error */
@@ -13449,7 +13283,7 @@ export interface operations {
                 search?: string | null;
                 exclude_quiz_id?: string | null;
                 limit?: number;
-                offset?: number;
+                cursor?: string | null;
             };
             header?: never;
             path: {
@@ -13465,7 +13299,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["QuestionBankEntry"][];
+                    "application/json": components["schemas"]["QuestionBankPage"];
                 };
             };
             /** @description Validation Error */
@@ -14765,7 +14599,7 @@ export interface operations {
         parameters: {
             query?: {
                 limit?: number;
-                offset?: number;
+                cursor?: string | null;
             };
             header?: never;
             path?: never;
@@ -14779,7 +14613,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CareerPathPublic"][];
+                    "application/json": components["schemas"]["CareerPathListPage"];
                 };
             };
             /** @description Validation Error */
@@ -15805,7 +15639,7 @@ export interface operations {
                 role_code?: string | null;
                 q?: string | null;
                 limit?: number;
-                offset?: number;
+                cursor?: string | null;
             };
             header?: never;
             path?: never;
@@ -15819,7 +15653,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UserListRow"][];
+                    "application/json": components["schemas"]["abridgeai__features__admin__routers__users__UserListPage"];
                 };
             };
             /** @description Validation Error */

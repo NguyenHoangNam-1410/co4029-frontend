@@ -105,7 +105,7 @@ export const queryKeys = {
       includeDeleted?: boolean,
       orgStatus?: string,
       limit?: number,
-      offset?: number,
+      cursor?: string,
     ) =>
       [
         "admin",
@@ -113,7 +113,7 @@ export const queryKeys = {
         includeDeleted ?? false,
         orgStatus,
         limit,
-        offset,
+        cursor,
       ] as const,
     organizationDetail: (id: string) =>
       ["admin", "organizations", "detail", id] as const,

@@ -205,8 +205,8 @@ export default function AdminOrganizationsPage() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return orgs.data ?? [];
-    return (orgs.data ?? []).filter(
+    if (!q) return orgs.data?.items ?? [];
+    return (orgs.data?.items ?? []).filter(
       (o) =>
         o.name.toLowerCase().includes(q) || o.slug.toLowerCase().includes(q),
     );

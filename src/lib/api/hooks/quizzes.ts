@@ -433,9 +433,13 @@ export function useQuestionBank(
         params.set("exclude_quiz_id", filters.excludeQuizId);
       }
       const qs = params.toString();
-      return apiFetch<QuestionBankEntry[]>(
-        `/teacher/courses/${courseId}/question-bank${qs ? `?${qs}` : ""}`,
-      );
+      // Endpoint is cursor-paginated — the modal renders the first
+      // page only, so we drop next_cursor and surface items directly.
+      const page = await apiFetch<{
+        items: QuestionBankEntry[];
+        next_cursor: string | null;
+      }>(`/teacher/courses/${courseId}/question-bank${qs ? `?${qs}` : ""}`);
+      return page.items;
     },
     enabled,
     staleTime: 30_000,
