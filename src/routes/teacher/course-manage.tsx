@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import {
   ArrowLeft, Plus, ChevronDown, ChevronRight,
   Video, BookOpen, GripVertical, HelpCircle, Mic,
-  Pencil, Loader2, ArrowRight, Check, Users,
+  Pencil, Loader2, ArrowRight, Check, Users, UserPlus,
   Settings, Save, ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -732,6 +732,12 @@ export default function CourseManagePage() {
           <Button variant="outline" size="sm" className="gap-2 border-m3-outline-variant/30 shrink-0">
             <Users className="h-4 w-4 text-m3-secondary" />
             <span className="hidden sm:inline">Students</span>
+          </Button>
+        </Link>
+        <Link to="/management/courses/$courseId/enrollments" params={{ courseId }}>
+          <Button variant="outline" size="sm" className="gap-2 border-m3-outline-variant/30 shrink-0">
+            <UserPlus className="h-4 w-4 text-m3-secondary" />
+            <span className="hidden sm:inline">Manage Enrollments</span>
           </Button>
         </Link>
       </div>

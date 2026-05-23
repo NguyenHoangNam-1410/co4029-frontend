@@ -740,11 +740,30 @@ function MembershipsTab({ orgId }: { orgId: string }) {
   const { t } = useTranslation();
   const { data: members, isLoading } = useOrganizationMemberships(orgId);
   const create = useCreateMembership(orgId);
-  const [showAdd, setShowAdd] = useState(false);
+  const [mode, setMode] = useState<"list" | "add" | "bulk">("list");
   const [selectedUser, setSelectedUser] = useState<AdminUserSearchRow | null>(null);
   const [studentCode, setStudentCode] = useState("");
   const [employeeCode, setEmployeeCode] = useState("");
   const [memStatus, setMemStatus] = useState<MembershipStatus>("active");
+
+  // Bulk add state
+  const [bulkText, setBulkText] = useState("");
+  const [bulkResults, setBulkResults] = useState<{ ok: string[]; failed: string[] } | null>(null);
+  const [bulkPending, setBulkPending] = useState(false);
+
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+  const parsedBulk = useMemo(() => {
+    const userIds: string[] = [];
+    const invalid: string[] = [];
+    for (const raw of bulkText.split(/\r?\n/)) {
+      const line = raw.trim();
+      if (!line) continue;
+      if (UUID_RE.test(line)) userIds.push(line);
+      else invalid.push(line);
+    }
+    return { userIds, invalid };
+  }, [bulkText]);
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -761,7 +780,7 @@ function MembershipsTab({ orgId }: { orgId: string }) {
       setStudentCode("");
       setEmployeeCode("");
       setMemStatus("active");
-      setShowAdd(false);
+      setMode("list");
       toast.success(t("admin.organizations.toasts.member_added"));
     } catch (err) {
       toast.error(
@@ -772,27 +791,80 @@ function MembershipsTab({ orgId }: { orgId: string }) {
     }
   }
 
+  async function handleBulkAdd(e: React.FormEvent) {
+    e.preventDefault();
+    const lines = parsedBulk.userIds;
+    if (lines.length === 0) return;
+    setBulkPending(true);
+    const ok: string[] = [];
+    const failed: string[] = [];
+    for (const userId of lines) {
+      try {
+        await create.mutateAsync({
+          user_id: userId,
+          org_unit_id: null,
+          status: "active",
+          student_code: null,
+          employee_code: null,
+        });
+        ok.push(userId);
+      } catch {
+        failed.push(userId);
+      }
+    }
+    setBulkPending(false);
+    setBulkResults({ ok, failed });
+    setBulkText("");
+    if (ok.length > 0) {
+      toast.success(
+        t("admin.organizations.toasts.bulk_added", {
+          count: ok.length,
+          defaultValue: `Added ${ok.length} member(s)`,
+        }),
+      );
+    }
+  }
+
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
-        <Button
-          type="button"
-          onClick={() => setShowAdd((v) => !v)}
-          variant={showAdd ? "ghost" : "default"}
-          className="gap-2"
-        >
-          {showAdd ? (
-            <X className="h-4 w-4" />
-          ) : (
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex gap-1">
+          <Button
+            type="button"
+            size="sm"
+            variant={mode === "add" ? "default" : "outline"}
+            onClick={() => setMode(mode === "add" ? "list" : "add")}
+            className="gap-2"
+          >
             <Plus className="h-4 w-4" />
-          )}
-          {showAdd
-            ? t("admin.organizations.actions.cancel")
-            : t("admin.organizations.memberships.add_title")}
-        </Button>
+            {t("admin.organizations.memberships.add_title")}
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant={mode === "bulk" ? "default" : "outline"}
+            onClick={() => setMode(mode === "bulk" ? "list" : "bulk")}
+            className="gap-2"
+          >
+            <Users className="h-4 w-4" />
+            {t("admin.organizations.memberships.bulk_add_title", { defaultValue: "Bulk Add" })}
+          </Button>
+        </div>
+        {mode !== "list" && (
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            onClick={() => { setMode("list"); setBulkResults(null); }}
+            className="gap-1"
+          >
+            <X className="h-4 w-4" />
+            {t("admin.organizations.actions.cancel")}
+          </Button>
+        )}
       </div>
 
-      {showAdd && (
+      {mode === "add" && (
         <form
           onSubmit={handleAdd}
           className="rounded-xl bg-white border border-m3-outline-variant/40 p-4 space-y-3"
@@ -809,7 +881,7 @@ function MembershipsTab({ orgId }: { orgId: string }) {
               <UserSearchCombobox
                 value={selectedUser}
                 onSelect={setSelectedUser}
-                enabled={showAdd}
+                enabled={mode === "add"}
               />
             </div>
             <span className="text-xs text-text-muted mt-1 block">
@@ -876,6 +948,77 @@ function MembershipsTab({ orgId }: { orgId: string }) {
                 : t("admin.organizations.actions.add")}
             </Button>
           </div>
+        </form>
+      )}
+
+      {mode === "bulk" && (
+        <form
+          onSubmit={handleBulkAdd}
+          className="rounded-xl bg-white border border-m3-outline-variant/40 p-4 space-y-3"
+        >
+          <div>
+            <p className="text-sm font-semibold text-text-strong">
+              {t("admin.organizations.memberships.bulk_add_title", { defaultValue: "Bulk Add Members" })}
+            </p>
+            <p className="text-xs text-text-muted mt-1">
+              {t("admin.organizations.memberships.bulk_add_hint", {
+                defaultValue: "Paste one user UUID per line. All will be added as active members. Find user UUIDs on the Users page.",
+              })}
+            </p>
+          </div>
+          <textarea
+            value={bulkText}
+            onChange={(e) => setBulkText(e.target.value)}
+            rows={8}
+            placeholder={"550e8400-e29b-41d4-a716-446655440000\na1b2c3d4-e5f6-7890-abcd-ef1234567890"}
+            className="w-full px-4 py-3 text-sm font-mono bg-white border border-m3-outline-variant/40 rounded-xl text-text-strong focus:outline-none focus:ring-2 focus:ring-m3-primary/30 placeholder:text-text-muted/40"
+          />
+          <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-text-muted">
+            <div className="flex gap-3">
+              <span>UUID: <strong>{parsedBulk.userIds.length}</strong></span>
+              {parsedBulk.invalid.length > 0 && (
+                <span className="text-amber-700">
+                  {parsedBulk.invalid.length} invalid line(s) will be skipped
+                </span>
+              )}
+            </div>
+            <Button
+              type="submit"
+              size="sm"
+              disabled={
+                bulkPending ||
+                parsedBulk.userIds.length === 0
+              }
+              className="gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              {bulkPending
+                ? t("admin.organizations.actions.adding")
+                : t("admin.organizations.memberships.bulk_add_title", { defaultValue: "Add All" })}
+            </Button>
+          </div>
+
+          {bulkResults && (
+            <div className="rounded-lg border border-m3-outline-variant/40 p-3 space-y-2 text-sm">
+              {bulkResults.ok.length > 0 && (
+                <p className="text-emerald-700 font-semibold">
+                  ✓ Added {bulkResults.ok.length} member(s)
+                </p>
+              )}
+              {bulkResults.failed.length > 0 && (
+                <div>
+                  <p className="text-red-600 font-semibold">
+                    ✗ Failed {bulkResults.failed.length}:
+                  </p>
+                  <ul className="mt-1 space-y-0.5 text-xs font-mono text-text-muted">
+                    {bulkResults.failed.map((f, i) => (
+                      <li key={i}>{f}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
         </form>
       )}
 

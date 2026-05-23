@@ -139,8 +139,7 @@ export default function ManagementCourseEnrollmentsPage() {
         <Breadcrumbs
           items={[
             { label: t("teacher_common.breadcrumb_teaching"), to: "/teacher/courses" },
-            { label: course?.title ?? t("teacher_common.breadcrumb_course"), to: "/teacher/courses/$courseId" },
- params: { courseId },
+            { label: course?.title ?? t("teacher_common.breadcrumb_course"), to: "/teacher/courses/$courseId", params: { courseId } },
             { label: t("management_course_enrollments.breadcrumb.manage") },
           ]}
         />

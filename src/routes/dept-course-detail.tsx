@@ -354,7 +354,20 @@ export default function DeptCourseDetailPage() {
       )}
 
       {tab === "students" && (
-        <div>
+        <div className="space-y-4">
+          {canAssign && (
+            <div className="flex justify-end">
+              <Link
+                to="/management/courses/$courseId/enrollments"
+                params={{ courseId }}
+              >
+                <Button size="sm" className="gap-2">
+                  <Users className="h-4 w-4" />
+                  {t("dept_course_detail.manage_enrollments")}
+                </Button>
+              </Link>
+            </div>
+          )}
           {roster.isLoading ? (
             <div className="space-y-2">
               {[1, 2, 3, 4].map((i) => (
@@ -376,6 +389,15 @@ export default function DeptCourseDetailPage() {
               <p className="text-sm font-medium text-text-strong">
                 {t("dept_course_detail.empty_students_title")}
               </p>
+              {canAssign && (
+                <Link
+                  to="/management/courses/$courseId/enrollments"
+                  params={{ courseId }}
+                  className="inline-flex items-center gap-1.5 mt-3 text-xs text-m3-primary hover:underline"
+                >
+                  {t("dept_course_detail.manage_enrollments")}
+                </Link>
+              )}
             </div>
           ) : (
             <div>
