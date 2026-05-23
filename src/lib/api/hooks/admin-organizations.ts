@@ -52,6 +52,11 @@ export interface AdminUserSearchRow {
  * Backend `/admin/users?q=` does case-insensitive substring match against
  * primary_email and user_profiles.display_name. Empty query returns the
  * first 20 active users so the dropdown has something to render on focus.
+ *
+ * Endpoint is cursor-paginated (Reconciliation §A10/§D2): the response is
+ * `{ items: AdminUserSearchRow[], next_cursor: string | null }`. The
+ * combobox only shows the first page so we just return `items` to keep
+ * call sites unchanged.
  */
 export function useAdminUsersSearch(query: string, enabled = true) {
   const trimmed = query.trim();
@@ -62,7 +67,11 @@ export function useAdminUsersSearch(query: string, enabled = true) {
       qs.set("status", "active");
       qs.set("limit", "20");
       if (trimmed.length > 0) qs.set("q", trimmed);
-      return apiFetch<AdminUserSearchRow[]>(`/admin/users?${qs.toString()}`);
+      const page = await apiFetch<{
+        items: AdminUserSearchRow[];
+        next_cursor: string | null;
+      }>(`/admin/users?${qs.toString()}`);
+      return page.items;
     },
     staleTime: 1000 * 15,
     enabled,
@@ -77,26 +86,31 @@ export interface OrganizationListParams {
   includeDeleted?: boolean;
   orgStatus?: string;
   limit?: number;
-  offset?: number;
+  cursor?: string;
+}
+
+export interface OrganizationListPage {
+  items: OrganizationRead[];
+  next_cursor: string | null;
 }
 
 export function useOrganizations(params: OrganizationListParams = {}) {
-  const { includeDeleted, orgStatus, limit, offset } = params;
+  const { includeDeleted, orgStatus, limit, cursor } = params;
   return useQuery({
     queryKey: queryKeys.admin.organizations(
       includeDeleted,
       orgStatus,
       limit,
-      offset,
+      cursor,
     ),
     queryFn: () => {
       const qs = new URLSearchParams();
       if (includeDeleted) qs.set("include_deleted", "true");
       if (orgStatus) qs.set("org_status", orgStatus);
       if (limit !== undefined) qs.set("limit", String(limit));
-      if (offset !== undefined) qs.set("offset", String(offset));
+      if (cursor) qs.set("cursor", cursor);
       const suffix = qs.toString() ? `?${qs.toString()}` : "";
-      return apiFetch<OrganizationRead[]>(`/admin/organizations${suffix}`);
+      return apiFetch<OrganizationListPage>(`/admin/organizations${suffix}`);
     },
   });
 }

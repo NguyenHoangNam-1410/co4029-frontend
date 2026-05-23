@@ -15,10 +15,18 @@ import type {
 
 /* ── Learner-side (W5.8) ─────────────────────────────────────────────── */
 
+interface CareerPathListPage {
+  items: CareerPathPublic[];
+  next_cursor: string | null;
+}
+
 export function useCareerPaths() {
   return useQuery({
     queryKey: queryKeys.careerPaths.list(),
-    queryFn: () => apiFetch<CareerPathPublic[]>("/career-paths"),
+    queryFn: async () => {
+      const page = await apiFetch<CareerPathListPage>("/career-paths");
+      return page.items;
+    },
     staleTime: 1000 * 60 * 2,
   });
 }
