@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useQueries } from "@tanstack/react-query";
 import {
   Play,
+  Check,
   CheckCircle2,
   PlayCircle,
   BookOpen,
@@ -31,7 +32,7 @@ import {
   useResourceDownloadUrl,
 } from "@/lib/api/hooks/courses";
 import { useStreamUrl } from "@/lib/api/hooks/materials";
-import { useMyCourseProgress } from "@/lib/api/hooks/progress";
+import { useMyCourseProgress, useMarkLessonComplete, useUnmarkLessonComplete } from "@/lib/api/hooks/progress";
 import { useLessonEngagementTracker } from "@/lib/hooks/useLessonEngagementTracker";
 import ReactMarkdown from "react-markdown";
 import { queryKeys } from "@/lib/api/query-keys";
@@ -396,8 +397,17 @@ function CourseLearnLoaded({
                 <h1 className="font-headline font-extrabold text-3xl sm:text-4xl text-m3-primary tracking-tight leading-none">
                   {activeLesson?.title ?? activeEntry.label}
                 </h1>
-                <div className="flex flex-wrap items-center gap-3 text-xs text-m3-on-surface-variant">
-                  <span>{activeEntry.moduleTitle}</span>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <span className="text-xs text-m3-on-surface-variant">{activeEntry.moduleTitle}</span>
+                  {activeLessonId && (
+                    <MarkCompleteButton
+                      lessonId={activeLessonId}
+                      courseId={course.id}
+                      isCompleted={
+                        lessonStatusMap.get(activeLessonId) === "completed"
+                      }
+                    />
+                  )}
                 </div>
               </div>
             )}
@@ -535,6 +545,53 @@ function useModuleItemsMap(modules: ModulePublic[]): Record<string, ModuleItemPu
     });
     return next;
   }, [moduleIds, results]);
+}
+
+function MarkCompleteButton({
+  lessonId,
+  courseId,
+  isCompleted,
+}: {
+  lessonId: string;
+  courseId: string;
+  isCompleted: boolean;
+}) {
+  const { t } = useTranslation();
+  const markMut = useMarkLessonComplete({ lessonId, courseId });
+  const unmarkMut = useUnmarkLessonComplete({ lessonId, courseId });
+  const pending = markMut.isPending || unmarkMut.isPending;
+
+  function handleClick() {
+    if (isCompleted) unmarkMut.mutate(lessonId);
+    else markMut.mutate(lessonId);
+  }
+
+  return (
+    <Button
+      size="sm"
+      variant={isCompleted ? "outline" : "default"}
+      disabled={pending}
+      onClick={handleClick}
+      className={cn(
+        "rounded-xl gap-2 text-xs font-bold",
+        isCompleted
+          ? "border-emerald-300 text-emerald-700 bg-emerald-50 hover:bg-emerald-100"
+          : "gradient-primary text-white hover:opacity-95",
+      )}
+    >
+      {isCompleted ? (
+        <>
+          <CheckCircle2 className="h-4 w-4 fill-emerald-100" />
+          {t("course_learn.mark_complete.completed")}
+        </>
+      ) : (
+        <>
+          <Check className="h-4 w-4" />
+          {t("course_learn.mark_complete.mark_done")}
+        </>
+      )}
+    </Button>
+  );
 }
 
 function VideoEngagementTracker({

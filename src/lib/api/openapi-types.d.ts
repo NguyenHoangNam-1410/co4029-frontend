@@ -2810,6 +2810,53 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/progress/lessons/{lesson_id}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mark Lesson Complete
+         * @description Coursera-style 'mark as complete' button.
+         *
+         *     Idempotent — re-calling on a completed lesson refreshes
+         *     ``last_activity_at`` but keeps ``completion_percent=100``.
+         */
+        post: operations["mark_lesson_complete_api_v1_me_progress_lessons__lesson_id__complete_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/progress/lessons/{lesson_id}/uncomplete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Unmark Lesson Complete
+         * @description Undo a manual mark-as-complete — recomputes status from engagement.
+         *
+         *     Returns 404 when no progress row exists (nothing to undo). If the
+         *     engagement aggregate would still auto-complete the lesson, the row
+         *     stays completed.
+         */
+        post: operations["unmark_lesson_complete_api_v1_me_progress_lessons__lesson_id__uncomplete_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/teacher/courses/{course_id}/progress/roster": {
         parameters: {
             query?: never;
@@ -14440,6 +14487,68 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MaterialEngagementPublic"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    mark_lesson_complete_api_v1_me_progress_lessons__lesson_id__complete_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lesson_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LessonProgressPublic"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unmark_lesson_complete_api_v1_me_progress_lessons__lesson_id__uncomplete_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lesson_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LessonProgressPublic"];
                 };
             };
             /** @description Validation Error */

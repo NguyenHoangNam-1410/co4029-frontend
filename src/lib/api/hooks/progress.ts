@@ -67,6 +67,54 @@ export function useReportEngagement(opts?: {
   });
 }
 
+export function useMarkLessonComplete(opts?: {
+  lessonId?: string;
+  courseId?: string;
+}) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (lessonId: string) =>
+      apiPost<LessonProgressPublic>(
+        `/me/progress/lessons/${lessonId}/complete`,
+        {},
+      ),
+    onSuccess: (_, lessonId) => {
+      void qc.invalidateQueries({
+        queryKey: queryKeys.progress.lesson(opts?.lessonId ?? lessonId),
+      });
+      if (opts?.courseId) {
+        void qc.invalidateQueries({
+          queryKey: queryKeys.progress.myCourse(opts.courseId),
+        });
+      }
+    },
+  });
+}
+
+export function useUnmarkLessonComplete(opts?: {
+  lessonId?: string;
+  courseId?: string;
+}) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (lessonId: string) =>
+      apiPost<LessonProgressPublic>(
+        `/me/progress/lessons/${lessonId}/uncomplete`,
+        {},
+      ),
+    onSuccess: (_, lessonId) => {
+      void qc.invalidateQueries({
+        queryKey: queryKeys.progress.lesson(opts?.lessonId ?? lessonId),
+      });
+      if (opts?.courseId) {
+        void qc.invalidateQueries({
+          queryKey: queryKeys.progress.myCourse(opts.courseId),
+        });
+      }
+    },
+  });
+}
+
 export function useCohortProgress(courseId: string | null | undefined) {
   return useQuery({
     queryKey: queryKeys.progress.cohort(courseId ?? ""),
