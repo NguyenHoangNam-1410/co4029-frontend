@@ -156,8 +156,22 @@ function QuizIntroPanel({
     .sort((a, b) => b.attempt_number - a.attempt_number);
 
   return (
-    <div className="max-w-2xl w-full mx-auto space-y-6">
-      <GlassCard className="p-8 sm:p-10 text-center">
+    <div className="w-full space-y-6">
+      <div className="flex items-center gap-3 flex-wrap -ml-3">
+        <Link to="/courses/$slug/learn" params={{ slug }}>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="rounded-xl text-m3-on-surface-variant hover:text-m3-primary gap-1.5 text-xs font-bold px-3"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            {t("course_quiz.actions.back_to_course")}
+          </Button>
+        </Link>
+      </div>
+
+      <div className="w-full space-y-6">
+        <GlassCard className="p-8 sm:p-10 text-center">
         <h1 className="font-headline font-extrabold text-3xl text-m3-primary mb-3">
           {quiz.title}
         </h1>
@@ -276,6 +290,7 @@ function QuizIntroPanel({
           </div>
         </GlassCard>
       )}
+      </div>
     </div>
   );
 }
@@ -562,8 +577,8 @@ export default function CourseQuizPage() {
     const passingScore = Math.round(Number(quiz.passing_score_percent));
 
     return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center p-6 sm:p-8">
-        <div className="max-w-3xl w-full space-y-6">
+      <div className="min-h-[70vh] max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-10">
+        <div className="max-w-3xl w-full mx-auto space-y-6">
           <GlassCard className="p-8 sm:p-10 text-center">
             <div
               className={cn(
@@ -622,7 +637,7 @@ export default function CourseQuizPage() {
 
   if (!taking) {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center px-4 sm:px-6 py-10">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-10">
         <QuizIntroPanel
           quiz={quiz}
           attempts={attempts}
@@ -656,9 +671,9 @@ export default function CourseQuizPage() {
 
   return (
     <div className="min-h-[70vh] pb-20">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-6">
         <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
-          <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-3 flex-wrap -ml-3">
             <Link to="/courses/$slug/learn" params={{ slug }}>
               <Button variant="ghost" size="sm" className="rounded-xl text-m3-on-surface-variant hover:text-m3-primary gap-1.5 text-xs font-bold px-3">
                 <ArrowLeft className="h-4 w-4" />

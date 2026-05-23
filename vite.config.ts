@@ -32,5 +32,10 @@ export default defineConfig(({ mode }) => {
           }
         : undefined,
     },
+    preview: {
+      host: "0.0.0.0",
+      port: 5173,
+      allowedHosts: ["abridgeai.tech", "abridgeai.hcmut.app"],
+    },
   };
 });

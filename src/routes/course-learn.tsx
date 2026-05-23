@@ -13,6 +13,7 @@ import {
   Mic,
   ArrowRight,
   FileText,
+  Maximize2,
   Download,
   Sparkles,
   HelpCircle,
@@ -643,13 +644,33 @@ function ReadingLessonPane({
   const hasNotes = Boolean(lesson.notes_markdown && lesson.notes_markdown.trim().length > 0);
   const hasMaterial = Boolean(materialId);
 
+  const openFullscreen = () => {
+    if (streamUrl) {
+      window.open(streamUrl, "_blank", "noopener,noreferrer");
+    }
+  };
+
   return (
     <GlassCard className="p-6 sm:p-8 space-y-6" data-testid="course-learn-reading">
-      <div className="flex items-center gap-2">
-        <FileText className="h-4 w-4 text-m3-secondary" />
-        <span className="text-xs font-headline font-semibold uppercase tracking-wider text-m3-on-surface-variant">
-          {t("course_learn.reading_lesson")}
-        </span>
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2">
+          <FileText className="h-4 w-4 text-m3-secondary" />
+          <span className="text-xs font-headline font-semibold uppercase tracking-wider text-m3-on-surface-variant">
+            {t("course_learn.reading_lesson")}
+          </span>
+        </div>
+        {streamUrl && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={openFullscreen}
+            className="rounded-xl text-xs font-bold gap-1.5 text-m3-on-surface-variant hover:text-m3-primary"
+            data-testid="course-learn-reading-fullscreen"
+          >
+            <Maximize2 className="h-3.5 w-3.5" />
+            {t("course_learn.reading_open_fullscreen")}
+          </Button>
+        )}
       </div>
 
       {lesson.summary && (
@@ -662,7 +683,7 @@ function ReadingLessonPane({
         streamQuery.isLoading ? (
           <div className="h-[600px] rounded-xl bg-m3-surface-container-low animate-pulse" />
         ) : streamUrl ? (
-          <div className="rounded-xl overflow-hidden border border-m3-outline-variant/30">
+          <div className="mt-2 rounded-xl overflow-hidden border border-m3-outline-variant/30">
             <iframe
               src={streamUrl}
               title={lesson.title}
