@@ -31,6 +31,8 @@ import {
   useResourceDownloadUrl,
 } from "@/lib/api/hooks/courses";
 import { useStreamUrl } from "@/lib/api/hooks/materials";
+import { useMyCourseProgress } from "@/lib/api/hooks/progress";
+import { useLessonEngagementTracker } from "@/lib/hooks/useLessonEngagementTracker";
 import ReactMarkdown from "react-markdown";
 import { queryKeys } from "@/lib/api/query-keys";
 import type {
@@ -221,6 +223,15 @@ function CourseLearnLoaded({
   const lessonIdForResources = activeTab === "Resources" ? (activeLessonId ?? undefined) : undefined;
   const { data: resources } = useLessonResources(lessonIdForResources);
 
+  const courseProgressQuery = useMyCourseProgress(course.id);
+  const lessonStatusMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const row of courseProgressQuery.data?.lessons ?? []) {
+      map.set(row.lesson_id, row.status);
+    }
+    return map;
+  }, [courseProgressQuery.data]);
+
   const search = useSearch({ strict: false }) as { t?: string | number; p?: string | number };
   const { hash } = useLocation();
   const playerRef = useRef<HTMLDivElement | null>(null);
@@ -290,6 +301,10 @@ function CourseLearnLoaded({
     if (fi.item.item_type === "lesson" && fi.item.target?.id === activeLessonId) {
       return "active";
     }
+    if (fi.item.item_type === "lesson" && fi.item.target?.id) {
+      const status = lessonStatusMap.get(fi.item.target.id);
+      if (status === "completed") return "completed";
+    }
     return "pending";
   }
 
@@ -339,7 +354,31 @@ function CourseLearnLoaded({
                 </p>
               </GlassCard>
             ) : activeLesson?.lesson_type === "reading" ? (
-              <ReadingLessonPane lesson={activeLesson} />
+              <ReadingLessonPane
+                lesson={activeLesson}
+                courseId={course.id}
+              />
+            ) : activeLesson ? (
+              <>
+                <VideoEngagementTracker
+                  lesson={activeLesson}
+                  courseId={course.id}
+                />
+                <div
+                  ref={playerRef}
+                  className="rounded-xl overflow-hidden bg-black shadow-2xl"
+                  data-testid="course-learn-player"
+                >
+                  <div className="relative aspect-video">
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-blue-900 to-slate-900 opacity-80" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-20 h-20 bg-m3-primary/90 text-white rounded-full flex items-center justify-center shadow-2xl">
+                        <Play className="h-9 w-9 fill-white" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
             ) : (
               <div
                 ref={playerRef}
@@ -348,11 +387,6 @@ function CourseLearnLoaded({
               >
                 <div className="relative aspect-video">
                   <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-blue-900 to-slate-900 opacity-80" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-20 h-20 bg-m3-primary/90 text-white rounded-full flex items-center justify-center shadow-2xl">
-                      <Play className="h-9 w-9 fill-white" />
-                    </div>
-                  </div>
                 </div>
               </div>
             )}
@@ -503,11 +537,50 @@ function useModuleItemsMap(modules: ModulePublic[]): Record<string, ModuleItemPu
   }, [moduleIds, results]);
 }
 
-function ReadingLessonPane({ lesson }: { lesson: LessonPublic }) {
+function VideoEngagementTracker({
+  lesson,
+  courseId,
+}: {
+  lesson: LessonPublic;
+  courseId: string;
+}) {
+  // Video lessons share the same primary_material_id pattern as reading
+  // lessons; we resolve the version via the same stream-url endpoint and
+  // emit engagement on the same heartbeat schedule. The actual <video>
+  // playback events (play/pause/timeupdate) would refine this, but the
+  // current course-learn pane is a placeholder, so a presence-based
+  // heartbeat is the most we can faithfully report.
+  const materialId = lesson.primary_material_id ?? null;
+  const streamQuery = useStreamUrl(materialId);
+  const materialVersionId = streamQuery.data?.material_version_id ?? null;
+
+  useLessonEngagementTracker({
+    materialVersionId,
+    lessonId: lesson.id,
+    courseId,
+  });
+
+  return null;
+}
+
+function ReadingLessonPane({
+  lesson,
+  courseId,
+}: {
+  lesson: LessonPublic;
+  courseId: string;
+}) {
   const { t } = useTranslation();
   const materialId = lesson.primary_material_id ?? null;
   const streamQuery = useStreamUrl(materialId);
   const streamUrl = streamQuery.data?.url ?? null;
+  const materialVersionId = streamQuery.data?.material_version_id ?? null;
+
+  useLessonEngagementTracker({
+    materialVersionId,
+    lessonId: lesson.id,
+    courseId,
+  });
 
   const hasNotes = Boolean(lesson.notes_markdown && lesson.notes_markdown.trim().length > 0);
   const hasMaterial = Boolean(materialId);

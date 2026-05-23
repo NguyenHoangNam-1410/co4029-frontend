@@ -478,6 +478,41 @@
     "no_history": "No history yet",
     "empty_reviews": "Student has no review activity yet."
   },
+  "teacher_progress": {
+    "breadcrumb": "Lesson progress",
+    "title": "Lesson progress",
+    "subtitle": "Per-student lesson completion, time spent, and at-risk flags from material engagement.",
+    "back": "Back to course",
+    "no_reason": "No reason recorded",
+    "tiles": {
+      "enrolled": "Enrolled",
+      "completed": "Completed",
+      "avg_completion": "Avg completion",
+      "total_time": "Total time"
+    },
+    "at_risk_title": "Students at risk",
+    "at_risk_subtitle": "No engagement in the last 7 days or completion below 30%.",
+    "at_risk_count": "{{count}}",
+    "at_risk_empty_title": "Everyone is on track",
+    "at_risk_empty_body": "No student has fallen behind on engagement or completion.",
+    "roster_title": "Roster",
+    "roster_subtitle": "Lesson progress per student, sorted by completion.",
+    "empty_roster_title": "No enrolled students yet",
+    "empty_roster_body": "Lesson progress shows up once students are enrolled and start engaging.",
+    "cols": {
+      "student": "Student",
+      "lessons": "Lessons",
+      "progress": "Progress",
+      "time": "Time",
+      "status": "Status"
+    },
+    "status": {
+      "completed": "Completed",
+      "in_progress": "In progress",
+      "not_started": "Not started",
+      "at_risk": "At risk"
+    }
+  },
   "teacher_sr_at_risk": {
     "breadcrumb_at_risk": "At-risk students",
     "title": "Students who need help",

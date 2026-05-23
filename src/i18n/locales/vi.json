@@ -472,6 +472,41 @@
     "no_history": "Chưa có lịch sử",
     "empty_reviews": "Sinh viên chưa có hoạt động ôn tập nào."
   },
+  "teacher_progress": {
+    "breadcrumb": "Tiến độ bài học",
+    "title": "Tiến độ bài học",
+    "subtitle": "Tiến độ hoàn thành bài học, thời gian học và cảnh báo theo mức tương tác với tài liệu.",
+    "back": "Quay lại khóa học",
+    "no_reason": "Chưa ghi nhận lý do",
+    "tiles": {
+      "enrolled": "Đăng ký",
+      "completed": "Đã hoàn thành",
+      "avg_completion": "Hoàn thành TB",
+      "total_time": "Tổng thời gian"
+    },
+    "at_risk_title": "Sinh viên cần chú ý",
+    "at_risk_subtitle": "Không tương tác trong 7 ngày qua hoặc tiến độ dưới 30%.",
+    "at_risk_count": "{{count}}",
+    "at_risk_empty_title": "Tất cả đang theo kịp",
+    "at_risk_empty_body": "Không có sinh viên nào bị tụt lại về tương tác hay hoàn thành.",
+    "roster_title": "Danh sách lớp",
+    "roster_subtitle": "Tiến độ từng sinh viên, sắp xếp theo mức hoàn thành.",
+    "empty_roster_title": "Chưa có sinh viên đăng ký",
+    "empty_roster_body": "Tiến độ sẽ xuất hiện khi sinh viên ghi danh và bắt đầu học.",
+    "cols": {
+      "student": "Sinh viên",
+      "lessons": "Bài học",
+      "progress": "Tiến độ",
+      "time": "Thời gian",
+      "status": "Trạng thái"
+    },
+    "status": {
+      "completed": "Hoàn thành",
+      "in_progress": "Đang học",
+      "not_started": "Chưa bắt đầu",
+      "at_risk": "Cần chú ý"
+    }
+  },
   "teacher_sr_at_risk": {
     "breadcrumb_at_risk": "Sinh viên cần hỗ trợ",
     "title": "Sinh viên cần hỗ trợ",
