@@ -41,6 +41,9 @@ const SECTIONS: SectionLink[] = [
   },
 ];
 
+// Routes that belong to the teacher/management section but use different URL prefixes.
+const TEACHER_EXTRA_PREFIXES = ["/management", "/dept"];
+
 export default function SectionSwitcher() {
   const { t } = useTranslation();
   const location = useLocation();
@@ -51,9 +54,11 @@ export default function SectionSwitcher() {
   if (visible.length <= 1) return null;
 
   const activePrefix =
-    [...visible].sort((a, b) => b.prefix.length - a.prefix.length).find((s) =>
-      location.pathname.startsWith(s.prefix),
-    )?.prefix ?? "/dashboard";
+    TEACHER_EXTRA_PREFIXES.some((p) => location.pathname.startsWith(p))
+      ? "/teacher"
+      : ([...visible].sort((a, b) => b.prefix.length - a.prefix.length).find((s) =>
+          location.pathname.startsWith(s.prefix),
+        )?.prefix ?? "/dashboard");
 
   return (
     <nav

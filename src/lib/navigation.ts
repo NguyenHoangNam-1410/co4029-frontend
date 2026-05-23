@@ -37,7 +37,7 @@ export const studentNavItems: NavItem[] = [
 export const teacherNavItems: NavItem[] = [
   { label: "Overview", i18nKey: "nav.overview", href: "/teacher", icon: LayoutDashboard, exact: true },
   { label: "My Courses", i18nKey: "nav.my_courses", href: "/teacher/courses", icon: BookOpen },
-  { label: "Department Courses", i18nKey: "nav.department_courses", href: "/dept/courses", icon: Users },
+  { label: "Department Courses", i18nKey: "nav.department_courses", href: "/dept", icon: Users },
   { label: "Career Paths", i18nKey: "nav.career_paths", href: "/management/career-paths", icon: Briefcase },
 ];
 
