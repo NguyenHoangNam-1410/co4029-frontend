@@ -178,7 +178,11 @@
     "download": "Download",
     "reading_lesson": "Bài đọc",
     "reading_material_unavailable": "Tài liệu đọc hiện chưa khả dụng.",
-    "reading_empty": "Bài học này chưa có nội dung đọc."
+    "reading_empty": "Bài học này chưa có nội dung đọc.",
+    "mark_complete": {
+      "mark_done": "Đánh dấu hoàn thành",
+      "completed": "Đã hoàn thành"
+    }
   },
   "placeholder": {
     "body": "Trang này sắp có. Quay lại sau khi quá trình chuyển API hoàn tất.",

@@ -178,7 +178,11 @@
     "download": "Download",
     "reading_lesson": "Reading",
     "reading_material_unavailable": "Reading material is not available right now.",
-    "reading_empty": "No reading content has been added yet."
+    "reading_empty": "No reading content has been added yet.",
+    "mark_complete": {
+      "mark_done": "Mark as complete",
+      "completed": "Completed"
+    }
   },
   "placeholder": {
     "body": "This page is coming soon. Check back after the API migration is complete.",
