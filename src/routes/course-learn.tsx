@@ -513,6 +513,7 @@ function CourseLearnLoaded({
                     lessonItems={lessonItems}
                     itemState={itemState}
                     onSelect={(idx) => setActiveIdx(idx)}
+                    slug={slug}
                   />
                 ))}
               </div>
@@ -800,12 +801,14 @@ function ModuleSection({
   lessonItems,
   itemState,
   onSelect,
+  slug,
 }: {
   mod: ModulePublic;
   flatItems: FlatItem[];
   lessonItems: FlatItem[];
   itemState: (fi: FlatItem) => LessonState;
   onSelect: (idx: number) => void;
+  slug: string;
 }) {
   const modItems = flatItems
     .map((fi) => ({ fi, idx: lessonItems.findIndex((lesson) => lesson.item.id === fi.item.id) }))
@@ -823,21 +826,19 @@ function ModuleSection({
         const isQuiz = fi.item.item_type === "quiz";
         const isInterview = fi.item.item_type === "interview";
         const LessonIcon = PlayCircle;
+        const quizId = isQuiz ? fi.item.target?.id : null;
 
-        return (
-          <button
-            key={fi.item.id}
-            onClick={() => state !== "locked" && !isInterview && idx >= 0 && onSelect(idx)}
-            disabled={state === "locked" || isInterview || idx < 0}
-            className={cn(
-              "w-full flex items-center gap-3 p-3 rounded-lg text-left transition-all duration-200 text-sm",
-              state === "active" && "bg-m3-primary text-white shadow-md font-bold",
-              state === "completed" && "bg-m3-surface-container-lowest text-m3-primary shadow-sm font-medium hover:bg-m3-surface-container",
-              state === "pending" && !isInterview && "text-m3-on-surface-variant hover:bg-white/50 font-medium",
-              state === "locked" && "opacity-40 cursor-not-allowed text-m3-outline",
-              isInterview && "opacity-60 cursor-default text-m3-on-surface-variant"
-            )}
-          >
+        const className = cn(
+          "w-full flex items-center gap-3 p-3 rounded-lg text-left transition-all duration-200 text-sm",
+          state === "active" && "bg-m3-primary text-white shadow-md font-bold",
+          state === "completed" && "bg-m3-surface-container-lowest text-m3-primary shadow-sm font-medium hover:bg-m3-surface-container",
+          state === "pending" && !isInterview && "text-m3-on-surface-variant hover:bg-white/50 font-medium",
+          state === "locked" && "opacity-40 cursor-not-allowed text-m3-outline",
+          isInterview && "opacity-60 cursor-default text-m3-on-surface-variant"
+        );
+
+        const inner = (
+          <>
             {state === "completed" && <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-emerald-500 fill-emerald-100" />}
             {state === "active" && <LessonIcon className="h-4 w-4 flex-shrink-0" />}
             {state === "pending" && !isQuiz && !isInterview && <LessonIcon className="h-4 w-4 flex-shrink-0 opacity-40" />}
@@ -847,6 +848,30 @@ function ModuleSection({
 
             <span className="truncate leading-snug flex-1">{fi.label}</span>
             <BookOpen className="h-3 w-3 opacity-0" />
+          </>
+        );
+
+        if (isQuiz && quizId) {
+          return (
+            <Link
+              key={fi.item.id}
+              to="/courses/$slug/quiz/$quizId"
+              params={{ slug, quizId }}
+              className={className}
+            >
+              {inner}
+            </Link>
+          );
+        }
+
+        return (
+          <button
+            key={fi.item.id}
+            onClick={() => state !== "locked" && !isInterview && idx >= 0 && onSelect(idx)}
+            disabled={state === "locked" || isInterview || idx < 0}
+            className={className}
+          >
+            {inner}
           </button>
         );
       })}
