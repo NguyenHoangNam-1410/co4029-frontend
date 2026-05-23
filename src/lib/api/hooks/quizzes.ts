@@ -4,6 +4,7 @@ import i18n from "@/i18n";
 import { apiDelete, apiFetch, apiPatch, apiPost } from "../client";
 import { ApiError } from "../client";
 import { queryKeys } from "../query-keys";
+import { useInfinitePage } from "../use-infinite-page";
 import type {
   BulkSetExpectedTimeRequest,
   BulkSetExpectedTimeResponse,
@@ -395,11 +396,14 @@ export function useBulkSetExpectedTime(quizId: string | null | undefined) {
 }
 
 /**
- * Question bank — list authored questions across the course.
+ * Question bank — cursor-paginated authored questions across the course.
  *
  * Default ``review_status='approved'`` filters out drafts; pass
  * ``reviewStatus: ""`` to widen. ``excludeQuizId`` is convenient when
  * launched from a target quiz so its own questions don't reappear.
+ *
+ * Returns flattened `items[]` plus infinite-scroll handles. The modal
+ * pairs this with `<InfiniteList>` so the list auto-loads on scroll.
  */
 export function useQuestionBank(
   courseId: string | null | undefined,
@@ -413,12 +417,13 @@ export function useQuestionBank(
     search?: string;
     excludeQuizId?: string;
   } = {},
-  options: { enabled?: boolean } = {},
+  options: { enabled?: boolean; limit?: number } = {},
 ) {
   const enabled = (options.enabled ?? true) && !!courseId;
-  return useQuery({
+  const limit = options.limit ?? 50;
+  return useInfinitePage<QuestionBankEntry>({
     queryKey: queryKeys.quizzes.bank(courseId ?? "", filters),
-    queryFn: async () => {
+    fetch: async (cursor, pageLimit = limit) => {
       const params = new URLSearchParams();
       if (filters.moduleId) params.set("module_id", filters.moduleId);
       if (filters.lessonId) params.set("lesson_id", filters.lessonId);
@@ -432,17 +437,17 @@ export function useQuestionBank(
       if (filters.excludeQuizId) {
         params.set("exclude_quiz_id", filters.excludeQuizId);
       }
+      if (pageLimit) params.set("limit", String(pageLimit));
+      if (cursor) params.set("cursor", cursor);
       const qs = params.toString();
-      // Endpoint is cursor-paginated — the modal renders the first
-      // page only, so we drop next_cursor and surface items directly.
       const page = await apiFetch<{
         items: QuestionBankEntry[];
         next_cursor: string | null;
       }>(`/teacher/courses/${courseId}/question-bank${qs ? `?${qs}` : ""}`);
-      return page.items;
+      return { items: page.items, next_cursor: page.next_cursor ?? null };
     },
+    limit,
     enabled,
-    staleTime: 30_000,
   });
 }
 

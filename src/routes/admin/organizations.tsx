@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { InfiniteList } from "@/components/ui/InfiniteList";
 import {
   useCreateOrganization,
   useOrganizations,
@@ -193,7 +194,7 @@ export default function AdminOrganizationsPage() {
 
   const [search, setSearch] = useState("");
   const [showCreate, setShowCreate] = useState(false);
-  const orgs = useOrganizations({ limit: 200 });
+  const orgs = useOrganizations({ limit: 50 });
 
   useEffect(() => {
     if (permissions.isLoading) return;
@@ -205,12 +206,12 @@ export default function AdminOrganizationsPage() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return orgs.data?.items ?? [];
-    return (orgs.data?.items ?? []).filter(
+    if (!q) return orgs.items;
+    return orgs.items.filter(
       (o) =>
         o.name.toLowerCase().includes(q) || o.slug.toLowerCase().includes(q),
     );
-  }, [orgs.data, search]);
+  }, [orgs.items, search]);
 
   if (permissions.isLoading) {
     return (
@@ -262,7 +263,7 @@ export default function AdminOrganizationsPage() {
             <Skeleton key={i} className="h-16 rounded-xl" />
           ))}
         </div>
-      ) : orgs.error ? (
+      ) : orgs.isError ? (
         <div className="rounded-xl bg-red-50 border border-red-200 p-4 text-sm text-red-700">
           {orgs.error instanceof Error
             ? orgs.error.message
@@ -281,12 +282,31 @@ export default function AdminOrganizationsPage() {
         <div className="space-y-3">
           <p className="text-xs text-text-muted">
             {t("admin.organizations.count", { count: filtered.length })}
+            {orgs.hasNextPage ? " +" : ""}
           </p>
-          <div className="space-y-2">
-            {filtered.map((org) => (
-              <OrgRow key={org.id} org={org} />
-            ))}
-          </div>
+          {/* Search filters the local in-memory cache. When the user
+              hasn't typed anything we render the full infinite list with
+              a sentinel; when they're searching we show the filtered
+              subset only (no auto-fetch since cursor pagination is
+              server-side and the search filter is client-side). */}
+          {search.trim() ? (
+            <div className="space-y-2">
+              {filtered.map((org) => (
+                <OrgRow key={org.id} org={org} />
+              ))}
+            </div>
+          ) : (
+            <InfiniteList
+              items={orgs.items}
+              hasNextPage={orgs.hasNextPage}
+              fetchNextPage={orgs.fetchNextPage}
+              isFetchingNextPage={orgs.isFetchingNextPage}
+              isLoading={orgs.isLoading}
+              keyOf={(org) => org.id}
+              className="space-y-2"
+              renderItem={(org) => <OrgRow org={org} />}
+            />
+          )}
         </div>
       )}
 
