@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Loader2, ShieldCheck, KeyRound, Copy, RefreshCw, ShieldOff } from "lucide-react";
+import { Loader2, ShieldCheck, KeyRound, Copy, RefreshCw, ShieldOff, ArrowLeft } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { useNavigate, useRouter } from "@tanstack/react-router";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -592,6 +593,8 @@ function DisableSection({ onDisabled }: { onDisabled: () => void }) {
 
 export default function SettingsSecurityPage() {
   const { t } = useTranslation();
+  const router = useRouter();
+  const navigate = useNavigate();
   const { requiresMfa } = useAuth();
   const [hasEnrolledThisSession, setHasEnrolledThisSession] = useState(false);
   const status = useMfaStatus();
@@ -599,8 +602,34 @@ export default function SettingsSecurityPage() {
   const enrolled = status.data?.enrolled ?? false;
   const showRegenerate = enrolled || requiresMfa || hasEnrolledThisSession;
 
+  // Settings sub-pages are typically reached from /settings; fall back there
+  // if the user lands here directly (refresh / deep link) so the back button
+  // never becomes a no-op.
+  function goBack() {
+    if (window.history.length > 1) {
+      router.history.back();
+    } else {
+      void navigate({ to: "/settings" });
+    }
+  }
+
   return (
     <div className="mx-auto w-full max-w-2xl space-y-8 p-6">
+      <div className="flex items-center gap-3">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={goBack}
+          aria-label={t("settings_hub.back")}
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <span className="text-sm font-medium text-m3-on-surface-variant">
+          {t("settings_hub.back")}
+        </span>
+      </div>
       <header>
         <h1 className="font-headline text-3xl font-extrabold tracking-tight text-m3-on-surface">
           {t("settings_security.title")}
