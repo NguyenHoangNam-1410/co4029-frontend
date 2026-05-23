@@ -30,9 +30,12 @@ import {
   useLessonResources,
   useResourceDownloadUrl,
 } from "@/lib/api/hooks/courses";
+import { useStreamUrl } from "@/lib/api/hooks/materials";
+import ReactMarkdown from "react-markdown";
 import { queryKeys } from "@/lib/api/query-keys";
 import type {
   InstructorRead,
+  LessonPublic,
   LessonResourcePublic,
   ModuleItemPublic,
   ModulePublic,
@@ -335,6 +338,8 @@ function CourseLearnLoaded({
                   {t("course_learn.lesson_unavailable_body")}
                 </p>
               </GlassCard>
+            ) : activeLesson?.lesson_type === "reading" ? (
+              <ReadingLessonPane lesson={activeLesson} />
             ) : (
               <div
                 ref={playerRef}
@@ -496,6 +501,64 @@ function useModuleItemsMap(modules: ModulePublic[]): Record<string, ModuleItemPu
     });
     return next;
   }, [moduleIds, results]);
+}
+
+function ReadingLessonPane({ lesson }: { lesson: LessonPublic }) {
+  const { t } = useTranslation();
+  const materialId = lesson.primary_material_id ?? null;
+  const streamQuery = useStreamUrl(materialId);
+  const streamUrl = streamQuery.data?.url ?? null;
+
+  const hasNotes = Boolean(lesson.notes_markdown && lesson.notes_markdown.trim().length > 0);
+  const hasMaterial = Boolean(materialId);
+
+  return (
+    <GlassCard className="p-6 sm:p-8 space-y-6" data-testid="course-learn-reading">
+      <div className="flex items-center gap-2">
+        <FileText className="h-4 w-4 text-m3-secondary" />
+        <span className="text-xs font-headline font-semibold uppercase tracking-wider text-m3-on-surface-variant">
+          {t("course_learn.reading_lesson") ?? "Reading"}
+        </span>
+      </div>
+
+      {lesson.summary && (
+        <p className="text-sm text-m3-on-surface-variant leading-relaxed">
+          {lesson.summary}
+        </p>
+      )}
+
+      {hasMaterial && (
+        streamQuery.isLoading ? (
+          <div className="h-[600px] rounded-xl bg-m3-surface-container-low animate-pulse" />
+        ) : streamUrl ? (
+          <div className="rounded-xl overflow-hidden border border-m3-outline-variant/30">
+            <iframe
+              src={streamUrl}
+              title={lesson.title}
+              className="w-full h-[600px] bg-white"
+              data-testid="course-learn-reading-iframe"
+            />
+          </div>
+        ) : (
+          <div className="rounded-xl border border-dashed border-m3-outline-variant/40 p-6 text-sm text-m3-on-surface-variant">
+            {t("course_learn.reading_material_unavailable") ?? "Reading material is not available right now."}
+          </div>
+        )
+      )}
+
+      {hasNotes && (
+        <article className="prose prose-sm max-w-none prose-headings:font-headline prose-headings:text-m3-on-surface prose-p:text-m3-on-surface-variant prose-a:text-m3-primary">
+          <ReactMarkdown>{lesson.notes_markdown ?? ""}</ReactMarkdown>
+        </article>
+      )}
+
+      {!hasMaterial && !hasNotes && (
+        <p className="text-sm text-m3-on-surface-variant">
+          {t("course_learn.reading_empty") ?? "No reading content has been added yet."}
+        </p>
+      )}
+    </GlassCard>
+  );
 }
 
 function ResourcesPanel({ resources }: { resources: LessonResourcePublic[] | undefined }) {

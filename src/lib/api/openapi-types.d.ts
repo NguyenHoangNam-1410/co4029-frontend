@@ -4615,6 +4615,11 @@ export interface components {
             section_grouping: "auto" | "fixed";
             /** Parallelism */
             parallelism?: number | null;
+            /**
+             * Max Attempts
+             * @default 2
+             */
+            max_attempts: number;
         };
         /**
          * DeepHealthOut
@@ -5803,27 +5808,27 @@ export interface components {
             /** Title */
             title: string;
             /**
-             * Module Id
-             * Format: uuid
+             * Lesson Type
+             * @default video
              */
-            module_id: string;
-            /** Slug */
-            slug: string;
+            lesson_type: string;
             /** Summary */
             summary?: string | null;
             /** Notes Markdown */
             notes_markdown?: string | null;
             /** Primary Material Id */
             primary_material_id?: string | null;
-            /**
-             * Lesson Type
-             * @default video
-             */
-            lesson_type: string;
-            /** Difficulty */
-            difficulty?: string | null;
             /** Estimated Minutes */
             estimated_minutes?: number | null;
+            /** Difficulty */
+            difficulty?: string | null;
+            /**
+             * Module Id
+             * Format: uuid
+             */
+            module_id: string;
+            /** Slug */
+            slug: string;
             /**
              * Status
              * @enum {string}
@@ -6046,6 +6051,16 @@ export interface components {
          *
          *     Per §A2, ``position`` is absent here — lesson ordering is determined
          *     by the parent :class:`ModuleItemPublic.position` field.
+         *
+         *     ``lesson_type`` drives the student-side renderer (``video`` → video
+         *     player, ``reading`` → notes / primary-material reader, etc). The
+         *     DDL CHECK constraint ``lessons_lesson_type_check`` keeps the column
+         *     inside the ``video|reading|interactive|interview|quiz`` enum.
+         *
+         *     ``summary`` / ``notes_markdown`` / ``primary_material_id`` are
+         *     surfaced because the reader pane needs them to render the lesson
+         *     body — without them the student-side fell back to a video-shaped
+         *     skeleton even for ``reading`` lessons.
          */
         LessonPublic: {
             /**
@@ -6055,6 +6070,18 @@ export interface components {
             id: string;
             /** Title */
             title: string;
+            /** Lesson Type */
+            lesson_type: string;
+            /** Summary */
+            summary?: string | null;
+            /** Notes Markdown */
+            notes_markdown?: string | null;
+            /** Primary Material Id */
+            primary_material_id?: string | null;
+            /** Estimated Minutes */
+            estimated_minutes?: number | null;
+            /** Difficulty */
+            difficulty?: string | null;
         };
         /** LessonResourceAuthoring */
         LessonResourceAuthoring: {
@@ -6833,10 +6860,15 @@ export interface components {
          * ModuleItemPublic
          * @description Polymorphic ordering row — public projection.
          *
-         *     Phase 5 widens :attr:`target` to
-         *     ``LessonPublic | QuizPublic | InterviewPublic``; for T3.2 only
-         *     ``LessonPublic`` exists, and quiz / interview rows surface
-         *     ``target = None``.
+         *     :attr:`target` widens with each phase as content types come online:
+         *
+         *     * ``LessonPublic`` — Phase 3 (T3.2) baseline.
+         *     * ``QuizSummaryPublic`` — Phase 5 (FR-5); slim shape mirroring
+         *       :class:`abridgeai.features.quizzes.schemas.public.QuizPublic`.
+         *     * Phase 6 will add ``InterviewPublic``.
+         *
+         *     Pydantic v2 discriminates dict-shape on a best-fit basis; both
+         *     branches share ``{id, title}`` so tagging is unambiguous.
          */
         ModuleItemPublic: {
             /**
@@ -6856,7 +6888,8 @@ export interface components {
             item_type: "lesson" | "quiz" | "interview";
             /** Position */
             position: number;
-            target?: components["schemas"]["LessonPublic"] | null;
+            /** Target */
+            target?: components["schemas"]["LessonPublic"] | components["schemas"]["QuizSummaryPublic"] | null;
         };
         /**
          * ModuleItemReorder
@@ -8148,6 +8181,25 @@ export interface components {
              */
             options: components["schemas"]["QuizQuestionOptionPublic"][];
         };
+        /**
+         * QuizSummaryPublic
+         * @description Slim quiz projection embedded inside :class:`ModuleItemPublic.target`.
+         *
+         *     Mirrors :class:`abridgeai.features.quizzes.schemas.public.QuizPublic`
+         *     on the wire (``id`` + ``title``) but lives in the courses schema
+         *     package so the cross-feature import-linter contract stays intact.
+         *     The field surface intentionally matches :class:`LessonPublic` so
+         *     frontend code can address ``item.target.{id,title}`` polymorphically.
+         */
+        QuizSummaryPublic: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+        };
         /** RecentCallOut */
         RecentCallOut: {
             /**
@@ -9122,6 +9174,7 @@ export type SchemaQuizQuestionAuthoring = components['schemas']['QuizQuestionAut
 export type SchemaQuizQuestionOptionAuthoring = components['schemas']['QuizQuestionOptionAuthoring'];
 export type SchemaQuizQuestionOptionPublic = components['schemas']['QuizQuestionOptionPublic'];
 export type SchemaQuizQuestionPublic = components['schemas']['QuizQuestionPublic'];
+export type SchemaQuizSummaryPublic = components['schemas']['QuizSummaryPublic'];
 export type SchemaRecentCallOut = components['schemas']['RecentCallOut'];
 export type SchemaRefreshTokenRequest = components['schemas']['RefreshTokenRequest'];
 export type SchemaReprocessOut = components['schemas']['ReprocessOut'];
