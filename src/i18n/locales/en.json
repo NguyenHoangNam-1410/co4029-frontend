@@ -177,6 +177,7 @@
     "resource_unavailable": "Resource unavailable",
     "download": "Download",
     "reading_lesson": "Reading",
+    "reading_open_fullscreen": "Open fullscreen",
     "reading_material_unavailable": "Reading material is not available right now.",
     "reading_empty": "No reading content has been added yet.",
     "mark_complete": {

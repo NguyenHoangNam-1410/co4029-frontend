@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/glass-card";
 import { GradientProgress } from "@/components/ui/gradient-progress";
-import { useQuizAttemptReview, useQuiz } from "@/lib/api/hooks/quizzes";
+import { useQuizAttemptReview, useStudentQuiz } from "@/lib/api/hooks/quizzes";
 import { useCourseBySlug } from "@/lib/api/hooks/courses";
 import type {
   QuizAttemptReviewOption,
@@ -38,7 +38,7 @@ export default function CourseQuizReviewPage() {
   };
 
   const { data: course } = useCourseBySlug(slug);
-  const { data: quiz } = useQuiz(quizId);
+  const { data: quiz } = useStudentQuiz(quizId);
   const { data: review, isLoading, isError } = useQuizAttemptReview(attemptId);
 
   const stats = useMemo(() => {
@@ -93,8 +93,8 @@ export default function CourseQuizReviewPage() {
 
   return (
     <div className="min-h-[70vh] pb-20">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-6 space-y-6">
-        <div className="flex items-center gap-3 flex-wrap">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+        <div className="flex items-center gap-3 flex-wrap -ml-3">
           <Link to="/courses/$slug/quiz/$quizId" params={{ slug, quizId }}>
             <Button
               variant="ghost"
@@ -272,7 +272,7 @@ function ReviewQuestionCard({
   const BadgeIcon = badge.icon;
 
   return (
-    <GlassCard className="p-6 space-y-4">
+    <GlassCard className="p-6 space-y-5">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3 min-w-0 flex-1">
           <span className="text-xs font-headline font-black text-m3-secondary tabular-nums shrink-0">
@@ -294,7 +294,7 @@ function ReviewQuestionCard({
       </div>
 
       {question.options.length > 0 && (
-        <div className="space-y-2">
+        <div className="space-y-2 mt-2">
           {question.options.map((opt) => (
             <ReviewOptionRow
               key={opt.id}
@@ -306,7 +306,7 @@ function ReviewQuestionCard({
       )}
 
       {question.question_type !== "mcq" && question.answer_text && (
-        <div className="rounded-xl bg-m3-surface-container-low p-4 border border-m3-outline-variant/20">
+        <div className="mt-3 rounded-xl bg-m3-surface-container-low p-4 border border-m3-outline-variant/20">
           <p className="text-[10px] uppercase tracking-widest font-bold text-m3-on-surface-variant mb-1">
             {t("course_quiz_review.your_answer")}
           </p>
@@ -317,7 +317,7 @@ function ReviewQuestionCard({
       )}
 
       {question.explanation && (
-        <div className="rounded-xl bg-m3-primary-fixed/30 p-4 border border-m3-primary/15 flex gap-3">
+        <div className="mt-5 rounded-xl bg-m3-primary-fixed/30 p-4 border border-m3-primary/15 flex gap-3">
           <Lightbulb className="h-4 w-4 text-m3-primary shrink-0 mt-0.5" />
           <div className="min-w-0">
             <p className="text-[10px] uppercase tracking-widest font-bold text-m3-primary mb-1">

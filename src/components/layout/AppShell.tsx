@@ -27,8 +27,9 @@ export default function AppShell({ children, navItems }: AppShellProps) {
 
   useEffect(() => {
     if (status === "unauthenticated") {
+      const search = routerLocation.search as { next?: string | null };
       const next = routerLocation.pathname.startsWith("/login")
-        ? new URLSearchParams(routerLocation.search).get("next") ?? undefined
+        ? (search.next ?? undefined)
         : routerLocation.href;
 
       void navigate({
@@ -61,8 +62,9 @@ export default function AppShell({ children, navItems }: AppShellProps) {
     clearAuthSession();
     void logout().catch(() => {});
 
+    const search = routerLocation.search as { next?: string | null };
     const next = routerLocation.pathname.startsWith("/login")
-      ? new URLSearchParams(routerLocation.search).get("next") ?? undefined
+      ? (search.next ?? undefined)
       : routerLocation.href;
 
     void navigate({
