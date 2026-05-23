@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ApiError, apiDelete, apiFetch, apiPatch, apiPost, apiPut } from "../client";
 import { queryKeys } from "../query-keys";
+import { useInfinitePage } from "../use-infinite-page";
 import type {
   CareerPathAuthoring,
   CareerPathCourseAdd,
@@ -20,14 +21,25 @@ interface CareerPathListPage {
   next_cursor: string | null;
 }
 
-export function useCareerPaths() {
-  return useQuery({
+/**
+ * Cursor-paginated published career paths (Reconciliation §A10/§D2).
+ *
+ * Returns a flattened `items[]` plus standard infinite-scroll handles
+ * (`hasNextPage` / `fetchNextPage` / `isFetchingNextPage`) so the
+ * learner catalogue auto-loads as the user scrolls.
+ */
+export function useCareerPaths(limit = 20) {
+  return useInfinitePage<CareerPathPublic>({
     queryKey: queryKeys.careerPaths.list(),
-    queryFn: async () => {
-      const page = await apiFetch<CareerPathListPage>("/career-paths");
-      return page.items;
+    fetch: async (cursor, pageLimit = limit) => {
+      const qs = new URLSearchParams();
+      if (pageLimit) qs.set("limit", String(pageLimit));
+      if (cursor) qs.set("cursor", cursor);
+      const suffix = qs.toString() ? `?${qs.toString()}` : "";
+      const page = await apiFetch<CareerPathListPage>(`/career-paths${suffix}`);
+      return { items: page.items, next_cursor: page.next_cursor ?? null };
     },
-    staleTime: 1000 * 60 * 2,
+    limit,
   });
 }
 

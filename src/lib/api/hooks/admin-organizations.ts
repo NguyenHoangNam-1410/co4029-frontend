@@ -10,6 +10,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiDelete, apiFetch, apiPatch, apiPost } from "../client";
 import { queryKeys } from "../query-keys";
+import { useInfinitePage } from "../use-infinite-page";
 import type {
   MembershipCreate,
   MembershipPatch,
@@ -86,7 +87,6 @@ export interface OrganizationListParams {
   includeDeleted?: boolean;
   orgStatus?: string;
   limit?: number;
-  cursor?: string;
 }
 
 export interface OrganizationListPage {
@@ -94,24 +94,30 @@ export interface OrganizationListPage {
   next_cursor: string | null;
 }
 
+/**
+ * Cursor-paginated organisation list (Reconciliation §A10/§D2).
+ *
+ * Returns a flattened `items[]` plus standard infinite-scroll handles
+ * (`hasNextPage` / `fetchNextPage` / `isFetchingNextPage`) — pair with
+ * `<InfiniteList>` so the table auto-loads as the user scrolls.
+ */
 export function useOrganizations(params: OrganizationListParams = {}) {
-  const { includeDeleted, orgStatus, limit, cursor } = params;
-  return useQuery({
-    queryKey: queryKeys.admin.organizations(
-      includeDeleted,
-      orgStatus,
-      limit,
-      cursor,
-    ),
-    queryFn: () => {
+  const { includeDeleted, orgStatus, limit = 50 } = params;
+  return useInfinitePage<OrganizationRead>({
+    queryKey: queryKeys.admin.organizations(includeDeleted, orgStatus, limit),
+    fetch: async (cursor, pageLimit = limit) => {
       const qs = new URLSearchParams();
       if (includeDeleted) qs.set("include_deleted", "true");
       if (orgStatus) qs.set("org_status", orgStatus);
-      if (limit !== undefined) qs.set("limit", String(limit));
+      if (pageLimit) qs.set("limit", String(pageLimit));
       if (cursor) qs.set("cursor", cursor);
       const suffix = qs.toString() ? `?${qs.toString()}` : "";
-      return apiFetch<OrganizationListPage>(`/admin/organizations${suffix}`);
+      const page = await apiFetch<OrganizationListPage>(
+        `/admin/organizations${suffix}`,
+      );
+      return { items: page.items, next_cursor: page.next_cursor ?? null };
     },
+    limit,
   });
 }
 

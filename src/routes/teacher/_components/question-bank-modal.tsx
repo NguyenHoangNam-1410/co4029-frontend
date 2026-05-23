@@ -36,6 +36,7 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { InfiniteList } from "@/components/ui/InfiniteList";
 import {
   useCourseModules,
   useModuleLessons,
@@ -121,7 +122,7 @@ export function QuestionBankModal({
     setLessonId("");
   }, [moduleId]);
 
-  const { data: rows, isLoading, error } = useQuestionBank(courseId, {
+  const bank = useQuestionBank(courseId, {
     moduleId: moduleId || undefined,
     lessonId: lessonId || undefined,
     questionType: questionType || undefined,
@@ -131,6 +132,9 @@ export function QuestionBankModal({
     search: search || undefined,
     excludeQuizId: quizId,
   });
+  const rows = bank.items;
+  const isLoading = bank.isLoading;
+  const error = bank.error;
 
   const importer = useImportQuestionsFromBank(quizId);
 
@@ -156,7 +160,6 @@ export function QuestionBankModal({
   }
 
   function selectAllVisible() {
-    if (!rows) return;
     setSelected((current) => {
       const next = new Set(current);
       for (const entry of rows) next.add(entry.question.id);
@@ -195,7 +198,7 @@ export function QuestionBankModal({
 
   const modules = modulesQuery.data ?? [];
   const lessons = lessonsQuery.data ?? [];
-  const allVisibleSelected = !!rows && rows.length > 0
+  const allVisibleSelected = rows.length > 0
     && rows.every((entry) => selected.has(entry.question.id));
 
   return (
@@ -375,7 +378,7 @@ export function QuestionBankModal({
             <div className="p-6 text-sm text-red-700 bg-red-50">
               Failed to load bank: {(error as Error).message}
             </div>
-          ) : !rows || rows.length === 0 ? (
+          ) : rows.length === 0 ? (
             <div className="p-8 text-center text-sm text-m3-on-surface-variant space-y-2">
               <p>No bank questions match these filters.</p>
               {activeFilterCount > 0 ? (
@@ -389,16 +392,22 @@ export function QuestionBankModal({
               ) : null}
             </div>
           ) : (
-            <ul className="divide-y divide-m3-outline-variant/20">
-              {rows.map((entry) => (
+            <InfiniteList
+              items={rows}
+              hasNextPage={bank.hasNextPage}
+              fetchNextPage={bank.fetchNextPage}
+              isFetchingNextPage={bank.isFetchingNextPage}
+              isLoading={isLoading}
+              keyOf={(entry) => entry.question.id}
+              className="divide-y divide-m3-outline-variant/20"
+              renderItem={(entry) => (
                 <BankRow
-                  key={entry.question.id}
                   entry={entry}
                   selected={selected.has(entry.question.id)}
                   onToggle={() => toggle(entry.question.id)}
                 />
-              ))}
-            </ul>
+              )}
+            />
           )}
         </div>
 
@@ -407,9 +416,9 @@ export function QuestionBankModal({
           <div className="flex items-center gap-3">
             <span className="text-xs text-m3-on-surface-variant">
               <strong className="text-m3-on-surface">{selected.size}</strong> selected
-              {rows ? ` · ${rows.length} shown` : ""}
+              {` · ${rows.length} shown${bank.hasNextPage ? "+" : ""}`}
             </span>
-            {rows && rows.length > 0 ? (
+            {rows.length > 0 ? (
               <button
                 type="button"
                 onClick={allVisibleSelected ? clearSelection : selectAllVisible}

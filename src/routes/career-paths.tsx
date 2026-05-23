@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { AlertCircle, BookOpen, GraduationCap, Sparkles } from "lucide-react";
@@ -101,7 +102,25 @@ export default function CareerPathsPage() {
   const enrolledIds = new Set(
     (myEnrollments.data ?? []).map((e) => e.career_path_id),
   );
-  const items = list.data ?? [];
+  const items = list.items;
+
+  // Auto-load next page when the sentinel scrolls into view (mirrors
+  // the InfiniteList pattern but inline because this is a CSS grid).
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const fetchNextPageRef = useRef(list.fetchNextPage);
+  fetchNextPageRef.current = list.fetchNextPage;
+  useEffect(() => {
+    const node = sentinelRef.current;
+    if (!node) return;
+    if (!list.hasNextPage) return;
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) fetchNextPageRef.current();
+      }
+    });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [list.hasNextPage, list.isFetchingNextPage]);
 
   return (
     <div className="relative min-h-screen pb-28">
@@ -136,7 +155,7 @@ export default function CareerPathsPage() {
               cta={
                 <Button
                   variant="outline"
-                  onClick={() => list.refetch()}
+                  onClick={() => list.fetchNextPage()}
                   className="cursor-pointer"
                 >
                   {t("career_paths_page.retry")}
@@ -162,16 +181,27 @@ export default function CareerPathsPage() {
           )}
 
           {!list.isLoading && !list.isError && items.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-              {items.map((p, i) => (
-                <PathCard
-                  key={p.id}
-                  path={p}
-                  index={i}
-                  enrolled={enrolledIds.has(p.id)}
-                />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                {items.map((p, i) => (
+                  <PathCard
+                    key={p.id}
+                    path={p}
+                    index={i}
+                    enrolled={enrolledIds.has(p.id)}
+                  />
+                ))}
+              </div>
+              <div ref={sentinelRef} className="h-10">
+                {list.isFetchingNextPage && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 mt-5">
+                    {[1, 2, 3].map((i) => (
+                      <SkeletonCard key={`next-${i}`} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
           )}
         </section>
       </div>
