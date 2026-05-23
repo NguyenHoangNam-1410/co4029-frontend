@@ -125,6 +125,12 @@ const courseQuizRoute = createRoute({
   component: CourseQuizPage,
 });
 
+const courseQuizReviewRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/courses/$slug/quiz/$quizId/attempts/$attemptId",
+  component: lazyRouteComponent(() => import("@/routes/course-quiz-review")),
+});
+
 const courseInterviewRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/courses/$slug/interview/$moduleId",
@@ -467,6 +473,7 @@ const routeTree = rootRoute.addChildren([
     courseDetailRoute,
     courseLearnRoute,
     courseQuizRoute,
+    courseQuizReviewRoute,
     courseInterviewRoute,
     progressRoute,
     settingsRoute,

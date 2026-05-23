@@ -12,6 +12,7 @@ import type {
   QuestionBankImportRequest,
   QuizAttemptAnswerRead,
   QuizAttemptRead,
+  QuizAttemptReviewRead,
   QuizAttemptStart,
   QuizAttemptSubmitAnswer,
   QuizAuthoring,
@@ -94,6 +95,16 @@ export function useMyQuizAttempts(quizId: string | null | undefined) {
     queryFn: () =>
       apiFetch<QuizAttemptRead[]>(`/me/quizzes/${quizId}/attempts`),
     enabled: !!quizId,
+  });
+}
+
+export function useQuizAttemptReview(attemptId: string | null | undefined) {
+  return useQuery({
+    queryKey: ["quizzes", "attempt-review", attemptId ?? ""],
+    queryFn: () =>
+      apiFetch<QuizAttemptReviewRead>(`/attempts/${attemptId}/review`),
+    enabled: !!attemptId,
+    staleTime: 1000 * 60 * 10, // submitted attempts don't change
   });
 }
 

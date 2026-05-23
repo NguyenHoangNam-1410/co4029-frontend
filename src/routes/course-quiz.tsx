@@ -134,11 +134,13 @@ function QuizIntroPanel({
   attempts,
   onStart,
   starting,
+  slug,
 }: {
   quiz: QuizPublic;
   attempts: QuizAttemptRead[];
   onStart: () => void;
   starting: boolean;
+  slug: string;
 }) {
   const { t } = useTranslation();
   const completed = attempts.filter((a) => a.status === "submitted" || a.status === "graded").length;
@@ -147,6 +149,11 @@ function QuizIntroPanel({
     quiz.max_attempts != null && completed >= quiz.max_attempts;
   const noRetakesLeft = completed > 0 && !quiz.allow_retakes;
   const blocked = maxAttemptsReached || noRetakesLeft;
+
+  // Most recent attempts first; in_progress filtered out (review only after submit)
+  const reviewableAttempts = [...attempts]
+    .filter((a) => a.status === "submitted" || a.status === "graded")
+    .sort((a, b) => b.attempt_number - a.attempt_number);
 
   return (
     <div className="max-w-2xl w-full mx-auto space-y-6">
@@ -211,6 +218,64 @@ function QuizIntroPanel({
           </Button>
         )}
       </GlassCard>
+
+      {reviewableAttempts.length > 0 && (
+        <GlassCard className="p-6 sm:p-8">
+          <h2 className="font-headline font-bold text-base text-m3-on-surface mb-4">
+            {t("course_quiz.history.title")}
+          </h2>
+          <div className="space-y-2">
+            {reviewableAttempts.map((a) => {
+              const score =
+                a.score_percent != null ? Number(a.score_percent) : null;
+              const passed = a.passed === true;
+              return (
+                <Link
+                  key={a.id}
+                  to="/courses/$slug/quiz/$quizId/attempts/$attemptId"
+                  params={{ slug, quizId: quiz.id, attemptId: a.id }}
+                  className="flex items-center gap-4 p-3 rounded-xl bg-m3-surface-container-low hover:bg-m3-surface-container transition-colors group"
+                >
+                  <span className="text-xs font-headline font-black text-m3-secondary tabular-nums shrink-0 w-8">
+                    #{a.attempt_number}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm font-bold text-m3-on-surface">
+                        {score != null
+                          ? `${score.toFixed(0)}%`
+                          : t("course_quiz.history.no_score")}
+                      </span>
+                      {a.passed != null && (
+                        <span
+                          className={cn(
+                            "text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full",
+                            passed
+                              ? "bg-emerald-50 text-emerald-700"
+                              : "bg-amber-50 text-amber-700",
+                          )}
+                        >
+                          {passed
+                            ? t("course_quiz.history.passed")
+                            : t("course_quiz.history.failed")}
+                        </span>
+                      )}
+                    </div>
+                    {a.submitted_at && (
+                      <p className="text-xs text-m3-on-surface-variant mt-0.5">
+                        {new Date(a.submitted_at).toLocaleString()}
+                      </p>
+                    )}
+                  </div>
+                  <span className="text-xs font-bold text-m3-primary group-hover:underline shrink-0">
+                    {t("course_quiz.history.review")}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </GlassCard>
+      )}
     </div>
   );
 }
@@ -459,7 +524,7 @@ export default function CourseQuizPage() {
 
   if (courseLoading || quizLoading || attemptsLoading) {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center bg-m3-surface px-6">
+      <div className="min-h-[70vh] flex items-center justify-center px-6">
         <div className="space-y-3 w-full max-w-sm">
           <div className="h-4 rounded-full bg-m3-surface-container animate-pulse" />
           <div className="h-4 rounded-full bg-m3-surface-container animate-pulse w-4/5" />
@@ -471,7 +536,7 @@ export default function CourseQuizPage() {
 
   if (!course || !quiz) {
     return (
-      <div className="min-h-[70vh] bg-m3-surface flex items-center justify-center p-8">
+      <div className="min-h-[70vh] flex items-center justify-center p-8">
         <GlassCard className="p-10 text-center max-w-md">
           <BookOpen className="h-10 w-10 text-m3-outline mx-auto mb-4" />
           <h2 className="font-headline font-bold text-xl text-m3-on-surface mb-2">
@@ -497,7 +562,7 @@ export default function CourseQuizPage() {
     const passingScore = Math.round(Number(quiz.passing_score_percent));
 
     return (
-      <div className="min-h-[70vh] bg-m3-surface flex flex-col items-center justify-center p-6 sm:p-8">
+      <div className="min-h-[70vh] flex flex-col items-center justify-center p-6 sm:p-8">
         <div className="max-w-3xl w-full space-y-6">
           <GlassCard className="p-8 sm:p-10 text-center">
             <div
@@ -557,12 +622,13 @@ export default function CourseQuizPage() {
 
   if (!taking) {
     return (
-      <div className="min-h-[70vh] bg-m3-surface flex items-center justify-center px-4 sm:px-6 py-10">
+      <div className="min-h-[70vh] flex items-center justify-center px-4 sm:px-6 py-10">
         <QuizIntroPanel
           quiz={quiz}
           attempts={attempts}
           onStart={() => void handleStartAttempt()}
           starting={startAttempt.isPending}
+          slug={slug}
         />
       </div>
     );
@@ -589,7 +655,7 @@ export default function CourseQuizPage() {
     : null;
 
   return (
-    <div className="min-h-[70vh] bg-m3-surface pb-20">
+    <div className="min-h-[70vh] pb-20">
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
           <div className="flex items-center gap-3 flex-wrap">

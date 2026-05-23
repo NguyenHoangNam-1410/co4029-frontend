@@ -1147,7 +1147,42 @@
       "source_interview_session": "Source interview session"
     }
   },
+  "course_quiz_review": {
+    "back_to_quiz": "Back to quiz",
+    "not_found_title": "Attempt not found",
+    "not_found_body": "This attempt may have been deleted, or you don't have access to it.",
+    "attempt_label": "Attempt #{{n}}",
+    "passed": "Passed",
+    "failed": "Not passed",
+    "passing_score": "Passing score",
+    "questions_title": "Question breakdown",
+    "correct": "Correct",
+    "incorrect": "Incorrect",
+    "skipped": "Skipped",
+    "your_answer": "Your answer",
+    "explanation": "Explanation",
+    "points": "{{n}} pts",
+    "hint_used": "Hint used",
+    "stats": {
+      "correct": "Correct",
+      "incorrect": "Incorrect",
+      "skipped": "Skipped",
+      "time": "Time"
+    },
+    "option": {
+      "your_correct": "Your answer · Correct",
+      "your_incorrect": "Your answer",
+      "correct": "Correct answer"
+    }
+  },
   "course_quiz": {
+    "history": {
+      "title": "Previous attempts",
+      "review": "Review",
+      "passed": "Passed",
+      "failed": "Failed",
+      "no_score": "No score"
+    },
     "sections": {
       "config": "Quiz configuration",
       "module_review": "Module review",
