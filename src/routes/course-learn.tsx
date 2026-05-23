@@ -517,7 +517,7 @@ function ReadingLessonPane({ lesson }: { lesson: LessonPublic }) {
       <div className="flex items-center gap-2">
         <FileText className="h-4 w-4 text-m3-secondary" />
         <span className="text-xs font-headline font-semibold uppercase tracking-wider text-m3-on-surface-variant">
-          {t("course_learn.reading_lesson") ?? "Reading"}
+          {t("course_learn.reading_lesson")}
         </span>
       </div>
 
@@ -541,7 +541,7 @@ function ReadingLessonPane({ lesson }: { lesson: LessonPublic }) {
           </div>
         ) : (
           <div className="rounded-xl border border-dashed border-m3-outline-variant/40 p-6 text-sm text-m3-on-surface-variant">
-            {t("course_learn.reading_material_unavailable") ?? "Reading material is not available right now."}
+            {t("course_learn.reading_material_unavailable")}
           </div>
         )
       )}
@@ -554,7 +554,7 @@ function ReadingLessonPane({ lesson }: { lesson: LessonPublic }) {
 
       {!hasMaterial && !hasNotes && (
         <p className="text-sm text-m3-on-surface-variant">
-          {t("course_learn.reading_empty") ?? "No reading content has been added yet."}
+          {t("course_learn.reading_empty")}
         </p>
       )}
     </GlassCard>

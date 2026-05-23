@@ -175,7 +175,10 @@
     "lesson_unavailable_title": "Bài học không khả dụng",
     "lesson_unavailable_body": "Nội dung bài học này hiện chưa được mở.",
     "resource_unavailable": "Tài nguyên không khả dụng",
-    "download": "Download"
+    "download": "Download",
+    "reading_lesson": "Bài đọc",
+    "reading_material_unavailable": "Tài liệu đọc hiện chưa khả dụng.",
+    "reading_empty": "Bài học này chưa có nội dung đọc."
   },
   "placeholder": {
     "body": "Trang này sắp có. Quay lại sau khi quá trình chuyển API hoàn tất.",
@@ -1864,5 +1867,12 @@
       "inactive": "Không hoạt động",
       "suspended": "Tạm khoá"
     }
+  },
+  "logout_confirm": {
+    "title": "Đăng xuất khỏi aBridgeAI?",
+    "description": "Bạn sẽ cần đăng nhập lại để tiếp tục truy cập khoá học, tiến độ và thông báo.",
+    "confirm": "Đăng xuất",
+    "confirming": "Đang đăng xuất…",
+    "cancel": "Huỷ"
   }
 }
