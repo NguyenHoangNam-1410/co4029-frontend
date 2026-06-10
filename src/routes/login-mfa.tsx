@@ -112,8 +112,14 @@ export default function LoginMfaPage() {
         const next = search.next ?? "/dashboard";
         window.location.replace(next);
       },
-      onError: () => {
-        toast.error(t("login_mfa.errors.invalid_code"));
+      onError: (err) => {
+        if (err instanceof Error && err.message === "Invalid MFA challenge") {
+          toast.error(t("login_mfa.errors.challenge_expired"));
+          setChallengeId(null);
+          requestChallenge();
+        } else {
+          toast.error(t("login_mfa.errors.invalid_code"));
+        }
         setCode("");
       },
     });

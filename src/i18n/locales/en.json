@@ -326,7 +326,8 @@
     "errors": {
       "challenge_failed": "Couldn't start two-factor verification. Please try again.",
       "session_not_ready": "Verification session not ready. Please wait a moment.",
-      "invalid_code": "Invalid code"
+      "invalid_code": "Invalid code",
+      "challenge_expired": "Verification session expired. A new challenge has been created, please try again."
     },
     "success": "Verification successful"
   },

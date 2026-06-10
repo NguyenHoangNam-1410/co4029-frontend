@@ -326,7 +326,8 @@
     "errors": {
       "challenge_failed": "Không thể bắt đầu xác thực hai bước. Vui lòng thử lại.",
       "session_not_ready": "Phiên xác thực chưa sẵn sàng. Vui lòng đợi trong giây lát.",
-      "invalid_code": "Mã không hợp lệ"
+      "invalid_code": "Mã không hợp lệ",
+      "challenge_expired": "Phiên xác thực đã hết hạn. Phiên mới đã được tạo, vui lòng thử lại."
     },
     "success": "Xác thực thành công"
   },

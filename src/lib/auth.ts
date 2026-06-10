@@ -283,6 +283,8 @@ export async function refreshAuthSession() {
       throw new RefreshAuthError("No active session found");
     }
 
+    const attemptedRefreshToken = session.refreshToken;
+
     let response: Response;
     try {
       response = await apiRequest("/auth/refresh", {
@@ -299,6 +301,15 @@ export async function refreshAuthSession() {
     }
 
     if (response.status === 401 || response.status === 403) {
+      const latestSession = getStoredAuthSession();
+
+      // Cross-tab race: another tab may have already rotated the refresh
+      // token and stored the newer session while this request was in flight.
+      // In that case this stale 401 must not wipe the newer shared session.
+      if (latestSession && latestSession.refreshToken !== attemptedRefreshToken) {
+        return latestSession;
+      }
+
       // The refresh token is genuinely invalid (revoked, expired, tampered).
       // Only here do we wipe the session.
       clearAuthSession();

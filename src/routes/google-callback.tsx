@@ -10,6 +10,8 @@ import {
 } from "@/lib/auth";
 import { useGoogleCallback } from "@/lib/api/hooks/auth";
 
+const processedCallbackKeys = new Set<string>();
+
 export default function GoogleCallbackPage() {
   const { t } = useTranslation();
   const search = useSearch({ strict: false }) as {
@@ -70,6 +72,21 @@ export default function GoogleCallbackPage() {
         );
         return;
       }
+
+      const callbackKey = `${state}:${code}`;
+      if (processedCallbackKeys.has(callbackKey)) {
+        return;
+      }
+      processedCallbackKeys.add(callbackKey);
+
+      // OAuth codes are single-use. Remove them from the URL before the
+      // network exchange so a remount, refresh, or history replay cannot
+      // submit the same callback again from this tab.
+      window.history.replaceState(
+        window.history.state,
+        document.title,
+        window.location.pathname,
+      );
 
       try {
         const tokenResponse = await googleCallback.mutateAsync(code);
