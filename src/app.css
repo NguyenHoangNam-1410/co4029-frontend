@@ -418,6 +418,16 @@
     height: 1px;
     width: 100%;
   }
+
+  .hover-entity {
+    transition: all 0.25s ease-out;
+  }
+  .hover-entity:hover {
+    transform: translateY(-6px) scale(1.015);
+    box-shadow: 0 20px 40px -10px rgba(30, 64, 175, 0.15), 0 0 20px rgba(59, 130, 246, 0.15);
+    z-index: 10;
+  }
+  
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
