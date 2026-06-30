@@ -24,7 +24,7 @@ import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import {
   useDeleteInterviewConfig,
   useGenerateInterviewQuestions,
-  useInterviewConfig,
+  useInterviewForAuthoring,
   useInterviewGenerationRun,
   usePublishInterviewConfig,
   useUpdateInterviewConfig,
@@ -33,6 +33,8 @@ import {
   useTeacherCourseById,
   useTeacherCourseContent,
 } from "@/lib/api/hooks/teacher-courses";
+import { useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/api/query-keys";
 import type {
   InterviewConfigAuthoring,
   InterviewConfigUpdate,
@@ -93,13 +95,17 @@ export default function InterviewConfigPage() {
 
   const { data: course } = useTeacherCourseById(courseId);
   const { data: content } = useTeacherCourseContent(courseId);
-  const { data: config, isLoading: configLoading } =
-    useInterviewConfig(configId);
+  const { data: authoring, isLoading: configLoading } =
+    useInterviewForAuthoring(configId);
+  const config = authoring?.config;
+  const questions = authoring?.questions;
 
   const courseModule = useMemo(
     () => content?.modules.find((m) => m.id === config?.module_id),
     [content, config?.module_id],
   );
+
+  const draftCount = questions?.length ?? config?.draft_question_count ?? 0;
 
   const updateConfig = useUpdateInterviewConfig(configId);
   const publishConfig = usePublishInterviewConfig(configId);
@@ -154,7 +160,6 @@ export default function InterviewConfigPage() {
 
   const isPublished = config.status === "published";
   const isArchived = config.status === "archived";
-  const draftCount = config.draft_question_count ?? 0;
   const publishDisabled =
     publishConfig.isPending || isPublished || draftCount === 0;
 
@@ -693,8 +698,17 @@ function GenerationModal({
   onClose: () => void;
 }) {
   const { t } = useTranslation();
+  const qc = useQueryClient();
   const generate = useGenerateInterviewQuestions(configId);
   const { data: run } = useInterviewGenerationRun(configId, activeRunId);
+
+  useEffect(() => {
+    if (run?.status === "completed") {
+      void qc.invalidateQueries({
+        queryKey: queryKeys.interviews.configAuthoring(configId),
+      });
+    }
+  }, [run?.status, configId, qc]);
 
   const [form, setForm] = useState({
     mode: "outcome-based" as GenerationMode,

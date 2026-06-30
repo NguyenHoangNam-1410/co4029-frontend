@@ -30,6 +30,7 @@
     "users": "Users",
     "processing": "Processing",
     "ai_costs": "AI Costs",
+    "audit_logs": "Audit Logs",
     "health": "Health",
     "settings": "Settings",
     "profile": "Profile",
@@ -174,6 +175,8 @@
   "course_learn": {
     "lesson_unavailable_title": "Lesson unavailable",
     "lesson_unavailable_body": "This lesson's content isn't open yet.",
+    "lesson_locked_title": "Lesson locked",
+    "lesson_locked_body": "Complete the prerequisite lessons and review your due cards to unlock this lesson.",
     "resource_unavailable": "Resource unavailable",
     "download": "Download",
     "reading_lesson": "Reading",
@@ -192,6 +195,20 @@
     "settings": "Settings",
     "quiz": "Quiz",
     "interview": "AI mock interview"
+  },
+  "progress_page": {
+    "title": "My progress",
+    "subtitle": "Course completion and spaced-repetition reviews at a glance.",
+    "cards_due": "cards due for review",
+    "review_now": "Review now",
+    "sr_dashboard": "Review dashboard",
+    "courses_heading": "Course completion",
+    "no_courses": "You are not enrolled in any courses yet.",
+    "load_failed": "Could not load your courses. Please try again.",
+    "browse_courses": "Browse courses",
+    "lessons_done": "{{completed}}/{{total}} lessons completed",
+    "time_spent": "{{hours}} h studied",
+    "continue": "Continue"
   },
   "teacher_interview_config_new": {
     "title": "New AI interview",
@@ -326,8 +343,7 @@
     "errors": {
       "challenge_failed": "Couldn't start two-factor verification. Please try again.",
       "session_not_ready": "Verification session not ready. Please wait a moment.",
-      "invalid_code": "Invalid code",
-      "challenge_expired": "Verification session expired. A new challenge has been created, please try again."
+      "invalid_code": "Invalid code"
     },
     "success": "Verification successful"
   },
@@ -700,6 +716,34 @@
     "ai_chip": "AI-powered"
   },
   "admin": {
+    "audit": {
+      "title": "Audit logs",
+      "subtitle": "Immutable record of role changes and HTTP requests.",
+      "since_days": "Last N days",
+      "tabs": {
+        "role_changes": "Role changes",
+        "http": "HTTP requests"
+      },
+      "cols": {
+        "when": "When",
+        "role": "Role",
+        "scope": "Scope",
+        "user": "User",
+        "granted_by": "Granted by",
+        "status": "Status",
+        "method": "Method",
+        "path": "Path",
+        "code": "Code",
+        "latency": "Latency",
+        "ip": "IP"
+      },
+      "system": "system",
+      "active": "Active",
+      "revoked": "Revoked",
+      "empty": "No audit entries in this window.",
+      "load_failed": "Could not load audit entries. You may not have access, or the service is unavailable.",
+      "path_filter_placeholder": "Filter by path prefix, e.g. /api/v1/admin"
+    },
     "health": {
       "title": "System status",
       "subtitle": "Check backend health and readiness.",
@@ -1398,8 +1442,10 @@
     },
     "sections": {
       "add_course": "Add course",
-      "register_student": "Register student"
+      "register_student": "Register student",
+      "readiness_snapshot": "Average career readiness"
     },
+    "readiness_students_counted": "from the latest snapshots of {{count}} enrolled students",
     "empty_states": {
       "no_courses": "No courses in the path yet.",
       "no_students": "No students registered yet.",
@@ -1796,6 +1842,16 @@
     }
   },
   "teacher_lesson_materials": {
+    "versions": {
+      "toggle": "Version history",
+      "title": "Version history",
+      "empty": "No versions yet.",
+      "current": "Current",
+      "rollback": "Roll back",
+      "not_ready": "Only fully-processed versions can be restored",
+      "rollback_success": "Material rolled back to the selected version.",
+      "rollback_rejected": "This version cannot be restored (not ready or already current)."
+    },
     "proc_status": {
       "not_queued": "Not queued",
       "pending": "Pending",

@@ -13,6 +13,7 @@ import {
   Mic,
   ArrowRight,
   FileText,
+  Lock,
   Maximize2,
   Download,
   Sparkles,
@@ -34,6 +35,7 @@ import {
 } from "@/lib/api/hooks/courses";
 import { useStreamUrl } from "@/lib/api/hooks/materials";
 import { useMyCourseProgress, useMarkLessonComplete, useUnmarkLessonComplete } from "@/lib/api/hooks/progress";
+import { useCourseSrOverview } from "@/lib/api/hooks/spaced-repetition";
 import { useLessonEngagementTracker } from "@/lib/hooks/useLessonEngagementTracker";
 import ReactMarkdown from "react-markdown";
 import { queryKeys } from "@/lib/api/query-keys";
@@ -221,6 +223,15 @@ function CourseLearnLoaded({
     lessonQuery.isError &&
     lessonQuery.error instanceof ApiError &&
     lessonQuery.error.status === 404;
+  // FR-4.5 — the backend replies 403 with detail.error === "lesson_locked"
+  // when the unlock gates (prerequisites / SR coverage / interview pass)
+  // are not met. Other 403s (permissions) fall through to the generic path.
+  const lessonLocked =
+    lessonQuery.isError &&
+    lessonQuery.error instanceof ApiError &&
+    lessonQuery.error.status === 403 &&
+    (lessonQuery.error.parsedBody as { detail?: { error?: string } } | null)?.detail?.error ===
+      "lesson_locked";
 
   const lessonIdForResources = activeTab === "Resources" ? (activeLessonId ?? undefined) : undefined;
   const { data: resources } = useLessonResources(lessonIdForResources);
@@ -233,6 +244,18 @@ function CourseLearnLoaded({
     }
     return map;
   }, [courseProgressQuery.data]);
+
+  // Lessons whose unlock gates are unmet — keyed off the raw `eligible`
+  // verdict, NOT the display `status` (which also reports "locked" for
+  // eligible-but-unstarted lessons).
+  const { data: srOverview } = useCourseSrOverview(course.id);
+  const lockedLessonIds = useMemo(() => {
+    const set = new Set<string>();
+    for (const row of srOverview ?? []) {
+      if (row.eligible === false) set.add(row.lesson_id);
+    }
+    return set;
+  }, [srOverview]);
 
   const search = useSearch({ strict: false }) as { t?: string | number; p?: string | number };
   const { hash } = useLocation();
@@ -306,6 +329,7 @@ function CourseLearnLoaded({
     if (fi.item.item_type === "lesson" && fi.item.target?.id) {
       const status = lessonStatusMap.get(fi.item.target.id);
       if (status === "completed") return "completed";
+      if (lockedLessonIds.has(fi.item.target.id)) return "locked";
     }
     return "pending";
   }
@@ -346,7 +370,17 @@ function CourseLearnLoaded({
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
           <div className="flex-1 min-w-0 flex flex-col gap-6">
 
-            {lessonUnavailable ? (
+            {lessonLocked ? (
+              <GlassCard className="p-10 text-center">
+                <Lock className="h-8 w-8 mx-auto mb-3 text-m3-outline" />
+                <p className="font-headline font-bold text-xl text-m3-on-surface mb-2">
+                  {t("course_learn.lesson_locked_title")}
+                </p>
+                <p className="text-sm text-m3-on-surface-variant">
+                  {t("course_learn.lesson_locked_body")}
+                </p>
+              </GlassCard>
+            ) : lessonUnavailable ? (
               <GlassCard className="p-10 text-center">
                 <p className="font-headline font-bold text-xl text-m3-on-surface mb-2">
                   {t("course_learn.lesson_unavailable_title")}
@@ -861,6 +895,7 @@ function ModuleSection({
         const inner = (
           <>
             {state === "completed" && <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-emerald-500 fill-emerald-100" />}
+            {state === "locked" && <Lock className="h-4 w-4 flex-shrink-0" />}
             {state === "active" && <LessonIcon className="h-4 w-4 flex-shrink-0" />}
             {state === "pending" && !isQuiz && !isInterview && <LessonIcon className="h-4 w-4 flex-shrink-0 opacity-40" />}
             {state === "pending" && isQuiz && <HelpCircle className="h-4 w-4 flex-shrink-0 opacity-60" />}

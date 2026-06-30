@@ -5,6 +5,8 @@ import { AIInsightChip } from "@/components/ui/ai-insight-chip";
 import { SectionHeader } from "@/components/ui/section-header";
 import { BridgeLine } from "@/components/ui/bridge-line";
 import { GlassCard } from "@/components/ui/glass-card";
+import { AnimatedCounter } from "@/components/ui/animated-counter";
+import { useReveal } from "@/hooks/use-reveal";
 import TopNavBar from "@/components/layout/TopNavBar";
 import Footer from "@/components/layout/Footer";
 import {
@@ -65,11 +67,13 @@ const featuredCourses = [
 ];
 
 export default function LandingPage() {
+  const revealRef = useReveal<HTMLElement>();
+
   return (
     <>
       <TopNavBar />
 
-      <main className="pt-16">
+      <main ref={revealRef} className="pt-16">
         {/* 1. HERO */}
         <section className="relative overflow-hidden gradient-hero min-h-[92vh] flex items-center">
           <div className="absolute inset-0 pointer-events-none">
@@ -82,7 +86,7 @@ export default function LandingPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
 
               {/* Left copy */}
-              <div className="space-y-8">
+              <div className="space-y-8 reveal reveal-left">
                 <AIInsightChip>Next-Gen Learning Platform</AIInsightChip>
 
                 <div className="space-y-5">
@@ -144,7 +148,7 @@ export default function LandingPage() {
               </div>
 
               {/* Right visual */}
-              <div className="relative flex items-center justify-center">
+              <div className="relative flex items-center justify-center reveal reveal-right" style={{ '--reveal-delay': '0.2s' } as React.CSSProperties}>
                 <div className="relative w-full max-w-md aspect-[4/3] rounded-xl overflow-hidden shadow-2xl">
                   <div className="absolute inset-0 bg-gradient-to-br from-[#172554] via-[#1e40af] to-[#3b82f6]" />
                   <div
@@ -178,7 +182,7 @@ export default function LandingPage() {
                 </div>
 
                 {/* Floating AI insight card */}
-                <div className="absolute -bottom-6 -left-4 sm:-left-10 z-10">
+                <div className="absolute -bottom-6 -left-4 sm:-left-10 z-10 animate-float">
                   <GlassCard className="p-4 w-56 shadow-glass">
                     <div className="flex items-start gap-3">
                       <div className="w-9 h-9 rounded-xl gradient-secondary flex items-center justify-center shrink-0">
@@ -199,7 +203,7 @@ export default function LandingPage() {
                 </div>
 
                 {/* Top-right stat badge */}
-                <div className="absolute -top-4 -right-2 sm:right-0">
+                <div className="absolute -top-4 -right-2 sm:right-0 animate-float" style={{ animationDelay: '3s' }}>
                   <div className="glass ghost-border shadow-glass rounded-xl px-4 py-3 text-center">
                     <p className="text-2xl font-headline font-extrabold text-m3-primary">94%</p>
                     <p className="text-xs text-m3-on-surface-variant mt-0.5">Completion Rate</p>
@@ -215,10 +219,11 @@ export default function LandingPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-4">
               {stats.map((stat, i) => (
-                <div key={i} className="text-center space-y-1.5">
-                  <p className="font-headline font-extrabold text-3xl sm:text-4xl text-gradient-primary">
-                    {stat.value}
-                  </p>
+                <div key={i} className="text-center space-y-1.5 reveal reveal-up" style={{ '--reveal-delay': `${i * 0.1}s` } as React.CSSProperties}>
+                  <AnimatedCounter
+                    value={stat.value}
+                    className="font-headline font-extrabold text-3xl sm:text-4xl text-gradient-primary inline-block"
+                  />
                   <p className="text-sm text-m3-on-surface-variant font-medium">{stat.label}</p>
                 </div>
               ))}
@@ -228,7 +233,7 @@ export default function LandingPage() {
 
         {/* 3. BENTO CATEGORIES */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-          <div className="mb-10 space-y-3">
+          <div className="mb-10 space-y-3 reveal reveal-up">
             <AIInsightChip>Explore by Domain</AIInsightChip>
             <SectionHeader
               title="Core Knowledge Hubs"
@@ -238,7 +243,7 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-[260px]">
             {/* Software Engineering — 2-col */}
-            <div className="sm:col-span-2 relative rounded-xl overflow-hidden group cursor-pointer shadow-editorial">
+            <div className="sm:col-span-2 relative rounded-xl overflow-hidden group cursor-pointer shadow-editorial reveal reveal-scale" style={{ '--reveal-delay': '0s' } as React.CSSProperties}>
               <div className="absolute inset-0 bg-gradient-to-br from-[#1e3a8a] via-[#1e40af] to-[#1d4ed8]" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
               <div className="absolute top-7 right-7 space-y-2 opacity-25 group-hover:opacity-40 transition-opacity">
@@ -266,7 +271,7 @@ export default function LandingPage() {
             </div>
 
             {/* Creative Arts */}
-            <div className="relative rounded-xl overflow-hidden group cursor-pointer shadow-editorial">
+            <div className="relative rounded-xl overflow-hidden group cursor-pointer shadow-editorial reveal reveal-scale" style={{ '--reveal-delay': '0.1s' } as React.CSSProperties}>
               <div className="absolute inset-0 bg-gradient-to-br from-[#004a57] to-[#00796b]" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-6">
@@ -282,7 +287,7 @@ export default function LandingPage() {
             </div>
 
             {/* Digital Business */}
-            <div className="relative rounded-xl overflow-hidden group cursor-pointer shadow-editorial bg-m3-primary-fixed">
+            <div className="relative rounded-xl overflow-hidden group cursor-pointer shadow-editorial bg-m3-primary-fixed reveal reveal-scale" style={{ '--reveal-delay': '0.2s' } as React.CSSProperties}>
               <div className="absolute inset-0 bg-gradient-to-br from-m3-primary-fixed via-m3-secondary-fixed/40 to-m3-primary-fixed" />
               <div className="absolute bottom-0 left-0 right-0 p-6">
                 <div className="flex items-center gap-2 mb-3">
@@ -297,7 +302,7 @@ export default function LandingPage() {
             </div>
 
             {/* Data Science — 2-col */}
-            <div className="sm:col-span-2 relative rounded-xl overflow-hidden group cursor-pointer shadow-editorial">
+            <div className="sm:col-span-2 relative rounded-xl overflow-hidden group cursor-pointer shadow-editorial reveal reveal-scale" style={{ '--reveal-delay': '0.3s' } as React.CSSProperties}>
               <div className="absolute inset-0 gradient-secondary" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-6">
@@ -333,10 +338,10 @@ export default function LandingPage() {
         {/* 4. FEATURED COURSES */}
         <section className="bg-m3-surface-container-low py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="mb-2">
+            <div className="mb-2 reveal reveal-up">
               <AIInsightChip className="mb-4">AI-Curated Picks</AIInsightChip>
             </div>
-            <div className="flex items-center gap-4 mb-10">
+            <div className="flex items-center gap-4 mb-10 reveal reveal-up" style={{ '--reveal-delay': '0.1s' } as React.CSSProperties}>
               <h2 className="font-headline font-bold text-2xl lg:text-3xl text-m3-on-surface whitespace-nowrap">
                 Trending Now
               </h2>
@@ -352,7 +357,8 @@ export default function LandingPage() {
               {featuredCourses.map((course, i) => (
                 <div
                   key={i}
-                  className="bg-m3-surface-container-lowest rounded-xl overflow-hidden shadow-editorial hover:shadow-glass transition-shadow duration-300 group cursor-pointer"
+                  className="bg-m3-surface-container-lowest rounded-xl overflow-hidden shadow-editorial hover:shadow-glass transition-all duration-300 group cursor-pointer hover:-translate-y-1 reveal reveal-up"
+                  style={{ '--reveal-delay': `${0.15 + i * 0.12}s` } as React.CSSProperties}
                 >
                   <div className="relative h-44 overflow-hidden">
                     <div className={`absolute inset-0 bg-gradient-to-br ${course.thumbFrom} ${course.thumbTo}`} />
@@ -396,7 +402,7 @@ export default function LandingPage() {
 
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-              <div className="space-y-8">
+              <div className="space-y-8 reveal reveal-left">
                 <div className="w-12 h-12 rounded-xl gradient-secondary flex items-center justify-center">
                   <Quote className="w-6 h-6 text-white" />
                 </div>
@@ -427,9 +433,9 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              <div className="relative flex justify-center lg:justify-end">
+              <div className="relative flex justify-center lg:justify-end reveal reveal-right" style={{ '--reveal-delay': '0.2s' } as React.CSSProperties}>
                 <div className="relative">
-                  <div className="relative w-72 h-80 rounded-xl overflow-hidden shadow-2xl rotate-3">
+                  <div className="relative w-72 h-80 rounded-xl overflow-hidden shadow-2xl rotate-3 hover:rotate-1 transition-transform duration-500">
                     <div className="absolute inset-0 bg-gradient-to-br from-[#1e40af] via-[#1d4ed8] to-[#3b82f6]" />
                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-8">
                       <div className="w-20 h-20 rounded-full bg-white/20 border-2 border-white/30 flex items-center justify-center">
@@ -451,7 +457,7 @@ export default function LandingPage() {
                     </div>
                   </div>
                   <div className="absolute inset-0 w-72 h-80 rounded-xl bg-gradient-to-br from-[#1e3a8a]/50 to-[#3b82f6]/30 -rotate-3 -z-10 blur-sm" />
-                  <div className="absolute -top-4 -left-6">
+                  <div className="absolute -top-4 -left-6 animate-float">
                     <div className="glass-dark ghost-border rounded-xl px-4 py-2.5 text-center">
                       <p className="font-headline font-bold text-white text-lg">4.9</p>
                       <p className="text-xs text-white/50">Avg. rating</p>
@@ -465,7 +471,7 @@ export default function LandingPage() {
 
         {/* 6. INSTRUCTOR CTA */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-          <div className="relative rounded-xl overflow-hidden shadow-editorial">
+          <div className="relative rounded-xl overflow-hidden shadow-editorial reveal reveal-scale">
             <div className="absolute inset-0 gradient-hero" />
             <div className="absolute inset-0 pointer-events-none">
               <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-white/5 blur-3xl" />

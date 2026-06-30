@@ -4,10 +4,13 @@ import { queryKeys } from "../query-keys";
 import type {
   GapReportAuthoringRead,
   GapReportRead,
+  IntegrityEventsRequest,
+  IntegrityEventsResponse,
   InterviewConfigAuthoring,
   InterviewConfigCreate,
   InterviewConfigPublic,
   InterviewConfigUpdate,
+  InterviewForAuthoringPublic,
   InterviewForTakingPublic,
   InterviewGenerationRequest,
   InterviewGenerationRunPublic,
@@ -17,6 +20,7 @@ import type {
   InterviewSessionStartResponse,
   InterviewSubmitAnswerRequest,
   InterviewSubmitAnswerResponse,
+  RealtimeTokenResponse,
 } from "../types";
 
 export function useInterviewForTaking(configId: string | null | undefined) {
@@ -44,12 +48,18 @@ export function useStartInterviewSession(configId: string | null | undefined) {
   });
 }
 
-export function useInterviewSession(sessionId: string | null | undefined) {
+export function useInterviewSession(
+  sessionId: string | null | undefined,
+  options?: { refetchInterval?: number },
+) {
   return useQuery({
     queryKey: queryKeys.interviews.session(sessionId ?? ""),
     queryFn: () =>
       apiFetch<InterviewSessionPublic>(`/interview-sessions/${sessionId}`),
     enabled: !!sessionId,
+    // Used by the voice-completion flow to poll until the server marks the
+    // session terminal (TanStack Query does NOT poll by default).
+    refetchInterval: options?.refetchInterval,
   });
 }
 
@@ -113,6 +123,17 @@ export function useMyInterviewSessions() {
 
 /* ───────────────── Teacher-side (W5.4) ───────────────── */
 
+export function useInterviewForAuthoring(configId: string | null | undefined) {
+  return useQuery({
+    queryKey: queryKeys.interviews.configAuthoring(configId ?? ""),
+    queryFn: () =>
+      apiFetch<InterviewForAuthoringPublic>(
+        `/teacher/interview-configs/${configId}`,
+      ),
+    enabled: !!configId,
+  });
+}
+
 /**
  * POST /teacher/courses/{course_id}/interview-configs — create a draft config.
  */
@@ -140,6 +161,7 @@ export function useCreateInterviewConfig(courseId: string | undefined) {
 /**
  * GET /teacher/interview-configs/{config_id} — authoring projection (full schema,
  * status widened to draft|published|archived).
+ * @deprecated Use useInterviewForAuthoring instead for access to questions & outcomes.
  */
 export function useInterviewConfig(configId: string | null | undefined) {
   return useQuery({
@@ -304,6 +326,35 @@ export function useTeacherInterviewSession(
         `/interview-sessions/${sessionId}`,
       ),
     enabled: !!sessionId,
+  });
+}
+
+/**
+ * POST /interview-sessions/{session_id}/realtime-token
+ * Fetches a short-lived LiveKit participant token for voice mode.
+ * Errors: 503 voice disabled, 409 wrong mode/status, 403/404 ownership/missing.
+ */
+export function useInterviewRealtimeToken(sessionId: string | null | undefined) {
+  return useMutation({
+    mutationFn: () =>
+      apiPost<RealtimeTokenResponse>(
+        `/interview-sessions/${sessionId}/realtime-token`,
+      ),
+  });
+}
+
+/**
+ * POST /interview-sessions/{session_id}/integrity-events
+ * Batch-posts proctoring/integrity signals. Max 50 events per call.
+ * Never throws into the UI — errors are silently swallowed at the call site.
+ */
+export function useReportIntegrityEvents(sessionId: string | null | undefined) {
+  return useMutation({
+    mutationFn: (body: IntegrityEventsRequest) =>
+      apiPost<IntegrityEventsResponse>(
+        `/interview-sessions/${sessionId}/integrity-events`,
+        body,
+      ),
   });
 }
 

@@ -14,6 +14,7 @@ import {
   Activity,
   Cpu,
   DollarSign,
+  ScrollText,
   Briefcase,
   User,
   type LucideIcon,
@@ -55,6 +56,7 @@ export const adminNavItems: NavItem[] = [
   { label: "Courses", i18nKey: "nav.courses", href: "/admin/courses", icon: BookOpen },
   { label: "Processing", i18nKey: "nav.processing", href: "/admin/processing", icon: Cpu },
   { label: "AI Costs", i18nKey: "nav.ai_costs", href: "/admin/ai-costs", icon: DollarSign },
+  { label: "Audit Logs", i18nKey: "nav.audit_logs", href: "/admin/audit-logs", icon: ScrollText },
   { label: "Health", i18nKey: "nav.health", href: "/admin/health", icon: Shield },
 ];
 
